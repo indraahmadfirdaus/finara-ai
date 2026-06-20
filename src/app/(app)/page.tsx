@@ -81,8 +81,14 @@ function WelcomeMessage({ onHint }: { onHint: (h: string) => void }) {
   )
 }
 
-function generateSessionId() {
-  return crypto.randomUUID()
+const SESSION_KEY = 'finara_chat_session_id'
+
+function getOrCreateSessionId(): string {
+  const existing = sessionStorage.getItem(SESSION_KEY)
+  if (existing) return existing
+  const id = crypto.randomUUID()
+  sessionStorage.setItem(SESSION_KEY, id)
+  return id
 }
 
 export default function ChatPage() {
@@ -92,10 +98,11 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false)
   const [userEmail, setUserEmail] = useState('')
   const [historyOpen, setHistoryOpen] = useState(false)
-  const [sessionId, setSessionId] = useState<string>(() => generateSessionId())
+  const [sessionId, setSessionId] = useState<string>('')
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    setSessionId(getOrCreateSessionId())
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user?.email) setUserEmail(user.email)
@@ -167,9 +174,11 @@ export default function ChatPage() {
   }, [input, loading, router, sessionId])
 
   function startNewChat() {
+    const newId = crypto.randomUUID()
+    sessionStorage.setItem(SESSION_KEY, newId)
+    setSessionId(newId)
     setMessages([])
     setInput('')
-    setSessionId(generateSessionId())
   }
 
   const userInitial = userEmail ? userEmail[0].toUpperCase() : 'K'
@@ -346,7 +355,11 @@ export default function ChatPage() {
       <HistoryDrawer
         open={historyOpen}
         onClose={() => setHistoryOpen(false)}
-        onRestore={(msgs, sid) => { setMessages(msgs); setSessionId(sid) }}
+        onRestore={(msgs, sid) => {
+          sessionStorage.setItem(SESSION_KEY, sid)
+          setSessionId(sid)
+          setMessages(msgs)
+        }}
       />
     </>
   )
