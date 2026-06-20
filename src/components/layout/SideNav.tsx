@@ -33,7 +33,7 @@ export default function SideNav() {
     >
       {/* Logo */}
       <div className="px-6 py-6 flex items-center gap-3" style={{ borderBottom: '1px solid var(--border-light)' }}>
-        <svg width="32" height="32" viewBox="0 0 72 72" fill="none" flex-shrink-0>
+        <svg width="32" height="32" viewBox="0 0 72 72" fill="none" className="flex-shrink-0">
           <circle cx="36" cy="36" r="34" stroke="url(#sng)" strokeWidth="2.5" />
           <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="url(#sng)" strokeWidth="3" strokeLinecap="round" fill="none" />
           <circle cx="36" cy="36" r="3.5" fill="url(#sng)" />

@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { LogOut, User, MessageCircle, Sun, Moon } from 'lucide-react'
-import TopBar from '@/components/layout/TopBar'
+import {
+  Sun, Moon, MessageCircle, LogOut, ChevronRight,
+  TrendingUp, TrendingDown, Palette,
+} from 'lucide-react'
 import PageTransition from '@/components/layout/PageTransition'
 import { createClient } from '@/lib/supabase/client'
 import { formatIDR } from '@/lib/utils/currency'
@@ -15,25 +17,88 @@ interface Stats {
   expense: number
 }
 
+function Row({
+  icon,
+  label,
+  value,
+  onClick,
+  danger,
+  delay,
+  right,
+}: {
+  icon: React.ReactNode
+  label: string
+  value?: string
+  onClick?: () => void
+  danger?: boolean
+  delay?: number
+  right?: React.ReactNode
+}) {
+  return (
+    <motion.button
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: delay ?? 0, duration: 0.22 }}
+      whileTap={{ scale: 0.98 }}
+      onClick={onClick}
+      disabled={!onClick}
+      className="w-full flex items-center gap-4 px-5 py-4 text-left transition-colors"
+      style={{ color: danger ? 'var(--danger)' : 'var(--text-primary)' }}
+      onMouseEnter={(e) => { if (onClick) e.currentTarget.style.background = 'var(--bg-elevated)' }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+    >
+      <span style={{ color: danger ? 'var(--danger)' : 'var(--accent-light)', flexShrink: 0 }}>
+        {icon}
+      </span>
+      <span className="flex-1 text-sm font-medium">{label}</span>
+      {value && (
+        <span className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>{value}</span>
+      )}
+      {right ?? (onClick && <ChevronRight size={15} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />)}
+    </motion.button>
+  )
+}
+
+function Divider() {
+  return <div className="mx-5" style={{ height: 1, background: 'var(--border-light)' }} />
+}
+
+function SectionLabel({ label, delay }: { label: string; delay?: number }) {
+  return (
+    <motion.p
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: delay ?? 0 }}
+      className="px-5 pt-5 pb-1 text-xs font-semibold tracking-widest uppercase"
+      style={{ color: 'var(--text-muted)' }}
+    >
+      {label}
+    </motion.p>
+  )
+}
+
 export default function ProfilePage() {
   const router = useRouter()
   const { theme, toggle } = useTheme()
   const [email, setEmail] = useState('')
   const [stats, setStats] = useState<Stats>({ income: 0, expense: 0 })
+  const [statsLoaded, setStatsLoaded] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user?.email) setEmail(user.email)
     })
-
-    fetch('/api/transactions?period=month&limit=200').then((r) => r.json()).then((data) => {
-      const txs = data.transactions ?? []
-      setStats({
-        income: txs.filter((t: { type: string }) => t.type === 'income').reduce((s: number, t: { amount: number }) => s + t.amount, 0),
-        expense: txs.filter((t: { type: string }) => t.type === 'expense').reduce((s: number, t: { amount: number }) => s + t.amount, 0),
+    fetch('/api/transactions?period=month&limit=200')
+      .then((r) => r.json())
+      .then((data) => {
+        const txs = data.transactions ?? []
+        setStats({
+          income: txs.filter((t: { type: string }) => t.type === 'income').reduce((s: number, t: { amount: number }) => s + t.amount, 0),
+          expense: txs.filter((t: { type: string }) => t.type === 'expense').reduce((s: number, t: { amount: number }) => s + t.amount, 0),
+        })
+        setStatsLoaded(true)
       })
-    })
   }, [])
 
   async function handleLogout() {
@@ -43,123 +108,141 @@ export default function ProfilePage() {
   }
 
   const initial = email ? email[0].toUpperCase() : '?'
+  const username = email ? email.split('@')[0] : ''
 
   return (
     <PageTransition>
-      <TopBar title="Profil" />
-      <div className="px-4 pt-3 space-y-4 lg:max-w-2xl lg:mx-auto lg:px-6">
-        {/* User card */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl p-5 flex items-center gap-4"
-          style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+      <div className="min-h-screen lg:max-w-2xl lg:mx-auto" style={{ background: 'var(--bg-base)' }}>
+
+        {/* Hero header — full bleed accent */}
+        <div
+          className="relative flex flex-col items-center pt-14 pb-8 px-6"
+          style={{ background: 'var(--accent)' }}
         >
-          <div
-            className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl font-bold text-white"
-            style={{ background: 'var(--accent)' }}
+          {/* Avatar */}
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 320, damping: 24 }}
+            className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold text-white mb-4"
+            style={{ background: 'rgba(255,255,255,0.18)', outline: '4px solid rgba(255,255,255,0.28)' }}
           >
             {initial}
-          </div>
-          <div>
-            <div className="flex items-center gap-2 mb-0.5">
-              <User size={13} style={{ color: 'var(--text-muted)' }} />
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Akun</p>
-            </div>
-            <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-              {email}
-            </p>
-          </div>
-        </motion.div>
+          </motion.div>
 
-        {/* This month stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="rounded-2xl p-4"
-          style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
-        >
-          <p className="text-xs font-semibold mb-3" style={{ color: 'var(--text-secondary)' }}>
-            Statistik Bulan Ini
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl p-3" style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
-              <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>Pemasukan</p>
-              <p className="text-sm font-bold" style={{ color: 'var(--success)' }}>{formatIDR(stats.income)}</p>
-            </div>
-            <div className="rounded-xl p-3" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
-              <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>Pengeluaran</p>
-              <p className="text-sm font-bold" style={{ color: 'var(--danger)' }}>{formatIDR(stats.expense)}</p>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Theme toggle */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="rounded-2xl p-4 flex items-center justify-between"
-          style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
-        >
-          <div className="flex items-center gap-3">
-            {theme === 'dark' ? (
-              <Moon size={18} style={{ color: 'var(--accent-light)' }} />
-            ) : (
-              <Sun size={18} style={{ color: '#F59E0B' }} />
-            )}
-            <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-              {theme === 'dark' ? 'Mode Gelap' : 'Mode Terang'}
-            </p>
-          </div>
-          <button
-            onClick={toggle}
-            className="relative w-12 h-6 rounded-full transition-colors duration-300 flex-shrink-0"
-            style={{ background: theme === 'dark' ? 'var(--accent)' : 'var(--border)' }}
+          <motion.p
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-lg font-bold text-white"
           >
-            <motion.div
-              animate={{ x: theme === 'dark' ? 24 : 2 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 32 }}
-              className="absolute top-1 w-4 h-4 rounded-full"
-              style={{ background: 'white' }}
+            {username || '—'}
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="text-sm mt-0.5"
+            style={{ color: 'rgba(255,255,255,0.7)' }}
+          >
+            {email || '—'}
+          </motion.p>
+        </div>
+
+        {/* Body */}
+        <div className="rounded-t-3xl -mt-4 relative z-10" style={{ background: 'var(--bg-base)' }}>
+
+          {/* Statistik bulan ini */}
+          <SectionLabel label="Bulan ini" delay={0.18} />
+          <div
+            className="mx-4 rounded-2xl overflow-hidden"
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+          >
+            <Row
+              icon={<TrendingUp size={17} />}
+              label="Pemasukan"
+              value={statsLoaded ? formatIDR(stats.income) : '—'}
+              delay={0.2}
             />
-          </button>
-        </motion.div>
+            <Divider />
+            <Row
+              icon={<TrendingDown size={17} />}
+              label="Pengeluaran"
+              value={statsLoaded ? formatIDR(stats.expense) : '—'}
+              delay={0.23}
+            />
+          </div>
 
-        {/* Chat with Finara */}
-        <motion.button
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={() => router.push('/')}
-          className="w-full rounded-2xl p-4 flex items-center gap-3"
-          style={{ background: 'var(--accent-dim)', border: '1px solid rgba(124,92,252,0.3)' }}
-        >
-          <MessageCircle size={18} style={{ color: 'var(--accent-light)' }} />
-          <p className="text-sm font-medium" style={{ color: 'var(--accent-light)' }}>
-            Chat dengan Finara
+          {/* Pengaturan */}
+          <SectionLabel label="Pengaturan" delay={0.26} />
+          <div
+            className="mx-4 rounded-2xl overflow-hidden"
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+          >
+            <Row
+              icon={theme === 'dark' ? <Moon size={17} /> : <Sun size={17} />}
+              label={theme === 'dark' ? 'Mode Gelap' : 'Mode Terang'}
+              delay={0.28}
+              onClick={toggle}
+              right={
+                <div
+                  className="relative w-10 h-5 rounded-full transition-colors duration-300 flex-shrink-0"
+                  style={{ background: theme === 'dark' ? 'rgba(124,92,252,0.6)' : 'var(--border)' }}
+                >
+                  <motion.div
+                    animate={{ x: theme === 'dark' ? 20 : 2 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 32 }}
+                    className="absolute top-0.5 w-4 h-4 rounded-full bg-white"
+                  />
+                </div>
+              }
+            />
+          </div>
+
+          {/* Lainnya */}
+          <SectionLabel label="Lainnya" delay={0.3} />
+          <div
+            className="mx-4 rounded-2xl overflow-hidden"
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+          >
+            <Row
+              icon={<MessageCircle size={17} />}
+              label="Chat dengan Finara"
+              delay={0.32}
+              onClick={() => router.push('/')}
+            />
+            <Divider />
+            <Row
+              icon={<Palette size={17} />}
+              label="Tentang Finara"
+              delay={0.34}
+              right={
+                <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: 'var(--accent-dim)', color: 'var(--accent-light)' }}>
+                  v1.0
+                </span>
+              }
+            />
+          </div>
+
+          {/* Keluar */}
+          <div
+            className="mx-4 mt-4 rounded-2xl overflow-hidden"
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+          >
+            <Row
+              icon={<LogOut size={17} />}
+              label="Keluar"
+              delay={0.36}
+              onClick={handleLogout}
+              danger
+            />
+          </div>
+
+          <p className="text-center text-xs py-8" style={{ color: 'var(--text-muted)' }}>
+            Finara · AI Finance Assistant
           </p>
-        </motion.button>
+        </div>
 
-        {/* Logout */}
-        <motion.button
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={handleLogout}
-          className="w-full rounded-2xl p-4 flex items-center gap-3"
-          style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}
-        >
-          <LogOut size={18} style={{ color: 'var(--danger)' }} />
-          <p className="text-sm font-medium" style={{ color: 'var(--danger)' }}>Keluar</p>
-        </motion.button>
-
-        <p className="text-center text-xs py-2" style={{ color: 'var(--text-muted)' }}>
-          Finara v1.0 · AI Finance Assistant
-        </p>
       </div>
     </PageTransition>
   )

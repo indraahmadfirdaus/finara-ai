@@ -10,8 +10,20 @@ const geist = Geist({
 
 export const metadata: Metadata = {
   title: 'Finara — AI Finance Assistant',
-  description: 'Asisten keuangan pribadi bertenaga AI untuk Indonesia',
-  icons: { icon: '/favicon.ico' },
+  description: 'Asisten keuangan pribadi bertenaga AI untuk Indonesia. Catat transaksi, pantau budget, dan kelola keuangan dengan mudah.',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
+  keywords: ['keuangan pribadi', 'finance', 'AI', 'Indonesia', 'catat pengeluaran', 'budget'],
+  authors: [{ name: 'Finara' }],
+  applicationName: 'Finara',
+  openGraph: {
+    title: 'Finara — AI Finance Assistant',
+    description: 'Asisten keuangan pribadi bertenaga AI untuk Indonesia.',
+    type: 'website',
+  },
 }
 
 export const viewport: Viewport = {
