@@ -24,10 +24,10 @@ function SingleDebt({ item, index = 0 }: { item: DebtItem; index?: number }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 320, damping: 24, delay: index * 0.07 }}
-      className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
+      className="flex items-center gap-3 rounded-xl overflow-hidden"
       style={{
         background: settled
           ? 'rgba(107,114,128,0.06)'
@@ -41,14 +41,18 @@ function SingleDebt({ item, index = 0 }: { item: DebtItem; index?: number }) {
             ? 'rgba(239,68,68,0.2)'
             : 'rgba(34,197,94,0.2)'
         }`,
-        borderLeft: `3px solid ${
-          settled ? 'var(--text-muted)' : isOwe ? 'var(--danger)' : 'var(--success)'
-        }`,
         opacity: settled ? 0.6 : 1,
       }}
     >
+      {/* Accent left bar */}
       <div
-        className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+        className="w-1 self-stretch flex-shrink-0"
+        style={{ background: settled ? 'var(--text-muted)' : isOwe ? 'var(--danger)' : 'var(--success)' }}
+      />
+
+      {/* Icon */}
+      <div
+        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ml-4 mr-3 my-3"
         style={{
           background: settled
             ? 'rgba(107,114,128,0.1)'
@@ -58,26 +62,28 @@ function SingleDebt({ item, index = 0 }: { item: DebtItem; index?: number }) {
         }}
       >
         {settled ? (
-          <Check size={14} style={{ color: 'var(--text-muted)' }} />
+          <Check size={15} style={{ color: 'var(--text-muted)' }} />
         ) : (
-          <User size={14} style={{ color: isOwe ? 'var(--danger)' : 'var(--success)' }} />
+          <User size={15} style={{ color: isOwe ? 'var(--danger)' : 'var(--success)' }} />
         )}
       </div>
 
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)', textDecoration: settled ? 'line-through' : 'none' }}>
+      {/* Name + note */}
+      <div className="flex-1 min-w-0 py-3">
+        <p className="text-sm font-semibold leading-tight truncate" style={{ color: 'var(--text-primary)', textDecoration: settled ? 'line-through' : 'none' }}>
           {item.person}
         </p>
         {item.note && (
-          <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>{item.note}</p>
+          <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{item.note}</p>
         )}
       </div>
 
-      <div className="text-right flex-shrink-0">
-        <p className="text-sm font-bold" style={{ color: settled ? 'var(--text-muted)' : isOwe ? 'var(--danger)' : 'var(--success)' }}>
+      {/* Amount + label */}
+      <div className="text-right flex-shrink-0 py-3 pr-4">
+        <p className="text-sm font-bold leading-tight" style={{ color: settled ? 'var(--text-muted)' : isOwe ? 'var(--danger)' : 'var(--success)' }}>
           {formatIDR(item.amount)}
         </p>
-        <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+        <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
           {settled ? 'Lunas' : isOwe ? 'Kamu berhutang' : 'Kamu meminjamkan'}
         </p>
       </div>
@@ -103,7 +109,7 @@ export default function DebtCard({ data }: { data: DebtCardData }) {
       style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
     >
       {showSummary && (
-        <div className="px-3 pt-3 pb-2 flex items-center justify-between">
+        <div className="px-4 pt-3 pb-2 flex items-center justify-between">
           <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
             {items.length} catatan hutang/piutang
           </p>
@@ -118,7 +124,7 @@ export default function DebtCard({ data }: { data: DebtCardData }) {
         </div>
       )}
 
-      <div className="flex flex-col gap-2 p-3 pt-0">
+      <div className="flex flex-col gap-2 p-3">
         {items.map((item, i) => (
           <SingleDebt key={`${item.person}-${i}`} item={item} index={i} />
         ))}

@@ -81,6 +81,49 @@ create policy "users own chat_history" on chat_history
 -- ALTER TABLE chat_history ADD COLUMN IF NOT EXISTS session_id uuid NOT NULL DEFAULT gen_random_uuid();
 -- CREATE INDEX IF NOT EXISTS idx_chat_history_session ON chat_history(user_id, session_id, created_at ASC);
 
+-- assets
+create table if not exists assets (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid references auth.users not null,
+  name        text not null,
+  type        text not null check (type in ('bank', 'investment', 'property', 'vehicle', 'other')),
+  institution text,
+  value       bigint not null default 0,
+  note        text,
+  created_at  timestamptz default now(),
+  updated_at  timestamptz default now()
+);
+alter table assets enable row level security;
+create policy "users own assets" on assets
+  for all using (auth.uid() = user_id);
+
+-- asset_value_logs
+create table if not exists asset_value_logs (
+  id          uuid primary key default gen_random_uuid(),
+  asset_id    uuid references assets(id) on delete cascade,
+  user_id     uuid not null,
+  old_value   bigint not null,
+  new_value   bigint not null,
+  note        text,
+  created_at  timestamptz default now()
+);
+alter table asset_value_logs enable row level security;
+create policy "users own asset_value_logs" on asset_value_logs
+  for all using (auth.uid() = user_id);
+
+-- Trigger: auto-update assets.updated_at
+create or replace function update_updated_at_column()
+returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$ language plpgsql;
+
+create or replace trigger assets_updated_at
+  before update on assets
+  for each row execute function update_updated_at_column();
+
 -- Indexes for performance
 create index if not exists idx_transactions_user_date on transactions(user_id, date desc);
 create index if not exists idx_transactions_user_type on transactions(user_id, type);
@@ -89,3 +132,5 @@ create index if not exists idx_goals_user on goals(user_id, created_at desc);
 create index if not exists idx_debts_user_settled on debts(user_id, settled);
 create index if not exists idx_chat_history_user on chat_history(user_id, created_at desc);
 create index if not exists idx_chat_history_session on chat_history(user_id, session_id, created_at asc);
+create index if not exists idx_assets_user on assets(user_id, type, name);
+create index if not exists idx_asset_logs_asset on asset_value_logs(asset_id, created_at desc);
