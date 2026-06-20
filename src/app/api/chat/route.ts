@@ -440,17 +440,64 @@ export async function POST(request: NextRequest) {
             const accumulatedToolCalls: Record<number, AccumulatedToolCall> = {}
             let hasToolCalls = false
 
+            // Buffer for card blocks — held back until closing ``` is received
+            let cardBuffer = ''
+            let inCardBlock = false
+
+            function flushToken(token: string) {
+              // Check if we're entering a card block
+              if (!inCardBlock) {
+                const combined = cardBuffer + token
+                // Card blocks start with ```card:
+                const openIdx = combined.indexOf('```card:')
+                if (openIdx !== -1) {
+                  // Flush everything before the card block immediately
+                  if (openIdx > 0) {
+                    const before = combined.slice(0, openIdx)
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'text', content: before })}\n\n`))
+                  }
+                  cardBuffer = combined.slice(openIdx)
+                  inCardBlock = true
+                  return
+                }
+                // No card block in sight — flush pending safe prefix
+                // Keep last 8 chars buffered in case ``` is split across chunks
+                const safeLen = Math.max(0, combined.length - 8)
+                if (safeLen > 0) {
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'text', content: combined.slice(0, safeLen) })}\n\n`))
+                  cardBuffer = combined.slice(safeLen)
+                } else {
+                  cardBuffer = combined
+                }
+              } else {
+                // Inside a card block — accumulate until closing ```
+                cardBuffer += token
+                // Closing ``` must come after the opening line
+                const openEnd = cardBuffer.indexOf('\n')
+                if (openEnd !== -1) {
+                  const afterOpen = cardBuffer.slice(openEnd + 1)
+                  const closeIdx = afterOpen.indexOf('```')
+                  if (closeIdx !== -1) {
+                    // Full card block captured — flush atomically
+                    const fullBlock = cardBuffer.slice(0, openEnd + 1 + closeIdx + 3)
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'text', content: fullBlock })}\n\n`))
+                    const remaining = cardBuffer.slice(openEnd + 1 + closeIdx + 3)
+                    cardBuffer = ''
+                    inCardBlock = false
+                    // Process any remaining content after the card block
+                    if (remaining) flushToken(remaining)
+                  }
+                }
+              }
+            }
+
             for await (const chunk of completion) {
               const delta = chunk.choices[0]?.delta
               if (!delta) continue
 
               if (delta.content) {
                 fullContent += delta.content
-                controller.enqueue(
-                  encoder.encode(
-                    `data: ${JSON.stringify({ type: 'text', content: delta.content })}\n\n`
-                  )
-                )
+                flushToken(delta.content)
               }
 
               if (delta.tool_calls) {
@@ -465,6 +512,12 @@ export async function POST(request: NextRequest) {
                   if (tc.id) accumulatedToolCalls[idx].id = tc.id
                 }
               }
+            }
+
+            // Flush any remaining buffered content (tail of normal text)
+            if (cardBuffer && !inCardBlock) {
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'text', content: cardBuffer })}\n\n`))
+              cardBuffer = ''
             }
 
             if (hasToolCalls && Object.keys(accumulatedToolCalls).length > 0) {
