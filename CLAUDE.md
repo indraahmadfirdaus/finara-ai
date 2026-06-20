@@ -711,6 +711,7 @@ export const dynamic = 'force-dynamic'
 | Float amounts to DB | Use `Math.round()` — DB expects bigint |
 | Inline number formatting | Use `formatIDR()` / `formatCompactIDR()` |
 | Direct Saweria link anywhere in UI | Must route through `/support` page |
+| DB schema change without updating `supabase/schema.sql` | Schema file must always reflect the live DB — add new tables/columns/policies there too |
 
 ---
 
@@ -728,3 +729,4 @@ Before opening a PR, verify all of the following:
 - [ ] No secrets in client-side code
 - [ ] `npx tsc --noEmit` passes clean
 - [ ] New nav items added to both SideNav AND BottomNav (or the Daftar sub-menu)
+- [ ] Any new/modified table schema is reflected in `supabase/schema.sql`
