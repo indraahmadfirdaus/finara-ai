@@ -3,14 +3,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence, useInView } from 'framer-motion'
-import { ArrowRight, Sparkles, ShieldCheck, Zap } from 'lucide-react'
+import { ArrowRight, Sparkles, ShieldCheck, Zap, Sun, Moon } from 'lucide-react'
+import { useTheme } from '@/lib/theme'
 
-// Chat demo conversation
 const DEMO = [
   { role: 'user', text: 'beli makan siang 28rb' },
   { role: 'ai', text: 'Siap, dicatat ya! 🍜', card: { label: 'Makanan', amount: 28000, type: 'expense' } },
   { role: 'user', text: 'rekap pengeluaran minggu ini' },
-  { role: 'ai', text: 'Minggu ini kamu udah keluar **Rp 312.000** dari budget bulanan. Terbanyak di Makanan (47%). Masih aman kok! 👍' },
+  { role: 'ai', text: 'Minggu ini kamu udah keluar **Rp 312.000**. Terbanyak di Makanan (47%). Masih aman! 👍' },
   { role: 'user', text: 'gaji masuk 5 juta' },
   { role: 'ai', text: 'Yeay gajian! 🎉 Rp 5.000.000 masuk ke pemasukan.', card: { label: 'Gaji', amount: 5000000, type: 'income' } },
 ]
@@ -43,7 +43,6 @@ function formatIDR(n: number) {
   return 'Rp ' + n.toLocaleString('id-ID')
 }
 
-// Typing bubble component
 function TypingDots() {
   return (
     <div className="flex items-center gap-1 px-4 py-3">
@@ -51,7 +50,7 @@ function TypingDots() {
         <motion.div
           key={i}
           className="w-1.5 h-1.5 rounded-full"
-          style={{ background: 'var(--accent-light)' }}
+          style={{ background: '#A78BFA' }}
           animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }}
           transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.16 }}
         />
@@ -82,7 +81,6 @@ function MiniCard({ label, amount, type }: { label: string; amount: number; type
   )
 }
 
-// Inline bold renderer
 function InlineMd({ text }: { text: string }) {
   const parts = text.split(/(\*\*[^*]+\*\*)/)
   return (
@@ -98,19 +96,22 @@ function InlineMd({ text }: { text: string }) {
   )
 }
 
-// Chat demo — auto-advances through DEMO array with typing delays
+function delay(ms: number) {
+  return new Promise<void>((r) => setTimeout(r, ms))
+}
+
 function ChatDemo() {
   const [shown, setShown] = useState<number[]>([])
   const [typing, setTyping] = useState(false)
   const [userTypingIdx, setUserTypingIdx] = useState<number | null>(null)
   const [userTypingText, setUserTypingText] = useState('')
-  const bottomRef = useRef<HTMLDivElement>(null)
+  // Ref to the scrollable messages container — NOT bottomRef that triggers page scroll
+  const msgsRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     let cancelled = false
 
     async function play() {
-      // Initial pause
       await delay(800)
       if (cancelled) return
 
@@ -118,20 +119,18 @@ function ChatDemo() {
         const item = DEMO[i]
 
         if (item.role === 'user') {
-          // Simulate user typing char by char
           setUserTypingIdx(i)
           setUserTypingText('')
           for (let c = 0; c <= item.text.length; c++) {
             if (cancelled) return
             setUserTypingText(item.text.slice(0, c))
-            await delay(40 + Math.random() * 30)
+            await delay(38 + Math.random() * 28)
           }
           await delay(200)
           setUserTypingIdx(null)
           setShown((prev) => [...prev, i])
           await delay(400)
         } else {
-          // Show AI typing indicator
           setTyping(true)
           await delay(900 + Math.random() * 400)
           if (cancelled) return
@@ -141,7 +140,6 @@ function ChatDemo() {
         }
       }
 
-      // Loop after pause
       await delay(3000)
       if (!cancelled) {
         setShown([])
@@ -156,21 +154,24 @@ function ChatDemo() {
     return () => { cancelled = true }
   }, [])
 
+  // Scroll only the messages container div — never touches window.scrollY
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const el = msgsRef.current
+    if (el) el.scrollTop = el.scrollHeight
   }, [shown, typing, userTypingText])
 
   return (
     <div
-      className="w-full max-w-xs mx-auto rounded-3xl overflow-hidden flex flex-col"
+      className="w-full rounded-3xl overflow-hidden flex flex-col"
       style={{
         background: '#13111E',
         border: '1px solid rgba(255,255,255,0.08)',
-        height: 420,
+        height: 400,
+        maxWidth: 320,
         boxShadow: '0 40px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(124,92,252,0.15), inset 0 1px 0 rgba(255,255,255,0.06)',
       }}
     >
-      {/* Fake status bar */}
+      {/* Header */}
       <div className="flex items-center gap-2 px-4 py-3 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <div className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(124,92,252,0.2)' }}>
           <svg width="16" height="16" viewBox="0 0 72 72" fill="none">
@@ -188,19 +189,24 @@ function ChatDemo() {
           <p className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.9)' }}>finara</p>
           <div className="flex items-center gap-1">
             <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#22C55E' }} />
-            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>Online</p>
+            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>Online</p>
           </div>
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-hidden px-3 py-3 space-y-2.5 flex flex-col justify-end">
+      {/* Scrollable messages — overflow-y-auto scoped here only */}
+      <div
+        ref={msgsRef}
+        className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-2.5"
+        style={{ scrollbarWidth: 'none' }}
+      >
+        {/* flex-1 spacer keeps messages anchored to bottom when few items */}
+        <div className="flex-1 min-h-0" />
+
         <AnimatePresence initial={false}>
           {DEMO.map((item, i) => {
-            const isVisible = shown.includes(i)
-            if (!isVisible) return null
+            if (!shown.includes(i)) return null
             const isUser = item.role === 'user'
-
             return (
               <motion.div
                 key={i}
@@ -213,7 +219,7 @@ function ChatDemo() {
                   className="px-3 py-2 rounded-2xl text-xs leading-relaxed max-w-[85%]"
                   style={
                     isUser
-                      ? { background: 'linear-gradient(135deg, #7C5CFC, #6B46FC)', color: '#fff', borderBottomRightRadius: 4 }
+                      ? { background: 'linear-gradient(135deg,#7C5CFC,#6B46FC)', color: '#fff', borderBottomRightRadius: 4 }
                       : { background: '#1E1E2E', color: 'rgba(255,255,255,0.85)', border: '1px solid rgba(255,255,255,0.07)', borderBottomLeftRadius: 4 }
                   }
                 >
@@ -228,36 +234,20 @@ function ChatDemo() {
             )
           })}
 
-          {/* User currently typing */}
           {userTypingIdx !== null && (
-            <motion.div
-              key="user-typing"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex justify-end"
-            >
+            <motion.div key="user-typing" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="flex justify-end">
               <div
                 className="px-3 py-2 rounded-2xl text-xs leading-relaxed max-w-[85%]"
-                style={{ background: 'linear-gradient(135deg, #7C5CFC, #6B46FC)', color: '#fff', borderBottomRightRadius: 4 }}
+                style={{ background: 'linear-gradient(135deg,#7C5CFC,#6B46FC)', color: '#fff', borderBottomRightRadius: 4 }}
               >
                 {userTypingText || ' '}
-                <span
-                  className="inline-block w-0.5 h-3 ml-0.5 align-middle"
-                  style={{ background: 'rgba(255,255,255,0.7)', animation: 'cursor-blink 0.8s step-end infinite' }}
-                />
+                <span className="inline-block w-0.5 h-3 ml-0.5 align-middle" style={{ background: 'rgba(255,255,255,0.7)', animation: 'cursor-blink 0.8s step-end infinite' }} />
               </div>
             </motion.div>
           )}
 
-          {/* AI typing indicator */}
           {typing && (
-            <motion.div
-              key="ai-typing"
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="flex items-start gap-2"
-            >
+            <motion.div key="ai-typing" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex items-start gap-2">
               <div className="w-6 h-6 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(124,92,252,0.2)' }}>
                 <svg width="12" height="12" viewBox="0 0 72 72" fill="none">
                   <circle cx="36" cy="36" r="28" stroke="#A78BFA" strokeWidth="4" />
@@ -271,17 +261,13 @@ function ChatDemo() {
             </motion.div>
           )}
         </AnimatePresence>
-        <div ref={bottomRef} />
       </div>
 
-      {/* Fake input bar */}
-      <div className="px-3 pb-3 flex-shrink-0">
-        <div
-          className="flex items-center gap-2 px-3 py-2.5 rounded-2xl"
-          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
-        >
+      {/* Fake input */}
+      <div className="px-3 pb-3 pt-1 flex-shrink-0">
+        <div className="flex items-center gap-2 px-3 py-2.5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
           <span className="flex-1 text-xs" style={{ color: 'rgba(255,255,255,0.2)' }}>Ketik pesan...</span>
-          <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#FBB724,#F97316)' }}>
+          <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg,#FBB724,#F97316)' }}>
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
               <path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -294,7 +280,7 @@ function ChatDemo() {
 
 function FeatureTile({ icon: Icon, title, desc, color, bg, delay: d }: typeof FEATURES[0] & { delay: number }) {
   const ref = useRef<HTMLDivElement>(null)
-  const inView = useInView(ref, { once: true, margin: '-60px' })
+  const inView = useInView(ref, { once: true, margin: '-40px' })
 
   return (
     <motion.div
@@ -314,47 +300,39 @@ function FeatureTile({ icon: Icon, title, desc, color, bg, delay: d }: typeof FE
   )
 }
 
-function delay(ms: number) {
-  return new Promise((r) => setTimeout(r, ms))
-}
-
 export default function LandingPage() {
   const router = useRouter()
+  const { theme, toggle } = useTheme()
 
   return (
     <div className="min-h-screen relative overflow-x-hidden" style={{ background: '#0D0D14', color: '#F1F1F3' }}>
 
-      {/* Ambient background — 2 orbs, not symmetric */}
-      <div
-        className="pointer-events-none fixed"
-        style={{
-          top: '-10vh', left: '55%',
-          width: '60vw', height: '60vw', maxWidth: 700, maxHeight: 700,
+      {/* Ambient orbs — fixed, pointer-events-none, never affect layout */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden>
+        <div style={{
+          position: 'absolute', top: '-15%', right: '-5%',
+          width: '55vw', height: '55vw', maxWidth: 640, maxHeight: 640,
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(124,92,252,0.18) 0%, transparent 65%)',
-          filter: 'blur(1px)',
-        }}
-      />
-      <div
-        className="pointer-events-none fixed"
-        style={{
-          bottom: '5vh', left: '-10vw',
-          width: '45vw', height: '45vw', maxWidth: 500, maxHeight: 500,
+          background: 'radial-gradient(circle, rgba(124,92,252,0.2) 0%, transparent 65%)',
+        }} />
+        <div style={{
+          position: 'absolute', bottom: '-10%', left: '-8%',
+          width: '42vw', height: '42vw', maxWidth: 480, maxHeight: 480,
           borderRadius: '50%',
           background: 'radial-gradient(circle, rgba(251,183,36,0.1) 0%, transparent 65%)',
-          filter: 'blur(1px)',
-        }}
-      />
+        }} />
+      </div>
 
       {/* Nav */}
       <motion.nav
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative z-10 flex items-center justify-between px-6 py-5 lg:px-16"
+        className="relative z-10 flex items-center justify-between px-5 py-4 sm:px-8 lg:px-16"
       >
+        {/* Logo */}
         <div className="flex items-center gap-2.5">
-          <svg width="28" height="28" viewBox="0 0 72 72" fill="none">
+          <svg width="26" height="26" viewBox="0 0 72 72" fill="none">
             <circle cx="36" cy="36" r="34" stroke="url(#navg)" strokeWidth="2.5" />
             <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="url(#navg)" strokeWidth="3" strokeLinecap="round" fill="none" />
             <circle cx="36" cy="36" r="3.5" fill="url(#navg)" />
@@ -364,16 +342,30 @@ export default function LandingPage() {
               </linearGradient>
             </defs>
           </svg>
-          <span className="text-base font-bold" style={{ letterSpacing: '-0.02em' }}>finara</span>
+          <span className="text-sm font-bold" style={{ letterSpacing: '-0.02em' }}>finara</span>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Right actions */}
+        <div className="flex items-center gap-2">
+          {/* Theme toggle */}
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={toggle}
+            className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
+            style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.5)' }}
+            title={theme === 'dark' ? 'Mode terang' : 'Mode gelap'}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
+          >
+            {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+          </motion.button>
+
           <button
             onClick={() => router.push('/login')}
-            className="px-4 py-2 rounded-xl text-sm font-medium transition-all"
-            style={{ color: 'rgba(255,255,255,0.6)' }}
+            className="hidden sm:block px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+            style={{ color: 'rgba(255,255,255,0.55)' }}
             onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.6)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.55)')}
           >
             Masuk
           </button>
@@ -381,7 +373,7 @@ export default function LandingPage() {
             whileTap={{ scale: 0.95 }}
             onClick={() => router.push('/register')}
             className="px-4 py-2 rounded-xl text-sm font-semibold text-black"
-            style={{ background: 'linear-gradient(135deg, #FBB724, #F97316)' }}
+            style={{ background: 'linear-gradient(135deg,#FBB724,#F97316)' }}
           >
             Daftar gratis
           </motion.button>
@@ -389,16 +381,16 @@ export default function LandingPage() {
       </motion.nav>
 
       {/* Hero */}
-      <section className="relative z-10 px-6 lg:px-16 pt-8 pb-16 lg:pt-16 lg:pb-24">
-        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+      <section className="relative z-10 px-5 sm:px-8 lg:px-16 pt-6 pb-16 lg:pt-12 lg:pb-24">
+        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-10 lg:gap-20">
 
-          {/* Left — copy */}
-          <div className="flex-1 lg:max-w-lg">
+          {/* Left copy */}
+          <div className="flex-1 lg:max-w-lg text-center lg:text-left">
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-6"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-5"
               style={{ background: 'rgba(124,92,252,0.15)', color: '#A78BFA', border: '1px solid rgba(124,92,252,0.25)' }}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-current" />
@@ -409,11 +401,11 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.18, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              className="text-4xl lg:text-5xl font-bold leading-tight mb-5"
+              className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-4"
               style={{ letterSpacing: '-0.03em' }}
             >
               Catat keuangan{' '}
-              <span style={{ background: 'linear-gradient(135deg, #A78BFA 0%, #7C5CFC 50%, #FBB724 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <span style={{ background: 'linear-gradient(135deg,#A78BFA 0%,#7C5CFC 50%,#FBB724 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 cukup dengan chat
               </span>
             </motion.h1>
@@ -422,8 +414,8 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.28, duration: 0.5 }}
-              className="text-base leading-relaxed mb-8"
-              style={{ color: 'rgba(255,255,255,0.5)' }}
+              className="text-sm sm:text-base leading-relaxed mb-7"
+              style={{ color: 'rgba(255,255,255,0.48)' }}
             >
               Gak perlu aplikasi ribet. Finara ngerti bahasa sehari-hari kamu —
               cukup ketik kayak chat sama teman, data keuangan langsung tersimpan rapi.
@@ -432,15 +424,15 @@ export default function LandingPage() {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.38, duration: 0.5 }}
-              className="flex flex-col sm:flex-row gap-3"
+              transition={{ delay: 0.36, duration: 0.5 }}
+              className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start"
             >
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => router.push('/register')}
                 className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-bold text-black"
-                style={{ background: 'linear-gradient(135deg, #FBB724 0%, #F97316 100%)' }}
+                style={{ background: 'linear-gradient(135deg,#FBB724 0%,#F97316 100%)' }}
               >
                 Mulai gratis sekarang
                 <ArrowRight size={15} />
@@ -460,40 +452,35 @@ export default function LandingPage() {
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.55 }}
+              transition={{ delay: 0.52 }}
               className="mt-4 text-xs"
-              style={{ color: 'rgba(255,255,255,0.25)' }}
+              style={{ color: 'rgba(255,255,255,0.22)' }}
             >
               Gratis selamanya · Tidak perlu kartu kredit · Data aman & terenkripsi
             </motion.p>
           </div>
 
-          {/* Right — live chat demo */}
+          {/* Right — chat demo, centered on mobile */}
           <motion.div
-            initial={{ opacity: 0, x: 24, scale: 0.97 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
+            initial={{ opacity: 0, y: 20, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ delay: 0.3, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full lg:w-auto flex-shrink-0"
+            className="w-full flex justify-center lg:block lg:flex-shrink-0"
           >
             <ChatDemo />
           </motion.div>
         </div>
       </section>
 
-      {/* Divider hint */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.7 }}
-        className="relative z-10 flex items-center gap-4 px-6 lg:px-16 mb-10 max-w-6xl mx-auto"
-      >
+      {/* Section divider */}
+      <div className="relative z-10 flex items-center gap-4 px-5 sm:px-8 lg:px-16 mb-8 max-w-6xl mx-auto">
         <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
-        <span className="text-xs font-semibold tracking-widest uppercase" style={{ color: 'rgba(255,255,255,0.2)' }}>Kenapa Finara?</span>
+        <span className="text-xs font-semibold tracking-widest uppercase flex-shrink-0" style={{ color: 'rgba(255,255,255,0.18)' }}>Kenapa Finara?</span>
         <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
-      </motion.div>
+      </div>
 
       {/* Features */}
-      <section className="relative z-10 px-6 lg:px-16 pb-24">
+      <section className="relative z-10 px-5 sm:px-8 lg:px-16 pb-20">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row gap-4">
           {FEATURES.map((f, i) => (
             <FeatureTile key={f.title} {...f} delay={i * 0.1} />
@@ -502,16 +489,19 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="relative z-10 px-6 lg:px-16 py-8 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+      <footer
+        className="relative z-10 px-5 sm:px-8 lg:px-16 py-6 flex flex-col sm:flex-row items-center justify-between gap-3"
+        style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
+      >
         <div className="flex items-center gap-2">
-          <svg width="18" height="18" viewBox="0 0 72 72" fill="none">
+          <svg width="16" height="16" viewBox="0 0 72 72" fill="none">
             <circle cx="36" cy="36" r="34" stroke="#7C5CFC" strokeWidth="2.5" />
             <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="#7C5CFC" strokeWidth="3" strokeLinecap="round" fill="none" />
             <circle cx="36" cy="36" r="3.5" fill="#7C5CFC" />
           </svg>
-          <span className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.3)' }}>finara · v1.0 Beta</span>
+          <span className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.25)' }}>finara · v1.0 Beta</span>
         </div>
-        <span className="text-xs" style={{ color: 'rgba(255,255,255,0.2)' }}>Dibuat untuk Indonesia 🇮🇩</span>
+        <span className="text-xs" style={{ color: 'rgba(255,255,255,0.18)' }}>Dibuat untuk Indonesia 🇮🇩</span>
       </footer>
 
     </div>
