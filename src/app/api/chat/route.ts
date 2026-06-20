@@ -469,10 +469,12 @@ export async function POST(request: NextRequest) {
           await runCompletion()
 
           const userMsg = messages[messages.length - 1]
-          await supabase.from('chat_history').insert([
-            { user_id: userId, session_id: currentSessionId, role: 'user', content: userMsg.content },
-            { user_id: userId, session_id: currentSessionId, role: 'assistant', content: fullContent },
-          ])
+          await supabase.from('chat_history').insert(
+            { user_id: userId, session_id: currentSessionId, role: 'user', content: userMsg.content }
+          )
+          await supabase.from('chat_history').insert(
+            { user_id: userId, session_id: currentSessionId, role: 'assistant', content: fullContent }
+          )
 
           controller.enqueue(
             encoder.encode(`data: ${JSON.stringify({ type: 'done', session_id: currentSessionId })}\n\n`)
