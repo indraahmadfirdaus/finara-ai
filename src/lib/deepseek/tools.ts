@@ -22,6 +22,39 @@ export const tools: OpenAI.Chat.ChatCompletionTool[] = [
   {
     type: 'function',
     function: {
+      name: 'update_transaction',
+      description: 'Edit/ubah transaksi yang sudah ada berdasarkan ID-nya',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', description: 'UUID transaksi yang ingin diubah' },
+          amount: { type: 'number', description: 'Jumlah baru dalam rupiah (opsional)' },
+          type: { type: 'string', enum: ['income', 'expense'], description: 'Jenis baru (opsional)' },
+          category: { type: 'string', description: 'Kategori baru (opsional)' },
+          note: { type: 'string', description: 'Catatan baru (opsional)' },
+          date: { type: 'string', description: 'Tanggal baru format YYYY-MM-DD (opsional)' },
+        },
+        required: ['id'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'delete_transaction',
+      description: 'Hapus transaksi yang sudah ada berdasarkan ID-nya',
+      parameters: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', description: 'UUID transaksi yang ingin dihapus' },
+        },
+        required: ['id'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
       name: 'get_summary',
       description: 'Dapatkan ringkasan keuangan (total pemasukan, pengeluaran, dan saldo)',
       parameters: {

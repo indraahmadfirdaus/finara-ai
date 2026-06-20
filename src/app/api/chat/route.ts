@@ -25,11 +25,24 @@ Ketika mencatat transaksi, selalu konfirmasi dengan menyebut jumlah dan kategori
 Ketika user minta navigasi ke halaman lain, gunakan tool navigate_to.
 Berikan insight proaktif jika ada pola menarik dalam data keuangan user.
 Format angka selalu dalam rupiah: "Rp 15.000", "Rp 2.500.000".
+
+Untuk EDIT atau HAPUS transaksi:
+- Selalu panggil get_transactions dulu untuk menemukan transaksi yang dimaksud dan mendapatkan ID-nya.
+- Jika ada lebih dari satu transaksi yang cocok, tanya user mana yang dimaksud sebelum melanjutkan.
+- Setelah yakin, panggil update_transaction atau delete_transaction dengan ID yang benar.
+- Setelah hapus, konfirmasi dengan menyebut transaksi yang dihapus.
+
 Setelah tool call berhasil, return response card dalam format markdown:
 \`\`\`card:transaction
 {...json...}
 \`\`\`
-Gunakan card:summary untuk rekap, card:goal untuk goal, card:budget untuk budget, card:debt untuk hutang.`
+Gunakan card:summary untuk rekap, card:goal untuk goal, card:budget untuk budget, card:debt untuk hutang.
+
+Untuk card:transaction, sertakan field "_action":
+- Setelah add_transaction: "_action": "created"
+- Setelah update_transaction: "_action": "updated"
+- Setelah delete_transaction: "_action": "deleted"
+Contoh card setelah edit: { "id": "...", "type": "expense", "amount": 50000, "category": "Makanan", "date": "2026-06-20", "_action": "updated" }`
 
 interface AddTransactionArgs {
   amount: number
@@ -37,6 +50,19 @@ interface AddTransactionArgs {
   category: string
   note?: string
   date?: string
+}
+
+interface UpdateTransactionArgs {
+  id: string
+  amount?: number
+  type?: 'income' | 'expense'
+  category?: string
+  note?: string
+  date?: string
+}
+
+interface DeleteTransactionArgs {
+  id: string
 }
 
 interface GetSummaryArgs {
@@ -117,6 +143,32 @@ async function executeTool(
         .single()
       if (error) throw new Error(error.message)
       return { success: true, transaction: data }
+    }
+
+    case 'update_transaction': {
+      const { id, ...fields } = args as UpdateTransactionArgs
+      if (Object.keys(fields).length === 0) return { success: false, error: 'Tidak ada field yang diubah' }
+      const { data, error } = await supabase
+        .from('transactions')
+        .update(fields)
+        .eq('id', id)
+        .eq('user_id', userId)
+        .select()
+        .single()
+      if (error) throw new Error(error.message)
+      if (!data) return { success: false, error: 'Transaksi tidak ditemukan' }
+      return { success: true, transaction: data }
+    }
+
+    case 'delete_transaction': {
+      const { id } = args as DeleteTransactionArgs
+      const { error } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', userId)
+      if (error) throw new Error(error.message)
+      return { success: true, deleted_id: id }
     }
 
     case 'get_summary': {
