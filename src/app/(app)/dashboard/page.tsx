@@ -6,6 +6,8 @@ import BalanceHero from '@/components/dashboard/BalanceHero'
 import SpendingChartClient from './SpendingChartClient'
 import BudgetProgress from '@/components/dashboard/BudgetProgress'
 import RecentTransactions from '@/components/dashboard/RecentTransactions'
+import SpendingBars from '@/components/dashboard/SpendingBars'
+import BalanceTrend from '@/components/dashboard/BalanceTrend'
 
 async function getDashboardData() {
   const supabase = await createClient()
@@ -18,7 +20,7 @@ async function getDashboardData() {
   const [txResult, budgetsResult, recentResult] = await Promise.all([
     supabase
       .from('transactions')
-      .select('amount, type, category')
+      .select('amount, type, category, date')
       .eq('user_id', user.id)
       .gte('date', range.start)
       .lte('date', range.end),
@@ -48,6 +50,21 @@ async function getDashboardData() {
     .sort((a, b) => b[1] - a[1])
     .map(([category, amount]) => ({ category, amount }))
 
+  // Daily aggregation for trend chart — group by date
+  const dailyMap: Record<string, { expense: number; income: number }> = {}
+  for (const r of txRows) {
+    if (!dailyMap[r.date]) dailyMap[r.date] = { expense: 0, income: 0 }
+    if (r.type === 'expense') dailyMap[r.date].expense += r.amount
+    else dailyMap[r.date].income += r.amount
+  }
+  const dailyTrend = Object.entries(dailyMap)
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([date, val]) => {
+      const d = new Date(date)
+      const label = `${d.getDate()} ${d.toLocaleString('id-ID', { month: 'short' })}`
+      return { label, ...val }
+    })
+
   const budgets = (budgetsResult.data ?? []).map((b) => ({
     ...b,
     used: expenseByCategory[b.category] ?? 0,
@@ -59,6 +76,7 @@ async function getDashboardData() {
     expense,
     balance: income - expense,
     spendingChartData,
+    dailyTrend,
     budgets,
     recentTransactions: recentResult.data ?? [],
   }
@@ -90,7 +108,18 @@ export default async function DashboardPage() {
         {/* Desktop: two-column grid */}
         <div className="lg:grid lg:grid-cols-2 lg:gap-5 space-y-5 lg:space-y-0 mt-5 lg:mt-0 mx-4 lg:mx-0">
 
-          {/* Spending chart */}
+          {/* Spending chart (pie/donut) */}
+          <div
+            className="rounded-2xl p-4"
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+          >
+            <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
+              Distribusi Pengeluaran
+            </h3>
+            <SpendingChartClient data={data?.spendingChartData ?? []} />
+          </div>
+
+          {/* Spending bars — category breakdown with animated bars */}
           <div
             className="rounded-2xl p-4"
             style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
@@ -98,7 +127,18 @@ export default async function DashboardPage() {
             <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
               Pengeluaran per Kategori
             </h3>
-            <SpendingChartClient data={data?.spendingChartData ?? []} />
+            <SpendingBars data={data?.spendingChartData ?? []} />
+          </div>
+
+          {/* Balance trend sparkline — full width */}
+          <div
+            className="rounded-2xl p-4 lg:col-span-2"
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+          >
+            <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
+              Tren Keuangan Bulan Ini
+            </h3>
+            <BalanceTrend points={data?.dailyTrend ?? []} />
           </div>
 
           {/* Recent transactions */}
@@ -112,10 +152,10 @@ export default async function DashboardPage() {
             <RecentTransactions transactions={data?.recentTransactions ?? []} />
           </div>
 
-          {/* Budget progress — spans full width on desktop */}
+          {/* Budget progress */}
           {data?.budgets && data.budgets.length > 0 && (
             <div
-              className="rounded-2xl p-4 lg:col-span-2"
+              className="rounded-2xl p-4"
               style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
             >
               <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
