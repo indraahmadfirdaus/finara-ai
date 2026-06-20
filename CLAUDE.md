@@ -247,6 +247,11 @@ Every card rendered in chat **must** follow this exact pattern. `TransactionCard
 | DebtCard | `var(--danger)` | type = 'owe' |
 | DebtCard | `var(--success)` | type = 'lent' |
 | DebtCard | `var(--text-muted)` | settled |
+| AssetCard | `var(--accent)` | type = 'bank' |
+| AssetCard | `var(--success)` | type = 'investment' |
+| AssetCard | `#F59E0B` | type = 'property' |
+| AssetCard | `var(--text-secondary)` | type = 'vehicle' |
+| AssetCard | `var(--text-muted)` | type = 'other' |
 
 ### Card Formats from AI (System Prompt)
 
@@ -272,6 +277,11 @@ The AI sends cards as markdown code blocks. These are parsed by `StreamingText.t
 
 ```card:summary
 { "period": "bulan ini", "income": 5000000, "expense": 2500000, "balance": 2500000 }
+```
+
+```card:asset
+{ "name": "Reksadana Bibit", "type": "investment", "institution": "Bibit", "value": 200000000, "_action": "created" }
+// For list (get_assets): { "items": [{ "name": "BCA", "type": "bank", "value": 50000000 }], "total": 50000000 }
 ```
 ````
 
@@ -513,6 +523,7 @@ All 17 tools execute in `/api/chat/route.ts`. The client receives only SSE event
 | Budgets | `set_budget`, `get_budgets` |
 | Goals | `add_goal`, `deposit_goal`, `get_goals` |
 | Debts | `add_debt`, `settle_debt`, `get_debts` |
+| Assets | `add_asset`, `update_asset_value`, `get_assets`, `delete_asset` |
 | Insights | `get_insights` |
 | Navigation | `navigate_to` |
 
@@ -591,6 +602,19 @@ settled_at timestamptz?, created_at timestamptz
 id uuid, user_id uuid, session_id uuid, role ('user'|'assistant'),
 content text, created_at timestamptz
 INDEX: (user_id, session_id, created_at ASC)
+```
+
+#### assets
+```sql
+id uuid, user_id uuid, name text, type ('bank'|'investment'|'property'|'vehicle'|'other'),
+institution text?, value bigint (default 0), note text?,
+created_at timestamptz, updated_at timestamptz (auto-updated via trigger)
+```
+
+#### asset_value_logs
+```sql
+id uuid, asset_id uuid (FK → assets.id ON DELETE CASCADE), user_id uuid,
+old_value bigint, new_value bigint, note text?, created_at timestamptz
 ```
 
 ### Amount — bigint
