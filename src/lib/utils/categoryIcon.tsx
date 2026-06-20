@@ -1,8 +1,9 @@
 import {
-  Utensils, Car, ShoppingBag, Zap, Heart, GraduationCap, Gamepad2,
+  UtensilsCrossed, Car, ShoppingBag, Zap, Heart, GraduationCap, Gamepad2,
   Home, Plane, Coffee, Gift, Briefcase, TrendingUp, Banknote, Repeat,
   PiggyBank, Shirt, Smartphone, Dumbbell, Baby, Dog, Music, BookOpen,
-  Wrench, Bus, Fuel, CreditCard, DollarSign,
+  Wrench, Bus, Fuel, CreditCard, DollarSign, Sparkles, Users, Wallet,
+  Building2, Laptop, Receipt, Droplets,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -12,108 +13,218 @@ interface CategoryMeta {
   color: string
 }
 
-const MAP: Record<string, CategoryMeta> = {
-  // Food & drink
-  makan:       { icon: Utensils,    bg: 'rgba(251,146,60,0.15)',  color: '#FB923C' },
-  makanan:     { icon: Utensils,    bg: 'rgba(251,146,60,0.15)',  color: '#FB923C' },
-  minum:       { icon: Coffee,      bg: 'rgba(161,98,7,0.15)',    color: '#A16207' },
-  minuman:     { icon: Coffee,      bg: 'rgba(161,98,7,0.15)',    color: '#A16207' },
-  kopi:        { icon: Coffee,      bg: 'rgba(161,98,7,0.15)',    color: '#A16207' },
-  restoran:    { icon: Utensils,    bg: 'rgba(251,146,60,0.15)',  color: '#FB923C' },
-  food:        { icon: Utensils,    bg: 'rgba(251,146,60,0.15)',  color: '#FB923C' },
-  'food & drink': { icon: Utensils, bg: 'rgba(251,146,60,0.15)', color: '#FB923C' },
+// Canonical categories → icon + palette
+const CANONICAL: Record<string, CategoryMeta> = {
+  'Makanan & Minuman': { icon: UtensilsCrossed, bg: 'rgba(251,146,60,0.15)',  color: '#FB923C' },
+  'Transportasi':      { icon: Car,             bg: 'rgba(129,140,248,0.15)', color: '#818CF8' },
+  'Belanja':           { icon: ShoppingBag,     bg: 'rgba(244,114,182,0.15)', color: '#F472B6' },
+  'Hiburan':           { icon: Gamepad2,        bg: 'rgba(52,211,153,0.15)',  color: '#34D399' },
+  'Kesehatan':         { icon: Heart,           bg: 'rgba(248,113,113,0.15)', color: '#F87171' },
+  'Pendidikan':        { icon: GraduationCap,   bg: 'rgba(167,139,250,0.15)', color: '#A78BFA' },
+  'Tagihan & Utilitas':{ icon: Receipt,         bg: 'rgba(251,191,36,0.15)',  color: '#FBBF24' },
+  'Rumah':             { icon: Home,            bg: 'rgba(45,212,191,0.15)',  color: '#2DD4BF' },
+  'Travel':            { icon: Plane,           bg: 'rgba(56,189,248,0.15)',  color: '#38BDF8' },
+  'Perawatan Diri':    { icon: Sparkles,        bg: 'rgba(232,121,249,0.15)', color: '#E879F9' },
+  'Anak & Keluarga':   { icon: Baby,            bg: 'rgba(249,168,212,0.25)', color: '#F9A8D4' },
+  'Hewan Peliharaan':  { icon: Dog,             bg: 'rgba(217,119,6,0.15)',   color: '#D97706' },
+  'Sosial & Hadiah':   { icon: Gift,            bg: 'rgba(251,113,133,0.15)', color: '#FB7185' },
+  'Cicilan & Hutang':  { icon: CreditCard,      bg: 'rgba(239,68,68,0.15)',   color: '#EF4444' },
+  'Lainnya':           { icon: DollarSign,      bg: 'rgba(107,114,128,0.15)', color: '#6B7280' },
+  // Income
+  'Gaji':              { icon: Briefcase,       bg: 'rgba(74,222,128,0.15)',  color: '#4ADE80' },
+  'Freelance':         { icon: Laptop,          bg: 'rgba(16,185,129,0.15)',  color: '#10B981' },
+  'Bisnis':            { icon: Building2,       bg: 'rgba(52,211,153,0.15)',  color: '#34D399' },
+  'Investasi':         { icon: TrendingUp,      bg: 'rgba(34,197,94,0.15)',   color: '#22C55E' },
+  'Bonus':             { icon: Wallet,          bg: 'rgba(134,239,172,0.15)', color: '#86EFAC' },
+  'Hadiah':            { icon: Gift,            bg: 'rgba(192,132,252,0.15)', color: '#C084FC' },
+  'Transfer Masuk':    { icon: Repeat,          bg: 'rgba(96,165,250,0.15)',  color: '#60A5FA' },
+}
 
-  // Transport
-  transport:   { icon: Car,         bg: 'rgba(99,102,241,0.15)', color: '#818CF8' },
-  transportasi:{ icon: Car,         bg: 'rgba(99,102,241,0.15)', color: '#818CF8' },
-  bensin:      { icon: Fuel,        bg: 'rgba(99,102,241,0.15)', color: '#818CF8' },
-  parkir:      { icon: Car,         bg: 'rgba(99,102,241,0.15)', color: '#818CF8' },
-  ojek:        { icon: Bus,         bg: 'rgba(99,102,241,0.15)', color: '#818CF8' },
-  grab:        { icon: Car,         bg: 'rgba(99,102,241,0.15)', color: '#818CF8' },
-  gojek:       { icon: Car,         bg: 'rgba(99,102,241,0.15)', color: '#818CF8' },
+// Keyword → canonical category (for fuzzy matching free-text categories)
+const KEYWORD_MAP: Record<string, string> = {
+  // Makanan & Minuman
+  makan:              'Makanan & Minuman',
+  makanan:            'Makanan & Minuman',
+  minum:              'Makanan & Minuman',
+  minuman:            'Makanan & Minuman',
+  kopi:               'Makanan & Minuman',
+  restoran:           'Makanan & Minuman',
+  warung:             'Makanan & Minuman',
+  cafe:               'Makanan & Minuman',
+  food:               'Makanan & Minuman',
+  drink:              'Makanan & Minuman',
+  'f&b':              'Makanan & Minuman',
+  'food & drink':     'Makanan & Minuman',
+  'food & beverage':  'Makanan & Minuman',
+  snack:              'Makanan & Minuman',
+  jajan:              'Makanan & Minuman',
+  grocery:            'Makanan & Minuman',
+  groceries:          'Makanan & Minuman',
+  supermarket:        'Makanan & Minuman',
+  bahan:              'Makanan & Minuman',
 
-  // Shopping
-  belanja:     { icon: ShoppingBag, bg: 'rgba(236,72,153,0.15)', color: '#F472B6' },
-  shopping:    { icon: ShoppingBag, bg: 'rgba(236,72,153,0.15)', color: '#F472B6' },
-  baju:        { icon: Shirt,       bg: 'rgba(236,72,153,0.15)', color: '#F472B6' },
-  pakaian:     { icon: Shirt,       bg: 'rgba(236,72,153,0.15)', color: '#F472B6' },
+  // Transportasi
+  transport:          'Transportasi',
+  transportasi:       'Transportasi',
+  bensin:             'Transportasi',
+  parkir:             'Transportasi',
+  ojek:               'Transportasi',
+  grab:               'Transportasi',
+  gojek:              'Transportasi',
+  bus:                'Transportasi',
+  kereta:             'Transportasi',
+  commuter:           'Transportasi',
+  taksi:              'Transportasi',
+  taxi:               'Transportasi',
+  toll:               'Transportasi',
+  tol:                'Transportasi',
+  fuel:               'Transportasi',
 
-  // Bills & utilities
-  tagihan:     { icon: Zap,         bg: 'rgba(234,179,8,0.15)',  color: '#EAB308' },
-  listrik:     { icon: Zap,         bg: 'rgba(234,179,8,0.15)',  color: '#EAB308' },
-  air:         { icon: Zap,         bg: 'rgba(59,130,246,0.15)', color: '#60A5FA' },
-  internet:    { icon: Smartphone,  bg: 'rgba(234,179,8,0.15)',  color: '#EAB308' },
-  utilities:   { icon: Zap,         bg: 'rgba(234,179,8,0.15)',  color: '#EAB308' },
-  pulsa:       { icon: Smartphone,  bg: 'rgba(234,179,8,0.15)',  color: '#EAB308' },
-  telepon:     { icon: Smartphone,  bg: 'rgba(234,179,8,0.15)',  color: '#EAB308' },
+  // Belanja
+  belanja:            'Belanja',
+  shopping:           'Belanja',
+  baju:               'Belanja',
+  pakaian:            'Belanja',
+  sepatu:             'Belanja',
+  tas:                'Belanja',
+  fashion:            'Belanja',
+  aksesoris:          'Belanja',
 
-  // Health
-  kesehatan:   { icon: Heart,       bg: 'rgba(239,68,68,0.15)',  color: '#F87171' },
-  health:      { icon: Heart,       bg: 'rgba(239,68,68,0.15)',  color: '#F87171' },
-  obat:        { icon: Heart,       bg: 'rgba(239,68,68,0.15)',  color: '#F87171' },
-  dokter:      { icon: Heart,       bg: 'rgba(239,68,68,0.15)',  color: '#F87171' },
-  rumah_sakit: { icon: Heart,       bg: 'rgba(239,68,68,0.15)',  color: '#F87171' },
-  gym:         { icon: Dumbbell,    bg: 'rgba(239,68,68,0.15)',  color: '#F87171' },
-  olahraga:    { icon: Dumbbell,    bg: 'rgba(239,68,68,0.15)',  color: '#F87171' },
+  // Hiburan
+  hiburan:            'Hiburan',
+  entertainment:      'Hiburan',
+  game:               'Hiburan',
+  gaming:             'Hiburan',
+  musik:              'Hiburan',
+  music:              'Hiburan',
+  streaming:          'Hiburan',
+  netflix:            'Hiburan',
+  spotify:            'Hiburan',
+  bioskop:            'Hiburan',
+  nonton:             'Hiburan',
+  konser:             'Hiburan',
+  event:              'Hiburan',
 
-  // Education
-  pendidikan:  { icon: GraduationCap, bg: 'rgba(139,92,246,0.15)', color: '#A78BFA' },
-  education:   { icon: GraduationCap, bg: 'rgba(139,92,246,0.15)', color: '#A78BFA' },
-  sekolah:     { icon: GraduationCap, bg: 'rgba(139,92,246,0.15)', color: '#A78BFA' },
-  kursus:      { icon: BookOpen,    bg: 'rgba(139,92,246,0.15)', color: '#A78BFA' },
-  buku:        { icon: BookOpen,    bg: 'rgba(139,92,246,0.15)', color: '#A78BFA' },
+  // Kesehatan
+  kesehatan:          'Kesehatan',
+  health:             'Kesehatan',
+  obat:               'Kesehatan',
+  dokter:             'Kesehatan',
+  rumah_sakit:        'Kesehatan',
+  rs:                 'Kesehatan',
+  klinik:             'Kesehatan',
+  gym:                'Kesehatan',
+  olahraga:           'Kesehatan',
+  fitness:            'Kesehatan',
+  apotek:             'Kesehatan',
 
-  // Entertainment
-  hiburan:     { icon: Gamepad2,    bg: 'rgba(16,185,129,0.15)', color: '#34D399' },
-  entertainment:{ icon: Gamepad2,  bg: 'rgba(16,185,129,0.15)', color: '#34D399' },
-  game:        { icon: Gamepad2,    bg: 'rgba(16,185,129,0.15)', color: '#34D399' },
-  musik:       { icon: Music,       bg: 'rgba(16,185,129,0.15)', color: '#34D399' },
-  streaming:   { icon: Music,       bg: 'rgba(16,185,129,0.15)', color: '#34D399' },
-  bioskop:     { icon: Gamepad2,    bg: 'rgba(16,185,129,0.15)', color: '#34D399' },
-  nonton:      { icon: Gamepad2,    bg: 'rgba(16,185,129,0.15)', color: '#34D399' },
+  // Pendidikan
+  pendidikan:         'Pendidikan',
+  education:          'Pendidikan',
+  sekolah:            'Pendidikan',
+  kuliah:             'Pendidikan',
+  kursus:             'Pendidikan',
+  buku:               'Pendidikan',
+  les:                'Pendidikan',
+  seminar:            'Pendidikan',
+  workshop:           'Pendidikan',
 
-  // Home
-  rumah:       { icon: Home,        bg: 'rgba(20,184,166,0.15)', color: '#2DD4BF' },
-  sewa:        { icon: Home,        bg: 'rgba(20,184,166,0.15)', color: '#2DD4BF' },
-  kontrakan:   { icon: Home,        bg: 'rgba(20,184,166,0.15)', color: '#2DD4BF' },
-  kos:         { icon: Home,        bg: 'rgba(20,184,166,0.15)', color: '#2DD4BF' },
-  perlengkapan:{ icon: Wrench,      bg: 'rgba(20,184,166,0.15)', color: '#2DD4BF' },
+  // Tagihan & Utilitas
+  tagihan:            'Tagihan & Utilitas',
+  utilities:          'Tagihan & Utilitas',
+  listrik:            'Tagihan & Utilitas',
+  air:                'Tagihan & Utilitas',
+  internet:           'Tagihan & Utilitas',
+  pulsa:              'Tagihan & Utilitas',
+  telepon:            'Tagihan & Utilitas',
+  gas:                'Tagihan & Utilitas',
+  iuran:              'Tagihan & Utilitas',
+  subscription:       'Tagihan & Utilitas',
+  langganan:          'Tagihan & Utilitas',
+
+  // Rumah
+  rumah:              'Rumah',
+  sewa:               'Rumah',
+  kontrakan:          'Rumah',
+  kos:                'Rumah',
+  perlengkapan:       'Rumah',
+  furnitur:           'Rumah',
+  renovasi:           'Rumah',
+  dekorasi:           'Rumah',
+  perabotan:          'Rumah',
 
   // Travel
-  travel:      { icon: Plane,       bg: 'rgba(14,165,233,0.15)', color: '#38BDF8' },
-  liburan:     { icon: Plane,       bg: 'rgba(14,165,233,0.15)', color: '#38BDF8' },
-  hotel:       { icon: Plane,       bg: 'rgba(14,165,233,0.15)', color: '#38BDF8' },
-  wisata:      { icon: Plane,       bg: 'rgba(14,165,233,0.15)', color: '#38BDF8' },
+  travel:             'Travel',
+  liburan:            'Travel',
+  hotel:              'Travel',
+  wisata:             'Travel',
+  tiket:              'Travel',
+  pesawat:            'Travel',
+  vacation:           'Travel',
+  trip:               'Travel',
 
-  // Gifts & social
-  hadiah:      { icon: Gift,        bg: 'rgba(244,63,94,0.15)',  color: '#FB7185' },
-  gift:        { icon: Gift,        bg: 'rgba(244,63,94,0.15)',  color: '#FB7185' },
-  donasi:      { icon: Gift,        bg: 'rgba(244,63,94,0.15)',  color: '#FB7185' },
-  sosial:      { icon: Gift,        bg: 'rgba(244,63,94,0.15)',  color: '#FB7185' },
+  // Perawatan Diri
+  perawatan:          'Perawatan Diri',
+  skincare:           'Perawatan Diri',
+  salon:              'Perawatan Diri',
+  barbershop:         'Perawatan Diri',
+  kecantikan:         'Perawatan Diri',
+  beauty:             'Perawatan Diri',
+  spa:                'Perawatan Diri',
+  makeup:             'Perawatan Diri',
 
-  // Income sources
-  gaji:        { icon: Briefcase,   bg: 'rgba(34,197,94,0.15)',  color: '#4ADE80' },
-  salary:      { icon: Briefcase,   bg: 'rgba(34,197,94,0.15)',  color: '#4ADE80' },
-  freelance:   { icon: Briefcase,   bg: 'rgba(34,197,94,0.15)',  color: '#4ADE80' },
-  bisnis:      { icon: Briefcase,   bg: 'rgba(34,197,94,0.15)',  color: '#4ADE80' },
-  bonus:       { icon: TrendingUp,  bg: 'rgba(34,197,94,0.15)',  color: '#4ADE80' },
-  investasi:   { icon: TrendingUp,  bg: 'rgba(34,197,94,0.15)',  color: '#4ADE80' },
-  investment:  { icon: TrendingUp,  bg: 'rgba(34,197,94,0.15)',  color: '#4ADE80' },
-  dividen:     { icon: TrendingUp,  bg: 'rgba(34,197,94,0.15)',  color: '#4ADE80' },
-  transfer:    { icon: Repeat,      bg: 'rgba(34,197,94,0.15)',  color: '#4ADE80' },
-  pemasukan:   { icon: Banknote,    bg: 'rgba(34,197,94,0.15)',  color: '#4ADE80' },
-  income:      { icon: Banknote,    bg: 'rgba(34,197,94,0.15)',  color: '#4ADE80' },
+  // Anak & Keluarga
+  anak:               'Anak & Keluarga',
+  keluarga:           'Anak & Keluarga',
+  family:             'Anak & Keluarga',
+  bayi:               'Anak & Keluarga',
+  susu:               'Anak & Keluarga',
+  popok:              'Anak & Keluarga',
+  mainan:             'Anak & Keluarga',
 
-  // Savings / debt
-  tabungan:    { icon: PiggyBank,   bg: 'rgba(124,92,252,0.15)', color: '#A78BFA' },
-  savings:     { icon: PiggyBank,   bg: 'rgba(124,92,252,0.15)', color: '#A78BFA' },
-  hutang:      { icon: CreditCard,  bg: 'rgba(239,68,68,0.15)',  color: '#F87171' },
-  cicilan:     { icon: CreditCard,  bg: 'rgba(239,68,68,0.15)',  color: '#F87171' },
+  // Hewan Peliharaan
+  hewan:              'Hewan Peliharaan',
+  peliharaan:         'Hewan Peliharaan',
+  pet:                'Hewan Peliharaan',
+  kucing:             'Hewan Peliharaan',
+  anjing:             'Hewan Peliharaan',
 
-  // Kids / pets
-  anak:        { icon: Baby,        bg: 'rgba(251,207,232,0.3)', color: '#F9A8D4' },
-  hewan:       { icon: Dog,         bg: 'rgba(161,98,7,0.15)',   color: '#D97706' },
-  peliharaan:  { icon: Dog,         bg: 'rgba(161,98,7,0.15)',   color: '#D97706' },
+  // Sosial & Hadiah
+  hadiah:             'Sosial & Hadiah',
+  gift:               'Sosial & Hadiah',
+  donasi:             'Sosial & Hadiah',
+  sosial:             'Sosial & Hadiah',
+  sedekah:            'Sosial & Hadiah',
+  arisan:             'Sosial & Hadiah',
+  pesta:              'Sosial & Hadiah',
+
+  // Cicilan & Hutang
+  hutang:             'Cicilan & Hutang',
+  cicilan:            'Cicilan & Hutang',
+  kredit:             'Cicilan & Hutang',
+  kpr:                'Cicilan & Hutang',
+  angsuran:           'Cicilan & Hutang',
+  debt:               'Cicilan & Hutang',
+
+  // Income
+  gaji:               'Gaji',
+  salary:             'Gaji',
+  upah:               'Gaji',
+  freelance:          'Freelance',
+  bisnis:             'Bisnis',
+  business:           'Bisnis',
+  usaha:              'Bisnis',
+  investasi:          'Investasi',
+  investment:         'Investasi',
+  dividen:            'Investasi',
+  saham:              'Investasi',
+  bonus:              'Bonus',
+  thr:                'Bonus',
+  transfer:           'Transfer Masuk',
+  pemasukan:          'Transfer Masuk',
+  income:             'Transfer Masuk',
+  tabungan:           'Transfer Masuk',
+  savings:            'Transfer Masuk',
 }
 
 function normalize(cat: string): string {
@@ -123,17 +234,24 @@ function normalize(cat: string): string {
 export function getCategoryMeta(category: string, type?: 'income' | 'expense'): CategoryMeta {
   const key = normalize(category)
 
-  // Exact match
-  if (MAP[key]) return MAP[key]
+  // 1. Exact canonical match (case-insensitive)
+  const canonicalKey = Object.keys(CANONICAL).find(k => k.toLowerCase() === key)
+  if (canonicalKey) return CANONICAL[canonicalKey]
 
-  // Partial match — first key that the category string contains or vice versa
-  for (const [k, v] of Object.entries(MAP)) {
-    if (key.includes(k) || k.includes(key)) return v
+  // 2. Keyword → canonical
+  const mappedCategory = KEYWORD_MAP[key]
+  if (mappedCategory && CANONICAL[mappedCategory]) return CANONICAL[mappedCategory]
+
+  // 3. Partial keyword scan
+  for (const [kw, cat] of Object.entries(KEYWORD_MAP)) {
+    if (key.includes(kw) || kw.includes(key)) {
+      if (CANONICAL[cat]) return CANONICAL[cat]
+    }
   }
 
-  // Fallback by type
+  // 4. Fallback by type
   if (type === 'income') {
-    return { icon: Banknote, bg: 'rgba(34,197,94,0.15)', color: '#4ADE80' }
+    return { icon: Banknote, bg: 'rgba(74,222,128,0.15)', color: '#4ADE80' }
   }
-  return { icon: DollarSign, bg: 'rgba(161,161,170,0.15)', color: '#A1A1AA' }
+  return { icon: DollarSign, bg: 'rgba(107,114,128,0.15)', color: '#6B7280' }
 }

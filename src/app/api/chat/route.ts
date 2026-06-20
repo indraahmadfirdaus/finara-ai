@@ -79,7 +79,19 @@ Sertakan field "_action" pada card setelah operasi write berhasil:
 Contoh card:transaction setelah edit: { "id": "...", "type": "expense", "amount": 50000, "category": "Makanan & Minuman", "date": "2026-06-20", "_action": "updated" }
 Contoh card:budget setelah buat: { "category": "Transportasi", "limit": 500000, "used": 0, "percent": 0, "_action": "created" }
 Contoh card:goal setelah buat: { "name": "Liburan", "target": 5000000, "current": 0, "percent": 0, "_action": "created" }
-Contoh card:debt setelah catat: { "person": "Budi", "amount": 50000, "type": "owe", "note": "kopi", "_action": "created" }`
+Contoh card:debt setelah catat: { "person": "Budi", "amount": 50000, "type": "owe", "note": "kopi", "_action": "created" }
+
+Fitur ASET — gunakan tool add_asset, update_asset_value, get_assets, delete_asset.
+Tipe aset valid: bank (rekening/tabungan), investment (investasi), property (properti), vehicle (kendaraan), other (lainnya).
+Setelah operasi aset, return card dalam format:
+\`\`\`card:asset
+{ "name": "Reksadana Bibit", "type": "investment", "institution": "Bibit", "value": 200000000, "_action": "created" }
+\`\`\`
+Untuk list aset (get_assets), gunakan field "items":
+\`\`\`card:asset
+{ "items": [{ "name": "BCA Tahapan", "type": "bank", "value": 50000000 }, { "name": "Reksadana Bibit", "type": "investment", "value": 200000000 }], "total": 250000000 }
+\`\`\`
+JANGAN tampilkan tabel markdown untuk aset — selalu gunakan card:asset.`
 }
 
 interface AddTransactionArgs {
@@ -157,6 +169,28 @@ interface GetInsightsArgs {
 
 interface NavigateArgs {
   page: string
+}
+
+interface AddAssetArgs {
+  name: string
+  type: 'bank' | 'investment' | 'property' | 'vehicle' | 'other'
+  value: number
+  institution?: string
+  note?: string
+}
+
+interface UpdateAssetValueArgs {
+  asset_name: string
+  value: number
+  note?: string
+}
+
+interface GetAssetsArgs {
+  type?: 'bank' | 'investment' | 'property' | 'vehicle' | 'other' | 'all'
+}
+
+interface DeleteAssetArgs {
+  asset_name: string
 }
 
 interface AccumulatedToolCall {
@@ -403,6 +437,92 @@ async function executeTool(
       }
     }
 
+    case 'add_asset': {
+      const { name, type, value, institution, note } = args as AddAssetArgs
+      const { data, error } = await supabase
+        .from('assets')
+        .insert({ user_id: userId, name, type, value: Math.round(value), institution, note })
+        .select()
+        .single()
+      if (error) throw new Error(error.message)
+      return { success: true, asset: data }
+    }
+
+    case 'update_asset_value': {
+      const { asset_name, value, note } = args as UpdateAssetValueArgs
+      const { data: asset } = await supabase
+        .from('assets')
+        .select('id, value')
+        .eq('user_id', userId)
+        .ilike('name', `%${asset_name}%`)
+        .single()
+      if (!asset) return { success: false, error: `Aset "${asset_name}" tidak ditemukan` }
+
+      const newValue = Math.round(value)
+      const { data, error } = await supabase
+        .from('assets')
+        .update({ value: newValue })
+        .eq('id', asset.id)
+        .select()
+        .single()
+      if (error) throw new Error(error.message)
+
+      if (asset.value !== newValue) {
+        await supabase.from('asset_value_logs').insert({
+          asset_id: asset.id,
+          user_id: userId,
+          old_value: asset.value,
+          new_value: newValue,
+          note: note ?? null,
+        })
+      }
+      return { success: true, asset: data }
+    }
+
+    case 'get_assets': {
+      const { type } = args as GetAssetsArgs
+      let query = supabase
+        .from('assets')
+        .select('*')
+        .eq('user_id', userId)
+        .order('type', { ascending: true })
+        .order('name', { ascending: true })
+      if (type && type !== 'all') query = query.eq('type', type)
+
+      const { data: assets } = await query
+      const rows = assets ?? []
+
+      const { data: debts } = await supabase
+        .from('debts')
+        .select('amount')
+        .eq('user_id', userId)
+        .eq('type', 'owe')
+        .eq('settled', false)
+
+      const totalAssets = rows.reduce((s, a) => s + a.value, 0)
+      const totalDebts = (debts ?? []).reduce((s, d) => s + d.amount, 0)
+      return { assets: rows, totalAssets, totalDebts, netWorth: totalAssets - totalDebts }
+    }
+
+    case 'delete_asset': {
+      const { asset_name } = args as DeleteAssetArgs
+      const { data: asset } = await supabase
+        .from('assets')
+        .select('id, name')
+        .eq('user_id', userId)
+        .ilike('name', `%${asset_name}%`)
+        .single()
+      if (!asset) return { success: false, error: `Aset "${asset_name}" tidak ditemukan` }
+
+      const { error } = await supabase
+        .from('assets')
+        .delete()
+        .eq('id', asset.id)
+        .eq('user_id', userId)
+      if (error) throw new Error(error.message)
+      return { success: true, deleted_name: asset.name }
+    }
+
     case 'navigate_to': {
       const { page } = args as NavigateArgs
       return { navigate: true, page }
@@ -574,6 +694,7 @@ export async function POST(request: NextRequest) {
               const DATA_MUTATING_TOOLS = new Set([
                 'add_transaction', 'update_transaction', 'delete_transaction',
                 'set_budget', 'add_goal', 'deposit_goal', 'add_debt', 'settle_debt',
+                'add_asset', 'update_asset_value', 'delete_asset',
               ])
 
               let didMutateData = false

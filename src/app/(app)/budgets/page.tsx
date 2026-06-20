@@ -10,6 +10,7 @@ import ProgressBar from '@/components/shared/ProgressBar'
 import SkeletonLoader from '@/components/shared/SkeletonLoader'
 import EmptyState from '@/components/shared/EmptyState'
 import { EXPENSE_CATEGORIES } from '@/lib/utils/categories'
+import { getCategoryMeta } from '@/lib/utils/categoryIcon'
 
 interface Budget {
   id: string
@@ -73,6 +74,20 @@ export default function BudgetsPage() {
         }
       />
 
+      {/* Desktop page header */}
+      <div className="hidden lg:flex items-center justify-between px-6 py-5" style={{ borderBottom: '1px solid var(--border-light)' }}>
+        <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Anggaran</h1>
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={() => setShowForm(true)}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-white"
+          style={{ background: 'var(--accent)' }}
+        >
+          <Plus size={15} />
+          Tambah Anggaran
+        </motion.button>
+      </div>
+
       <div className="px-4 pt-3 lg:max-w-3xl lg:mx-auto lg:px-6">
         {loading ? (
           <div className="space-y-3">
@@ -86,37 +101,53 @@ export default function BudgetsPage() {
           />
         ) : (
           <motion.div variants={containerVariants} initial="initial" animate="animate" className="space-y-3">
-            {budgets.map((b) => (
-              <motion.div
-                key={b.id}
-                variants={itemVariants}
-                className="rounded-2xl p-4"
-                style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                    {b.category}
-                  </p>
-                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                    {b.percent.toFixed(0)}%
-                  </p>
-                </div>
-                <ProgressBar percent={b.percent} height={6} className="mb-2" />
-                <div className="flex items-center justify-between text-xs">
-                  <span style={{ color: 'var(--text-muted)' }}>
-                    Terpakai {formatIDR(b.used)}
-                  </span>
-                  <span style={{ color: b.used > b.limit_amount ? 'var(--danger)' : 'var(--text-secondary)' }}>
-                    {b.used > b.limit_amount
-                      ? `Over ${formatIDR(b.used - b.limit_amount)}`
-                      : `Sisa ${formatIDR(b.limit_amount - b.used)}`}
-                  </span>
-                </div>
-                <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-                  Limit: {formatIDR(b.limit_amount)}
-                </p>
-              </motion.div>
-            ))}
+            {budgets.map((b) => {
+              const { icon: Icon, bg, color } = getCategoryMeta(b.category, 'expense')
+              const isOver = b.used > b.limit_amount
+              const barColor = isOver ? 'var(--danger)' : b.percent >= 80 ? '#FBBF24' : color
+              return (
+                <motion.div
+                  key={b.id}
+                  variants={itemVariants}
+                  className="rounded-2xl p-4"
+                  style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ background: bg }}
+                    >
+                      <Icon size={18} style={{ color }} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>
+                        {b.category}
+                      </p>
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                        Limit {formatIDR(b.limit_amount)}
+                      </p>
+                    </div>
+                    <p
+                      className="text-sm font-bold flex-shrink-0"
+                      style={{ color: barColor }}
+                    >
+                      {b.percent.toFixed(0)}%
+                    </p>
+                  </div>
+                  <ProgressBar percent={b.percent} height={6} className="mb-2" color={barColor} />
+                  <div className="flex items-center justify-between text-xs">
+                    <span style={{ color: 'var(--text-muted)' }}>
+                      Terpakai {formatIDR(b.used)}
+                    </span>
+                    <span style={{ color: isOver ? 'var(--danger)' : 'var(--text-secondary)' }}>
+                      {isOver
+                        ? `Over ${formatIDR(b.used - b.limit_amount)}`
+                        : `Sisa ${formatIDR(b.limit_amount - b.used)}`}
+                    </span>
+                  </div>
+                </motion.div>
+              )
+            })}
           </motion.div>
         )}
       </div>

@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { formatCompactIDR } from '@/lib/utils/currency'
-import { CATEGORY_COLORS } from '@/lib/utils/categories'
+import { getCategoryMeta } from '@/lib/utils/categoryIcon'
 
 interface SpendingBarsProps {
   data: { category: string; amount: number }[]
@@ -26,7 +26,7 @@ export default function SpendingBars({ data }: SpendingBarsProps) {
       {top.map((item, i) => {
         const pct = total > 0 ? Math.round((item.amount / total) * 100) : 0
         const barWidth = max > 0 ? (item.amount / max) * 100 : 0
-        const color = CATEGORY_COLORS[item.category] ?? '#6B7280'
+        const color = getCategoryMeta(item.category, 'expense').color
 
         return (
           <motion.div

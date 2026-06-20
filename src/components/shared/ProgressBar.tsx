@@ -7,6 +7,7 @@ interface ProgressBarProps {
   height?: number
   className?: string
   showLabel?: boolean
+  color?: string
 }
 
 function getColor(percent: number): string {
@@ -20,9 +21,10 @@ export default function ProgressBar({
   height = 6,
   className = '',
   showLabel = false,
+  color: colorProp,
 }: ProgressBarProps) {
   const clamped = Math.min(100, Math.max(0, percent))
-  const color = getColor(clamped)
+  const color = colorProp ?? getColor(clamped)
 
   return (
     <div className={className}>

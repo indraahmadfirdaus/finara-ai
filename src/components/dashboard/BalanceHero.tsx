@@ -1,6 +1,8 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
+import { Wallet, ChevronRight } from 'lucide-react'
 import AnimatedNumber from '@/components/shared/AnimatedNumber'
 
 interface BalanceHeroProps {
@@ -11,12 +13,16 @@ interface BalanceHeroProps {
 }
 
 export default function BalanceHero({ income, expense, balance, period = 'Bulan Ini' }: BalanceHeroProps) {
+  const router = useRouter()
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-      className="mx-4 mt-4 lg:mx-0 lg:mt-0 rounded-2xl p-5 relative overflow-hidden"
+      whileTap={{ scale: 0.98 }}
+      onClick={() => router.push('/transactions')}
+      className="mx-4 mt-4 lg:mx-0 lg:mt-0 rounded-2xl p-5 relative overflow-hidden cursor-pointer"
       style={{
         background: 'var(--bg-surface)',
         border: '1px solid var(--border)',
@@ -33,9 +39,16 @@ export default function BalanceHero({ income, expense, balance, period = 'Bulan 
         style={{ background: 'radial-gradient(circle, rgba(124,92,252,0.15) 0%, transparent 70%)' }}
       />
 
-      <p className="text-xs font-medium mb-1" style={{ color: 'var(--text-muted)' }}>
-        {period}
-      </p>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--accent-dim)' }}>
+            <Wallet size={13} style={{ color: 'var(--accent-light)' }} />
+          </div>
+          <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{period}</p>
+        </div>
+        <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
+      </div>
+
       <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
         Saldo
       </p>

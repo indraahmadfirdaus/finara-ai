@@ -94,6 +94,20 @@ export default function GoalsPage() {
         }
       />
 
+      {/* Desktop page header */}
+      <div className="hidden lg:flex items-center justify-between px-6 py-5" style={{ borderBottom: '1px solid var(--border-light)' }}>
+        <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Goals</h1>
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={() => setShowForm(true)}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-white"
+          style={{ background: 'var(--accent)' }}
+        >
+          <Plus size={15} />
+          Tambah Goal
+        </motion.button>
+      </div>
+
       <div className="px-4 pt-3 lg:max-w-3xl lg:mx-auto lg:px-6">
         {loading ? (
           <div className="space-y-3">

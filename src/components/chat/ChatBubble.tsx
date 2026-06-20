@@ -58,7 +58,6 @@ export default function ChatBubble({ message, userInitial = 'K' }: ChatBubblePro
           style={{
             background: 'linear-gradient(135deg, var(--bubble-user-from) 0%, var(--bubble-user-to) 100%)',
             color: 'white',
-            borderBottomRightRadius: 6,
           }}
         >
           <p className="text-sm whitespace-pre-wrap leading-relaxed font-medium">{message.content}</p>
@@ -85,7 +84,7 @@ export default function ChatBubble({ message, userInitial = 'K' }: ChatBubblePro
         {avatar}
         <div
           className="max-w-[78%] px-4 py-3 rounded-3xl"
-          style={{ background: 'var(--bubble-ai)', borderBottomLeftRadius: 6, border: '1px solid var(--bubble-ai-border)' }}
+          style={{ background: 'var(--bubble-ai)', border: '1px solid var(--bubble-ai-border)' }}
         >
           <TypingIndicator />
         </div>
@@ -123,7 +122,7 @@ export default function ChatBubble({ message, userInitial = 'K' }: ChatBubblePro
       {avatar}
       <div
         className="max-w-[78%] px-4 py-3 rounded-3xl"
-        style={{ background: 'var(--bubble-ai)', borderBottomLeftRadius: 6, border: '1px solid var(--bubble-ai-border)' }}
+        style={{ background: 'var(--bubble-ai)', border: '1px solid var(--bubble-ai-border)' }}
       >
         <StreamingText content={message.content} isStreaming={message.isStreaming} />
       </div>

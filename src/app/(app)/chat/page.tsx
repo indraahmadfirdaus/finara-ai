@@ -9,6 +9,7 @@ import ChatInput from '@/components/chat/ChatInput'
 import HistoryDrawer from '@/components/chat/HistoryDrawer'
 import ImageOCR from '@/components/chat/ImageOCR'
 import { createClient } from '@/lib/supabase/client'
+import { useSideNav } from '@/lib/sidenavContext'
 
 const WELCOME_HINTS = [
   { label: 'Catat pengeluaran', text: 'beli makan siang 25k' },
@@ -81,6 +82,7 @@ const SESSION_KEY = 'finara_chat_session_id'
 
 export default function ChatPage() {
   const router = useRouter()
+  const { collapsed } = useSideNav()
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -364,8 +366,8 @@ export default function ChatPage() {
 
         {/* Input — fixed on mobile, accounts for sidebar on desktop */}
         <div
-          className="fixed bottom-16 left-0 right-0 z-30 px-4 py-3 lg:bottom-0 lg:left-64"
-          style={{ background: 'linear-gradient(to top, var(--bg-base) 70%, transparent)' }}
+          className="fixed bottom-16 left-0 right-0 z-30 px-4 py-3 lg:bottom-0 lg:left-[var(--sidenav-w,256px)]"
+          style={{ background: 'linear-gradient(to top, var(--bg-base) 70%, transparent)', transition: 'left 0.28s cubic-bezier(0.32,0,0.16,1)' }}
         >
           <div className="max-w-3xl mx-auto flex items-end gap-2">
             <div
