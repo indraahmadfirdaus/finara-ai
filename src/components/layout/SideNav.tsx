@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { MessageCircle, LayoutDashboard, List, Target, User, LogOut, Sun, Moon, HandCoins, ChevronDown, PieChart, Coffee } from 'lucide-react'
+import { MessageCircle, LayoutDashboard, List, Target, User, LogOut, Sun, Moon, HandCoins, ChevronDown, PieChart, Coffee, Landmark } from 'lucide-react'
 import { useTheme } from '@/lib/theme'
 import { createClient } from '@/lib/supabase/client'
 
@@ -12,6 +12,7 @@ const LIST_SUBS = [
   { href: '/transactions', icon: List, label: 'Transaksi' },
   { href: '/budgets', icon: PieChart, label: 'Anggaran' },
   { href: '/goals', icon: Target, label: 'Goals' },
+  { href: '/assets', icon: Landmark, label: 'Aset' },
   { href: '/debts', icon: HandCoins, label: 'Hutang' },
 ]
 
