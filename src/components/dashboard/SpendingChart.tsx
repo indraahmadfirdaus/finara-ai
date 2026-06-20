@@ -18,7 +18,7 @@ function CustomTooltip({ active, payload }: TooltipProps) {
   if (active && payload && payload.length) {
     return (
       <div
-        className="px-3 py-2 rounded-xl text-xs"
+        className="px-3 py-2 rounded-xl text-xs shadow-lg"
         style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
       >
         <p style={{ color: 'var(--text-primary)' }}>{payload[0].name}</p>
@@ -29,6 +29,78 @@ function CustomTooltip({ active, payload }: TooltipProps) {
     )
   }
   return null
+}
+
+interface LabelProps {
+  cx: number
+  cy: number
+  midAngle: number
+  outerRadius: number
+  percent: number
+  name: string
+}
+
+function CustomLabel({ cx, cy, midAngle, outerRadius, percent, name }: LabelProps) {
+  if (percent < 0.05) return null
+
+  const RADIAN = Math.PI / 180
+  const radius = outerRadius + 30
+  const x = cx + radius * Math.cos(-midAngle * RADIAN)
+  const y = cy + radius * Math.sin(-midAngle * RADIAN)
+  const anchor = x > cx ? 'start' : 'end'
+
+  return (
+    <g>
+      <text
+        x={x}
+        y={y - 6}
+        textAnchor={anchor}
+        dominantBaseline="middle"
+        style={{ fontSize: 13, fontWeight: 700, fill: 'var(--text-primary)', fontFamily: 'inherit' }}
+      >
+        {`${(percent * 100).toFixed(1)}%`}
+      </text>
+      <text
+        x={x}
+        y={y + 9}
+        textAnchor={anchor}
+        dominantBaseline="middle"
+        style={{ fontSize: 11, fill: 'var(--text-muted)', fontFamily: 'inherit' }}
+      >
+        {name}
+      </text>
+    </g>
+  )
+}
+
+function CenterLabel({ cx, cy, total }: { cx: number; cy: number; total: number }) {
+  const short =
+    total >= 1_000_000
+      ? `Rp ${(total / 1_000_000).toLocaleString('id-ID', { maximumFractionDigits: 1 })} Jt`
+      : formatIDR(total)
+
+  return (
+    <g>
+      <text
+        x={cx}
+        y={cy - 8}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        style={{ fontSize: 10, fill: 'var(--text-muted)', fontFamily: 'inherit' }}
+      >
+        Total
+      </text>
+      <text
+        x={cx}
+        y={cy + 10}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        style={{ fontSize: 13, fontWeight: 700, fill: 'var(--text-primary)', fontFamily: 'inherit' }}
+      >
+        {short}
+      </text>
+    </g>
+  )
 }
 
 export default function SpendingChart({ data }: SpendingChartProps) {
@@ -49,8 +121,9 @@ export default function SpendingChart({ data }: SpendingChartProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5, delay: 0.2 }}
+      className="px-2"
     >
-      <ResponsiveContainer width="100%" height={200}>
+      <ResponsiveContainer width="100%" height={260}>
         <PieChart>
           <Pie
             data={data}
@@ -58,36 +131,50 @@ export default function SpendingChart({ data }: SpendingChartProps) {
             nameKey="category"
             cx="50%"
             cy="50%"
-            innerRadius={55}
-            outerRadius={85}
-            paddingAngle={2}
+            innerRadius={58}
+            outerRadius={88}
+            paddingAngle={3}
             animationBegin={0}
-            animationDuration={800}
+            animationDuration={900}
+            labelLine={false}
+            label={(props) => (
+              <CustomLabel
+                cx={props.cx ?? 0}
+                cy={props.cy ?? 0}
+                midAngle={props.midAngle ?? 0}
+                outerRadius={props.outerRadius ?? 0}
+                percent={props.percent ?? 0}
+                name={props.name ?? ''}
+              />
+            )}
           >
             {data.map((entry) => (
               <Cell
                 key={entry.category}
                 fill={CATEGORY_COLORS[entry.category] ?? '#6B7280'}
+                stroke="transparent"
               />
             ))}
           </Pie>
+          {/* Ghost pie to render center total label inside the hole */}
+          <Pie
+            data={[{ value: 1 }]}
+            dataKey="value"
+            cx="50%"
+            cy="50%"
+            innerRadius={0}
+            outerRadius={57}
+            fill="transparent"
+            stroke="transparent"
+            isAnimationActive={false}
+            label={({ cx, cy }: { cx: number; cy: number }) => (
+              <CenterLabel cx={cx} cy={cy} total={total} />
+            )}
+            labelLine={false}
+          />
           <Tooltip content={<CustomTooltip />} />
         </PieChart>
       </ResponsiveContainer>
-
-      <div className="flex flex-wrap gap-2 justify-center mt-2 px-4">
-        {data.map((entry) => (
-          <div key={entry.category} className="flex items-center gap-1.5">
-            <div
-              className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
-              style={{ background: CATEGORY_COLORS[entry.category] ?? '#6B7280' }}
-            />
-            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-              {entry.category} {total > 0 ? `${((entry.amount / total) * 100).toFixed(0)}%` : ''}
-            </span>
-          </div>
-        ))}
-      </div>
     </motion.div>
   )
 }
