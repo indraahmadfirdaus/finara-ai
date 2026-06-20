@@ -841,6 +841,13 @@ function FeatureTile({
 export default function LandingPage() {
   const router = useRouter();
   const { theme, toggle } = useTheme();
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    function onScroll() { setScrolled(window.scrollY > 20) }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   return (
     <div
@@ -886,12 +893,19 @@ export default function LandingPage() {
         />
       </div>
 
-      {/* Nav */}
+      {/* Sticky nav */}
       <motion.nav
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative z-10 flex items-center justify-between px-5 py-4 sm:px-8 lg:px-16"
+        className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-5 py-4 sm:px-8 lg:px-16"
+        style={{
+          background: scrolled ? 'var(--land-surface)' : 'transparent',
+          borderBottom: scrolled ? '1px solid var(--land-separator)' : '1px solid transparent',
+          backdropFilter: scrolled ? 'blur(16px)' : 'none',
+          WebkitBackdropFilter: scrolled ? 'blur(16px)' : 'none',
+          transition: 'background 0.3s ease, border-color 0.3s ease, backdrop-filter 0.3s ease',
+        }}
       >
         <div className="flex items-center gap-2.5">
           <svg width="26" height="26" viewBox="0 0 72 72" fill="none">
@@ -1004,8 +1018,8 @@ export default function LandingPage() {
         </div>
       </motion.nav>
 
-      {/* Hero */}
-      <section className="relative z-10 px-5 sm:px-8 lg:px-16 pt-6 pb-16 lg:pt-12 lg:pb-24">
+      {/* Hero — top padding accounts for fixed nav height (~68px) */}
+      <section className="relative z-10 px-5 sm:px-8 lg:px-16 pt-24 pb-16 lg:pt-28 lg:pb-24">
         <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-10 lg:gap-14">
           {/* Left copy — narrower on desktop so demo has room */}
           <div className="w-full lg:w-[46%] text-center lg:text-left">
