@@ -12,9 +12,9 @@ export const metadata: Metadata = {
   title: 'Finara — AI Finance Assistant',
   description: 'Asisten keuangan pribadi bertenaga AI untuk Indonesia. Catat transaksi, pantau budget, dan kelola keuangan dengan mudah.',
   icons: {
-    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
-    shortcut: '/favicon.svg',
-    apple: '/favicon.svg',
+    icon: [{ url: '/favicon.png', type: 'image/png' }],
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
   },
   keywords: ['keuangan pribadi', 'finance', 'AI', 'Indonesia', 'catat pengeluaran', 'budget'],
   authors: [{ name: 'Finara' }],
