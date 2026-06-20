@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { createClient } from '@/lib/supabase/server'
 import { getPeriodRange, getMonthKey } from '@/lib/utils/date'
 import TopBar from '@/components/layout/TopBar'
