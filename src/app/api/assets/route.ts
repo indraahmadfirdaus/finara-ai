@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
   const { data, error } = await supabase
     .from('assets')
-    .insert({ ...parsed.data, user_id: user.id })
+    .insert({ ...parsed.data, value: Math.round(parsed.data.value), user_id: user.id })
     .select()
     .single()
 
@@ -67,7 +67,9 @@ export async function PATCH(request: NextRequest) {
   const parsed = UpdateSchema.safeParse(body)
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
 
-  const { id, log_note, ...fields } = parsed.data
+  const { id, log_note, value: rawValue, ...restFields } = parsed.data
+  const fields: typeof restFields & { value?: number } = { ...restFields }
+  if (rawValue !== undefined) fields.value = Math.round(rawValue)
   if (Object.keys(fields).length === 0) {
     return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
   }
@@ -98,13 +100,14 @@ export async function PATCH(request: NextRequest) {
 
   // Insert value log only when value actually changed
   if (fields.value !== undefined && oldValue !== null && oldValue !== fields.value) {
-    await supabase.from('asset_value_logs').insert({
+    const { error: logError } = await supabase.from('asset_value_logs').insert({
       asset_id: id,
       user_id: user.id,
       old_value: oldValue,
       new_value: fields.value,
       note: log_note ?? null,
     })
+    if (logError) return NextResponse.json({ error: 'Failed to write value log: ' + logError.message }, { status: 500 })
   }
 
   return NextResponse.json({ asset: data })
@@ -118,6 +121,9 @@ export async function DELETE(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const id = searchParams.get('id')
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
+
+  const uuidParsed = z.string().uuid().safeParse(id)
+  if (!uuidParsed.success) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
 
   const { error } = await supabase
     .from('assets')
