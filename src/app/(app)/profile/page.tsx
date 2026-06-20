@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
-  Sun, Moon, MessageCircle, LogOut, ChevronRight,
+  Sun, Moon, LogOut, ChevronRight,
   TrendingUp, TrendingDown, KeyRound, Info, Coffee,
 } from 'lucide-react'
 import PageTransition from '@/components/layout/PageTransition'
@@ -112,7 +112,7 @@ export default function ProfilePage() {
 
   return (
     <PageTransition>
-      <div className="min-h-screen lg:max-w-2xl lg:mx-auto" style={{ background: 'var(--bg-base)' }}>
+      <div className="min-h-screen" style={{ background: 'var(--bg-base)' }}>
 
         {/* Hero header — full bleed accent */}
         <div
@@ -150,7 +150,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Body */}
-        <div className="rounded-t-3xl -mt-4 relative z-10" style={{ background: 'var(--bg-base)' }}>
+        <div className="rounded-t-3xl -mt-4 relative z-10 lg:max-w-2xl lg:mx-auto" style={{ background: 'var(--bg-base)' }}>
 
           {/* Statistik bulan ini */}
           <SectionLabel label="Bulan ini" delay={0.18} />
@@ -218,13 +218,6 @@ export default function ProfilePage() {
             className="mx-4 rounded-2xl overflow-hidden"
             style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
           >
-            <Row
-              icon={<MessageCircle size={17} />}
-              label="Chat dengan Finara"
-              delay={0.36}
-              onClick={() => router.push('/chat')}
-            />
-            <Divider />
             <Row
               icon={<Info size={17} />}
               label="Tentang Finara"
