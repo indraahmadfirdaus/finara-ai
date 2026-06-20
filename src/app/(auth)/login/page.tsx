@@ -34,7 +34,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#0D0D14' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-base)' }}>
       {/* ambient glow */}
       <div
         className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full pointer-events-none"
@@ -63,10 +63,10 @@ export default function LoginPage() {
               </linearGradient>
             </defs>
           </svg>
-          <h1 className="text-3xl font-bold tracking-tight" style={{ color: '#F1F1F3', letterSpacing: '-0.03em' }}>
+          <h1 className="text-3xl font-bold tracking-tight" style={{ color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>
             finara
           </h1>
-          <p className="text-xs mt-1 font-medium" style={{ color: 'rgba(161,161,170,0.7)', letterSpacing: '0.1em' }}>
+          <p className="text-xs mt-1 font-medium" style={{ color: 'var(--text-muted)', letterSpacing: '0.1em' }}>
             KEUANGAN PRIBADIMU
           </p>
         </motion.div>
@@ -78,9 +78,9 @@ export default function LoginPage() {
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           className="rounded-3xl p-6"
-          style={{ background: '#1A1A26', border: '1px solid rgba(255,255,255,0.06)' }}
+          style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
         >
-          <h2 className="text-lg font-semibold mb-5" style={{ color: '#F1F1F3' }}>
+          <h2 className="text-lg font-semibold mb-5" style={{ color: 'var(--text-primary)' }}>
             Masuk
           </h2>
           <form onSubmit={handleSubmit} className="space-y-3">
@@ -90,10 +90,10 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="Email kamu"
-              className="w-full px-4 py-3.5 rounded-2xl text-sm outline-none transition-all"
-              style={{ background: 'rgba(255,255,255,0.06)', color: '#F1F1F3', border: '1px solid rgba(255,255,255,0.08)' }}
+              className="w-full px-4 py-3.5 rounded-2xl text-sm outline-none transition-all placeholder:opacity-40"
+              style={{ background: 'var(--input-bg)', color: 'var(--text-primary)', border: '1px solid var(--input-border)' }}
               onFocus={(e) => (e.target.style.borderColor = 'rgba(124,92,252,0.6)')}
-              onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.08)')}
+              onBlur={(e) => (e.target.style.borderColor = 'var(--input-border)')}
             />
             <div className="relative">
               <input
@@ -102,14 +102,14 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="Password"
-                className="w-full px-4 py-3.5 pr-12 rounded-2xl text-sm outline-none transition-all"
-                style={{ background: 'rgba(255,255,255,0.06)', color: '#F1F1F3', border: '1px solid rgba(255,255,255,0.08)' }}
+                className="w-full px-4 py-3.5 pr-12 rounded-2xl text-sm outline-none transition-all placeholder:opacity-40"
+                style={{ background: 'var(--input-bg)', color: 'var(--text-primary)', border: '1px solid var(--input-border)' }}
                 onFocus={(e) => (e.target.style.borderColor = 'rgba(124,92,252,0.6)')}
-                onBlur={(e) => (e.target.style.borderColor = 'rgba(255,255,255,0.08)')}
+                onBlur={(e) => (e.target.style.borderColor = 'var(--input-border)')}
               />
               <button type="button" onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5"
-                style={{ color: 'rgba(161,161,170,0.6)' }}>
+                style={{ color: 'var(--text-muted)' }}>
                 {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
             </div>
@@ -117,7 +117,7 @@ export default function LoginPage() {
             <AnimatePresence>
               {error && (
                 <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                  className="text-xs px-1" style={{ color: '#F87171' }}>
+                  className="text-xs px-1" style={{ color: 'var(--danger)' }}>
                   {error}
                 </motion.p>
               )}
@@ -136,9 +136,9 @@ export default function LoginPage() {
           </form>
         </motion.div>
 
-        <p className="text-center text-sm mt-5" style={{ color: 'rgba(161,161,170,0.6)' }}>
+        <p className="text-center text-sm mt-5" style={{ color: 'var(--text-muted)' }}>
           Belum punya akun?{' '}
-          <Link href="/register" className="font-semibold" style={{ color: '#A78BFA' }}>
+          <Link href="/register" className="font-semibold" style={{ color: 'var(--accent-light)' }}>
             Daftar
           </Link>
         </p>

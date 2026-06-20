@@ -19,7 +19,7 @@ export default function TopBar({ title, showBack = false, action }: TopBarProps)
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
       className="sticky top-0 z-30 flex items-center justify-between px-4 py-3"
-      style={{ background: '#0D0D14', borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+      style={{ background: 'var(--header-bg)', borderBottom: '1px solid var(--border-light)' }}
     >
       <div className="flex items-center gap-2">
         {showBack && (
