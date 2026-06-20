@@ -68,11 +68,12 @@ export default function BottomNav() {
               className="fixed z-40 lg:hidden rounded-2xl overflow-hidden shadow-2xl"
               style={{
                 bottom: 'calc(4.5rem + env(safe-area-inset-bottom, 0px))',
-                left: '50%',
-                transform: 'translateX(-50%)',
+                left: '1rem',
+                right: '1rem',
+                maxWidth: 320,
+                margin: '0 auto',
                 background: 'var(--bg-surface)',
                 border: '1px solid var(--border)',
-                minWidth: 220,
               }}
             >
               <div className="px-3 pt-3 pb-1 flex items-center justify-between">

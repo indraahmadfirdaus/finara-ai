@@ -549,6 +549,13 @@ export async function POST(request: NextRequest) {
                 })),
               })
 
+              const DATA_MUTATING_TOOLS = new Set([
+                'add_transaction', 'update_transaction', 'delete_transaction',
+                'set_budget', 'add_goal', 'deposit_goal', 'add_debt', 'settle_debt',
+              ])
+
+              let didMutateData = false
+
               for (const tc of toolCallsList) {
                 try {
                   const args = JSON.parse(tc.arguments)
@@ -568,6 +575,8 @@ export async function POST(request: NextRequest) {
                     )
                   }
 
+                  if (DATA_MUTATING_TOOLS.has(tc.name)) didMutateData = true
+
                   currentMessages.push({
                     role: 'tool',
                     tool_call_id: tc.id,
@@ -580,6 +589,12 @@ export async function POST(request: NextRequest) {
                     content: JSON.stringify({ error: String(err) }),
                   })
                 }
+              }
+
+              if (didMutateData) {
+                controller.enqueue(
+                  encoder.encode(`data: ${JSON.stringify({ type: 'data_changed' })}\n\n`)
+                )
               }
 
               fullContent = ''

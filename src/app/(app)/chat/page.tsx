@@ -165,13 +165,11 @@ export default function ChatPage() {
               setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, content: assistantContent, isStreaming: true } : m))
             } else if (event.type === 'navigate') {
               router.push(event.page)
+            } else if (event.type === 'data_changed') {
+              router.refresh()
             } else if (event.type === 'done') {
               if (event.session_id) setSessionId(event.session_id)
               setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, isStreaming: false } : m))
-              // Refresh server data if AI recorded a financial change
-              if (/```card:(transaction|goal|budget|debt)/.test(assistantContent)) {
-                router.refresh()
-              }
             }
           } catch { /* skip */ }
         }
