@@ -15,7 +15,7 @@ const LIST_SUBS = [
 ]
 
 const TOP_TABS = [
-  { href: '/', icon: MessageCircle, label: 'Chat' },
+  { href: '/chat', icon: MessageCircle, label: 'Chat' },
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
 ]
 

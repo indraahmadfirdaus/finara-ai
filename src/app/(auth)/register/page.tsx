@@ -64,7 +64,7 @@ export default function RegisterPage() {
       <div className="flex-1 flex flex-col justify-end px-5 pb-8 pt-16 relative z-10 lg:justify-center lg:max-w-md lg:mx-auto lg:w-full">
         <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8">
-          <Link href="/splash" className="inline-flex flex-col items-center group">
+          <Link href="/" className="inline-flex flex-col items-center group">
             <svg width="44" height="44" viewBox="0 0 72 72" fill="none" className="mx-auto mb-3 transition-opacity group-hover:opacity-80">
               <circle cx="36" cy="36" r="34" stroke="url(#rg1)" strokeWidth="2.5" />
               <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="url(#rg1)" strokeWidth="3" strokeLinecap="round" fill="none" />

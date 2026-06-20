@@ -250,7 +250,7 @@ export const tools: OpenAI.Chat.ChatCompletionTool[] = [
         properties: {
           page: {
             type: 'string',
-            enum: ['/', '/dashboard', '/transactions', '/budgets', '/goals', '/debts', '/profile'],
+            enum: ['/chat', '/dashboard', '/transactions', '/budgets', '/goals', '/debts', '/profile'],
             description: 'Halaman tujuan',
           },
         },

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
-import { History, SquarePen } from 'lucide-react'
+import { History, SquarePen, Coffee } from 'lucide-react'
 import ChatBubble, { type Message } from '@/components/chat/ChatBubble'
 import ChatInput from '@/components/chat/ChatInput'
 import HistoryDrawer from '@/components/chat/HistoryDrawer'
@@ -229,6 +229,23 @@ export default function ChatPage() {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
+            {/* Saweria support — mobile only */}
+            <motion.a
+              href="https://saweria.co/indrafrds"
+              target="_blank"
+              rel="noopener noreferrer"
+              whileTap={{ scale: 0.88 }}
+              className="lg:hidden w-9 h-9 rounded-xl flex items-center justify-center"
+              style={{
+                background: 'rgba(251,183,36,0.12)',
+                color: '#FBB724',
+                border: '1px solid rgba(251,183,36,0.22)',
+              }}
+              title="Support di Saweria"
+            >
+              <Coffee size={16} />
+            </motion.a>
+
             <AnimatePresence>
               {messages.length > 0 && (
                 <motion.button

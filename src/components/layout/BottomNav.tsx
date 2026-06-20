@@ -13,7 +13,7 @@ const LIST_SUBS = [
 ]
 
 const MAIN_TABS = [
-  { href: '/', icon: MessageCircle, label: 'Chat' },
+  { href: '/chat', icon: MessageCircle, label: 'Chat' },
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '__list__', icon: List, label: 'Daftar' },
   { href: '/profile', icon: User, label: 'Profil' },

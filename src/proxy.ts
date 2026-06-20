@@ -32,19 +32,20 @@ export async function proxy(request: NextRequest) {
   const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register')
   const isApiRoute = pathname.startsWith('/api/')
   const isAuthCallback = pathname.startsWith('/auth/')
-  const isSplash = pathname === '/splash'
+  // Public routes — no auth required
+  const isPublic = pathname === '/' || isAuthPage || isApiRoute || isAuthCallback
 
   if (isApiRoute || isAuthCallback) return supabaseResponse
 
-  if (!user && !isAuthPage && !isSplash) {
+  if (!user && !isPublic) {
     const url = request.nextUrl.clone()
-    url.pathname = '/splash'
+    url.pathname = '/'
     return NextResponse.redirect(url)
   }
 
   if (user && isAuthPage) {
     const url = request.nextUrl.clone()
-    url.pathname = '/'
+    url.pathname = '/chat'
     return NextResponse.redirect(url)
   }
 

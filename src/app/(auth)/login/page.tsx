@@ -29,7 +29,7 @@ export default function LoginPage() {
       setTimeout(() => setShake(false), 600)
       return
     }
-    router.push('/')
+    router.push('/chat')
     router.refresh()
   }
 
@@ -49,7 +49,7 @@ export default function LoginPage() {
           transition={{ duration: 0.5 }}
           className="text-center mb-10"
         >
-          <Link href="/splash" className="inline-flex flex-col items-center group">
+          <Link href="/" className="inline-flex flex-col items-center group">
             <svg width="48" height="48" viewBox="0 0 72 72" fill="none" className="mx-auto mb-3 transition-opacity group-hover:opacity-80">
               <circle cx="36" cy="36" r="34" stroke="url(#lg1)" strokeWidth="2.5" />
               <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="url(#lg1)" strokeWidth="3" strokeLinecap="round" fill="none" />

@@ -222,7 +222,7 @@ export default function ProfilePage() {
               icon={<MessageCircle size={17} />}
               label="Chat dengan Finara"
               delay={0.36}
-              onClick={() => router.push('/')}
+              onClick={() => router.push('/chat')}
             />
             <Divider />
             <Row
