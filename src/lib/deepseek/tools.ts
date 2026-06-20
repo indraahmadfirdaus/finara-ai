@@ -243,6 +243,76 @@ export const tools: OpenAI.Chat.ChatCompletionTool[] = [
   {
     type: 'function',
     function: {
+      name: 'add_asset',
+      description: 'Catat aset baru (rekening bank, investasi, properti, kendaraan, dll)',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'Nama aset, misal "Reksadana Bibit", "BCA Tahapan"' },
+          type: {
+            type: 'string',
+            enum: ['bank', 'investment', 'property', 'vehicle', 'other'],
+            description: 'bank=rekening/tabungan, investment=investasi, property=properti, vehicle=kendaraan, other=lainnya',
+          },
+          value: { type: 'number', description: 'Nilai aset dalam rupiah (angka bulat)' },
+          institution: { type: 'string', description: 'Platform/institusi, misal "Bibit", "BCA" (opsional)' },
+          note: { type: 'string', description: 'Catatan tambahan (opsional)' },
+        },
+        required: ['name', 'type', 'value'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'update_asset_value',
+      description: 'Update nilai aset yang sudah ada. Otomatis mencatat histori perubahan nilai.',
+      parameters: {
+        type: 'object',
+        properties: {
+          asset_name: { type: 'string', description: 'Nama aset yang ingin diupdate (fuzzy match)' },
+          value: { type: 'number', description: 'Nilai baru dalam rupiah (angka bulat)' },
+          note: { type: 'string', description: 'Alasan update, misal "Update Juni 2026" (opsional)' },
+        },
+        required: ['asset_name', 'value'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_assets',
+      description: 'Lihat semua aset user beserta total nilai dan net worth',
+      parameters: {
+        type: 'object',
+        properties: {
+          type: {
+            type: 'string',
+            enum: ['bank', 'investment', 'property', 'vehicle', 'other', 'all'],
+            description: 'Filter tipe aset, default "all"',
+          },
+        },
+        required: [],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'delete_asset',
+      description: 'Hapus aset berdasarkan nama',
+      parameters: {
+        type: 'object',
+        properties: {
+          asset_name: { type: 'string', description: 'Nama aset yang ingin dihapus (fuzzy match)' },
+        },
+        required: ['asset_name'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
       name: 'navigate_to',
       description: 'Navigasi ke halaman tertentu di aplikasi',
       parameters: {
@@ -250,7 +320,7 @@ export const tools: OpenAI.Chat.ChatCompletionTool[] = [
         properties: {
           page: {
             type: 'string',
-            enum: ['/chat', '/dashboard', '/transactions', '/budgets', '/goals', '/debts', '/profile'],
+            enum: ['/chat', '/dashboard', '/transactions', '/budgets', '/goals', '/debts', '/profile', '/assets'],
             description: 'Halaman tujuan',
           },
         },
