@@ -7,15 +7,20 @@ import ProgressBar from '@/components/shared/ProgressBar'
 
 interface GoalCardData {
   name: string
-  target: number
-  current: number
-  percent: number
+  // accept both canonical names and DB field names
+  target?: number
+  target_amount?: number
+  current?: number
+  current_amount?: number
+  percent?: number
   deadline?: string
 }
 
 export default function GoalCard({ data }: { data: GoalCardData }) {
-  const percent = data.percent ?? (data.target > 0 ? (data.current / data.target) * 100 : 0)
-  const remaining = data.target - data.current
+  const target = data.target ?? data.target_amount ?? 0
+  const current = data.current ?? data.current_amount ?? 0
+  const percent = data.percent ?? (target > 0 ? (current / target) * 100 : 0)
+  const remaining = target - current
 
   return (
     <motion.div
@@ -50,7 +55,7 @@ export default function GoalCard({ data }: { data: GoalCardData }) {
         <ProgressBar percent={percent} height={5} className="mb-2" />
         <div className="flex items-center justify-between text-xs">
           <span style={{ color: 'var(--text-muted)' }}>
-            {formatIDR(data.current)} terkumpul
+            {formatIDR(current)} terkumpul
           </span>
           <span style={{ color: 'var(--text-secondary)' }}>
             Kurang {formatIDR(remaining)}

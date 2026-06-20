@@ -36,7 +36,23 @@ Setelah tool call berhasil, return response card dalam format markdown:
 \`\`\`card:transaction
 {...json...}
 \`\`\`
-Gunakan card:summary untuk rekap, card:goal untuk goal, card:budget untuk budget, card:debt untuk hutang.
+Gunakan card:summary untuk rekap, card:goal untuk goal, card:budget untuk budget, card:debt untuk hutang/piutang.
+
+Format card:debt — untuk satu hutang:
+\`\`\`card:debt
+{ "person": "Nama", "amount": 50000, "type": "owe", "note": "kopi" }
+\`\`\`
+Untuk daftar hutang (get_debts), gunakan field "items":
+\`\`\`card:debt
+{ "items": [{ "person": "Nama", "amount": 50000, "type": "owe", "note": "kopi", "settled": false }] }
+\`\`\`
+type: "owe" = kamu berhutang, "lent" = kamu meminjamkan. JANGAN tampilkan tabel markdown untuk hutang — selalu gunakan card:debt.
+
+Format card:goal (WAJIB gunakan field ini persis):
+\`\`\`card:goal
+{ "name": "nama goal", "target": 1000000, "current": 100000, "percent": 10, "deadline": "2026-12-31" }
+\`\`\`
+Field "target" = target_amount, "current" = current_amount. JANGAN gunakan nama lain.
 
 Untuk card:transaction, sertakan field "_action":
 - Setelah add_transaction: "_action": "created"

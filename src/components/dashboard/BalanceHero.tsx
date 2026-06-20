@@ -16,7 +16,7 @@ export default function BalanceHero({ income, expense, balance, period = 'Bulan 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-      className="mx-4 mt-4 rounded-2xl p-5 relative overflow-hidden"
+      className="mx-4 mt-4 lg:mx-0 lg:mt-0 rounded-2xl p-5 relative overflow-hidden"
       style={{
         background: 'var(--bg-surface)',
         border: '1px solid var(--border)',

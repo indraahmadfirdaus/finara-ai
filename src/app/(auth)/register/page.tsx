@@ -64,21 +64,23 @@ export default function RegisterPage() {
       <div className="flex-1 flex flex-col justify-end px-5 pb-8 pt-16 relative z-10 lg:justify-center lg:max-w-md lg:mx-auto lg:w-full">
         <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8">
-          <svg width="44" height="44" viewBox="0 0 72 72" fill="none" className="mx-auto mb-3">
-            <circle cx="36" cy="36" r="34" stroke="url(#rg1)" strokeWidth="2.5" />
-            <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="url(#rg1)" strokeWidth="3" strokeLinecap="round" fill="none" />
-            <path d="M20 44 Q27 34 36 42 Q45 50 52 40" stroke="url(#rg2)" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.55" />
-            <circle cx="36" cy="36" r="3.5" fill="url(#rg1)" />
-            <defs>
-              <linearGradient id="rg1" x1="16" y1="16" x2="56" y2="56" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stopColor="#A78BFA" /><stop offset="100%" stopColor="#7C5CFC" />
-              </linearGradient>
-              <linearGradient id="rg2" x1="20" y1="36" x2="52" y2="36" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stopColor="#FBB724" /><stop offset="100%" stopColor="#F97316" />
-              </linearGradient>
-            </defs>
-          </svg>
-          <h1 className="text-3xl font-bold tracking-tight" style={{ color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>finara</h1>
+          <Link href="/splash" className="inline-flex flex-col items-center group">
+            <svg width="44" height="44" viewBox="0 0 72 72" fill="none" className="mx-auto mb-3 transition-opacity group-hover:opacity-80">
+              <circle cx="36" cy="36" r="34" stroke="url(#rg1)" strokeWidth="2.5" />
+              <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="url(#rg1)" strokeWidth="3" strokeLinecap="round" fill="none" />
+              <path d="M20 44 Q27 34 36 42 Q45 50 52 40" stroke="url(#rg2)" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.55" />
+              <circle cx="36" cy="36" r="3.5" fill="url(#rg1)" />
+              <defs>
+                <linearGradient id="rg1" x1="16" y1="16" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#A78BFA" /><stop offset="100%" stopColor="#7C5CFC" />
+                </linearGradient>
+                <linearGradient id="rg2" x1="20" y1="36" x2="52" y2="36" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#FBB724" /><stop offset="100%" stopColor="#F97316" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <h1 className="text-3xl font-bold tracking-tight transition-opacity group-hover:opacity-80" style={{ color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>finara</h1>
+          </Link>
           <p className="text-xs mt-1 font-medium" style={{ color: 'var(--text-muted)', letterSpacing: '0.1em' }}>DAFTAR GRATIS</p>
         </motion.div>
 

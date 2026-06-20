@@ -32,7 +32,7 @@ function WelcomeMessage({ onHint }: { onHint: (h: string) => void }) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="flex flex-col items-center justify-center py-10 px-6 text-center h-full"
+      className="flex flex-col items-center justify-center px-6 text-center"
     >
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
@@ -256,21 +256,27 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* Messages — scrollable area */}
-        <div
-          className="flex-1 overflow-y-auto px-4 py-4 space-y-4 lg:px-8"
-          style={{ paddingBottom: showSuggestions ? '9rem' : '6rem' }}
-        >
-          {messages.length === 0 && !loading && (
+        {/* Welcome screen — not scrollable, centered, shown only when no messages */}
+        {messages.length === 0 && !loading && (
+          <div className="flex-1 flex items-center justify-center overflow-hidden">
             <WelcomeMessage onHint={(h) => sendMessage(h)} />
-          )}
-          <AnimatePresence initial={false}>
-            {messages.map((msg) => (
-              <ChatBubble key={msg.id} message={msg} userInitial={userInitial} />
-            ))}
-          </AnimatePresence>
-          <div ref={bottomRef} />
-        </div>
+          </div>
+        )}
+
+        {/* Messages — scrollable area, only rendered when there are messages */}
+        {(messages.length > 0 || loading) && (
+          <div
+            className="flex-1 overflow-y-auto px-4 py-4 space-y-4 lg:px-8"
+            style={{ paddingBottom: showSuggestions ? '9rem' : '6rem' }}
+          >
+            <AnimatePresence initial={false}>
+              {messages.map((msg) => (
+                <ChatBubble key={msg.id} message={msg} userInitial={userInitial} />
+              ))}
+            </AnimatePresence>
+            <div ref={bottomRef} />
+          </div>
+        )}
 
         {/* Suggestion chips */}
         <AnimatePresence>

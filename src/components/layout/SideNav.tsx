@@ -1,17 +1,25 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { MessageCircle, LayoutDashboard, List, Target, User, LogOut, Sun, Moon } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { MessageCircle, LayoutDashboard, List, Target, User, LogOut, Sun, Moon, HandCoins, ChevronDown } from 'lucide-react'
 import { useTheme } from '@/lib/theme'
 import { createClient } from '@/lib/supabase/client'
 
-const tabs = [
-  { href: '/', icon: MessageCircle, label: 'Chat' },
-  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+const LIST_SUBS = [
   { href: '/transactions', icon: List, label: 'Transaksi' },
   { href: '/goals', icon: Target, label: 'Goals' },
+  { href: '/debts', icon: HandCoins, label: 'Hutang' },
+]
+
+const TOP_TABS = [
+  { href: '/', icon: MessageCircle, label: 'Chat' },
+  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+]
+
+const BOTTOM_TABS = [
   { href: '/profile', icon: User, label: 'Profil' },
 ]
 
@@ -19,11 +27,42 @@ export default function SideNav() {
   const pathname = usePathname()
   const router = useRouter()
   const { theme, toggle } = useTheme()
+  const [listOpen, setListOpen] = useState(LIST_SUBS.some((s) => pathname === s.href))
+
+  const isListActive = LIST_SUBS.some((s) => pathname === s.href)
 
   async function handleLogout() {
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push('/login')
+  }
+
+  function NavItem({ href, icon: Icon, label }: { href: string; icon: typeof MessageCircle; label: string }) {
+    const isActive = pathname === href
+    return (
+      <Link
+        href={href}
+        className="flex items-center gap-3 px-3 py-2.5 rounded-xl relative transition-colors group"
+        style={{ color: isActive ? 'var(--accent-light)' : 'var(--text-secondary)' }}
+      >
+        {isActive && (
+          <motion.div
+            layoutId="side-pill"
+            className="absolute inset-0 rounded-xl"
+            style={{ background: 'var(--accent-dim)' }}
+            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+          />
+        )}
+        <Icon
+          size={18}
+          strokeWidth={isActive ? 2.5 : 1.8}
+          style={{ color: isActive ? 'var(--accent-light)' : 'var(--text-muted)', flexShrink: 0, position: 'relative' }}
+        />
+        <span className="text-sm font-medium relative" style={{ color: isActive ? 'var(--accent-light)' : 'var(--text-secondary)' }}>
+          {label}
+        </span>
+      </Link>
+    )
   }
 
   return (
@@ -54,39 +93,97 @@ export default function SideNav() {
 
       {/* Nav items */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {tabs.map((tab) => {
-          const isActive = pathname === tab.href
-          return (
-            <Link
-              key={tab.href}
-              href={tab.href}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl relative transition-colors group"
-              style={{ color: isActive ? 'var(--accent-light)' : 'var(--text-secondary)' }}
+        {TOP_TABS.map((tab) => (
+          <NavItem key={tab.href} {...tab} />
+        ))}
+
+        {/* Daftar group */}
+        <div>
+          <button
+            onClick={() => setListOpen((v) => !v)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors"
+            style={{
+              background: isListActive ? 'var(--accent-dim)' : 'transparent',
+              color: isListActive ? 'var(--accent-light)' : 'var(--text-secondary)',
+            }}
+            onMouseEnter={(e) => { if (!isListActive) e.currentTarget.style.background = 'var(--bg-elevated)' }}
+            onMouseLeave={(e) => { if (!isListActive) e.currentTarget.style.background = isListActive ? 'var(--accent-dim)' : 'transparent' }}
+          >
+            <List
+              size={18}
+              strokeWidth={isListActive ? 2.5 : 1.8}
+              style={{ color: isListActive ? 'var(--accent-light)' : 'var(--text-muted)', flexShrink: 0 }}
+            />
+            <span className="text-sm font-medium flex-1 text-left" style={{ color: isListActive ? 'var(--accent-light)' : 'var(--text-secondary)' }}>
+              Daftar
+            </span>
+            <motion.div
+              animate={{ rotate: listOpen ? 180 : 0 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 28 }}
             >
-              {isActive && (
-                <motion.div
-                  layoutId="side-pill"
-                  className="absolute inset-0 rounded-xl"
-                  style={{ background: 'var(--accent-dim)' }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                />
-              )}
-              <tab.icon
-                size={18}
-                strokeWidth={isActive ? 2.5 : 1.8}
-                style={{ color: isActive ? 'var(--accent-light)' : 'var(--text-muted)', flexShrink: 0, position: 'relative' }}
-              />
-              <span className="text-sm font-medium relative" style={{ color: isActive ? 'var(--accent-light)' : 'var(--text-secondary)' }}>
-                {tab.label}
-              </span>
-            </Link>
-          )
-        })}
+              <ChevronDown size={14} style={{ color: 'var(--text-muted)' }} />
+            </motion.div>
+          </button>
+
+          <AnimatePresence initial={false}>
+            {listOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 34, opacity: { duration: 0.15 } }}
+                className="overflow-hidden"
+              >
+                <div className="pl-4 pt-1 pb-1 flex flex-col gap-0.5">
+                  {LIST_SUBS.map((sub, i) => {
+                    const isActive = pathname === sub.href
+                    return (
+                      <motion.div
+                        key={sub.href}
+                        initial={{ opacity: 0, x: -6 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.04, type: 'spring', stiffness: 400, damping: 28 }}
+                      >
+                        <Link
+                          href={sub.href}
+                          className="flex items-center gap-3 px-3 py-2 rounded-xl relative"
+                          style={{ color: isActive ? 'var(--accent-light)' : 'var(--text-secondary)', transition: 'background 0.15s ease' }}
+                          onMouseEnter={(e) => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'var(--bg-elevated)' }}
+                          onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+                        >
+                          {isActive && (
+                            <motion.div
+                              layoutId="side-pill"
+                              className="absolute inset-0 rounded-xl"
+                              style={{ background: 'var(--accent-dim)' }}
+                              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                            />
+                          )}
+                          <sub.icon
+                            size={16}
+                            strokeWidth={isActive ? 2.5 : 1.8}
+                            style={{ color: isActive ? 'var(--accent-light)' : 'var(--text-muted)', flexShrink: 0, position: 'relative' }}
+                          />
+                          <span className="text-sm font-medium relative" style={{ color: isActive ? 'var(--accent-light)' : 'var(--text-secondary)' }}>
+                            {sub.label}
+                          </span>
+                        </Link>
+                      </motion.div>
+                    )
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {BOTTOM_TABS.map((tab) => (
+          <NavItem key={tab.href} {...tab} />
+        ))}
       </nav>
 
       {/* Bottom actions */}
       <div className="px-3 py-4 space-y-1" style={{ borderTop: '1px solid var(--border-light)' }}>
-        {/* Theme toggle */}
         <button
           onClick={toggle}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors"
@@ -101,7 +198,6 @@ export default function SideNav() {
           <span className="text-sm font-medium">{theme === 'dark' ? 'Mode Terang' : 'Mode Gelap'}</span>
         </button>
 
-        {/* Logout */}
         <button
           onClick={handleLogout}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors"
