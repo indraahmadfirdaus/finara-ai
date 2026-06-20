@@ -111,7 +111,18 @@ export default function ChatPage() {
   }, [])
 
   useEffect(() => {
-    if (messages.length > 0) bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (messages.length === 0) return
+    const el = bottomRef.current
+    if (!el) return
+    // Use scrollTop on the scroll container to avoid viewport jump from keyboard on mobile
+    const container = el.parentElement
+    if (container) {
+      const maxScroll = container.scrollHeight - container.clientHeight
+      // Only scroll if near the bottom already (not if user has scrolled up to read history)
+      if (maxScroll - container.scrollTop < 300) {
+        container.scrollTo({ top: maxScroll, behavior: 'smooth' })
+      }
+    }
   }, [messages])
 
   const sendMessage = useCallback(async (text?: string) => {
@@ -157,6 +168,10 @@ export default function ChatPage() {
             } else if (event.type === 'done') {
               if (event.session_id) setSessionId(event.session_id)
               setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, isStreaming: false } : m))
+              // Refresh server data if AI recorded a financial change
+              if (/```card:(transaction|goal|budget|debt)/.test(assistantContent)) {
+                router.refresh()
+              }
             }
           } catch { /* skip */ }
         }
