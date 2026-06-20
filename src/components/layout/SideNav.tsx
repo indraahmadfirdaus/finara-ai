@@ -4,12 +4,13 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { MessageCircle, LayoutDashboard, List, Target, User, LogOut, Sun, Moon, HandCoins, ChevronDown } from 'lucide-react'
+import { MessageCircle, LayoutDashboard, List, Target, User, LogOut, Sun, Moon, HandCoins, ChevronDown, PieChart, Coffee } from 'lucide-react'
 import { useTheme } from '@/lib/theme'
 import { createClient } from '@/lib/supabase/client'
 
 const LIST_SUBS = [
   { href: '/transactions', icon: List, label: 'Transaksi' },
+  { href: '/budgets', icon: PieChart, label: 'Anggaran' },
   { href: '/goals', icon: Target, label: 'Goals' },
   { href: '/debts', icon: HandCoins, label: 'Hutang' },
 ]
@@ -21,6 +22,7 @@ const TOP_TABS = [
 
 const BOTTOM_TABS = [
   { href: '/profile', icon: User, label: 'Profil' },
+  { href: '/support', icon: Coffee, label: 'Dukung Dev' },
 ]
 
 export default function SideNav() {

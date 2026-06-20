@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
   Sun, Moon, MessageCircle, LogOut, ChevronRight,
-  TrendingUp, TrendingDown, KeyRound, Info,
+  TrendingUp, TrendingDown, KeyRound, Info, Coffee,
 } from 'lucide-react'
 import PageTransition from '@/components/layout/PageTransition'
 import { createClient } from '@/lib/supabase/client'
@@ -234,6 +234,21 @@ export default function ProfilePage() {
                 <div className="flex items-center gap-1.5">
                   <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: 'var(--accent-dim)', color: 'var(--accent-light)' }}>
                     v1.0
+                  </span>
+                  <ChevronRight size={15} style={{ color: 'var(--text-muted)' }} />
+                </div>
+              }
+            />
+            <Divider />
+            <Row
+              icon={<Coffee size={17} style={{ color: '#FBB724' }} />}
+              label="Dukung Developer"
+              delay={0.4}
+              onClick={() => router.push('/support')}
+              right={
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: 'rgba(251,183,36,0.15)', color: '#FBB724' }}>
+                    Saweria
                   </span>
                   <ChevronRight size={15} style={{ color: 'var(--text-muted)' }} />
                 </div>
