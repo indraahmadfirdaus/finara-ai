@@ -7,13 +7,14 @@ import SummaryCard from './cards/SummaryCard'
 import GoalCard from './cards/GoalCard'
 import DebtCard from './cards/DebtCard'
 import BudgetCard from './cards/BudgetCard'
+import AssetCard from './cards/AssetCard'
 
 interface StreamingTextProps {
   content: string
   isStreaming?: boolean
 }
 
-type CardType = 'transaction' | 'summary' | 'goal' | 'debt' | 'budget'
+type CardType = 'transaction' | 'summary' | 'goal' | 'debt' | 'budget' | 'asset'
 
 interface ParsedSegment {
   type: 'text' | 'table' | CardType
@@ -24,7 +25,7 @@ interface ParsedSegment {
 export function parseContent(content: string): ParsedSegment[] {
   const segments: ParsedSegment[] = []
   // Match card blocks and markdown tables (lines starting with |)
-  const blockRegex = /```card:(transaction|summary|goal|debt|budget)\n([\s\S]*?)```|((?:\|.+\|\n?)+)/g
+  const blockRegex = /```card:(transaction|summary|goal|debt|budget|asset)\n([\s\S]*?)```|((?:\|.+\|\n?)+)/g
   let lastIndex = 0
   let match: RegExpExecArray | null
 
@@ -217,6 +218,7 @@ function renderCard(type: CardType, content: string) {
       case 'goal': return <GoalCard data={data} />
       case 'debt': return <DebtCard data={data} />
       case 'budget': return <BudgetCard data={data} />
+      case 'asset': return <AssetCard data={data} />
     }
   } catch {
     return null
