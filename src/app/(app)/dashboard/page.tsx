@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 import { getPeriodRange, getMonthKey } from '@/lib/utils/date'
 import Link from 'next/link'
+import { ChevronRight, PieChart, BarChart2, TrendingUp, List, Wallet } from 'lucide-react'
 import TopBar from '@/components/layout/TopBar'
 import PageTransition from '@/components/layout/PageTransition'
 import BalanceHero from '@/components/dashboard/BalanceHero'
@@ -136,9 +137,15 @@ export default async function DashboardPage() {
             className="rounded-2xl p-4 block hover:opacity-90 transition-opacity"
             style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
           >
-            <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
-              Distribusi Pengeluaran
-            </h3>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--accent-dim)' }}>
+                  <PieChart size={13} style={{ color: 'var(--accent-light)' }} />
+                </div>
+                <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Distribusi Pengeluaran</h3>
+              </div>
+              <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
+            </div>
             <SpendingChartClient data={data?.spendingChartData ?? []} />
           </Link>
 
@@ -148,9 +155,15 @@ export default async function DashboardPage() {
             className="rounded-2xl p-4 block hover:opacity-90 transition-opacity"
             style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
           >
-            <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
-              Pengeluaran per Kategori
-            </h3>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--accent-dim)' }}>
+                  <BarChart2 size={13} style={{ color: 'var(--accent-light)' }} />
+                </div>
+                <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Pengeluaran per Kategori</h3>
+              </div>
+              <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
+            </div>
             <SpendingBars data={data?.spendingChartData ?? []} />
           </Link>
 
@@ -160,9 +173,15 @@ export default async function DashboardPage() {
             className="rounded-2xl p-4 lg:col-span-2 block hover:opacity-90 transition-opacity"
             style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
           >
-            <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
-              Tren Keuangan Bulan Ini
-            </h3>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--accent-dim)' }}>
+                  <TrendingUp size={13} style={{ color: 'var(--accent-light)' }} />
+                </div>
+                <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Tren Keuangan Bulan Ini</h3>
+              </div>
+              <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
+            </div>
             <BalanceTrend points={data?.dailyTrend ?? []} />
           </Link>
 
@@ -171,23 +190,35 @@ export default async function DashboardPage() {
             className="rounded-2xl p-4"
             style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
           >
-            <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
-              Transaksi Terbaru
-            </h3>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--accent-dim)' }}>
+                  <List size={13} style={{ color: 'var(--accent-light)' }} />
+                </div>
+                <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Transaksi Terbaru</h3>
+              </div>
+            </div>
             <RecentTransactions transactions={data?.recentTransactions ?? []} />
           </div>
 
           {/* Budget progress */}
           {data?.budgets && data.budgets.length > 0 && (
-            <div
-              className="rounded-2xl p-4"
+            <Link
+              href="/budgets"
+              className="rounded-2xl p-4 block hover:opacity-90 transition-opacity"
               style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
             >
-              <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
-                Anggaran Bulan Ini
-              </h3>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--accent-dim)' }}>
+                    <Wallet size={13} style={{ color: 'var(--accent-light)' }} />
+                  </div>
+                  <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Anggaran Bulan Ini</h3>
+                </div>
+                <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
+              </div>
               <BudgetProgress budgets={data.budgets} />
-            </div>
+            </Link>
           )}
 
           {/* Asset net worth widget */}
