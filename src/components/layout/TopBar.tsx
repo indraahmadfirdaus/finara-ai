@@ -26,12 +26,12 @@ export default function TopBar({ title, showBack = false, action }: TopBarProps)
           <button
             onClick={() => router.back()}
             className="p-2 -ml-2 rounded-xl min-h-[44px] min-w-[44px] flex items-center justify-center"
-            style={{ color: 'rgba(161,161,170,0.7)' }}
+            style={{ color: 'var(--text-muted)' }}
           >
             <ChevronLeft size={20} />
           </button>
         )}
-        <h1 className="text-base font-semibold" style={{ color: '#F1F1F3' }}>
+        <h1 className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
           {title}
         </h1>
       </div>
