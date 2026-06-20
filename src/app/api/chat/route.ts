@@ -14,6 +14,7 @@ const MessageSchema = z.object({
 
 const RequestSchema = z.object({
   messages: z.array(MessageSchema).min(1),
+  session_id: z.string().uuid().optional(),
 })
 
 const SYSTEM_PROMPT = `Kamu adalah Finara, AI finance assistant pribadi yang helpful, casual, dan supportif.
@@ -339,16 +340,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { messages } = parsed.data
+    const { messages, session_id: rawSessionId } = parsed.data
+    const sessionId = rawSessionId ?? crypto.randomUUID()
 
-    const { data: history } = await supabase
+    const historyQuery = supabase
       .from('chat_history')
       .select('role, content')
       .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(20)
+      .order('created_at', { ascending: true })
 
-    const historyMessages = (history ?? []).reverse().map((h) => ({
+    if (rawSessionId) {
+      historyQuery.eq('session_id', rawSessionId)
+    }
+
+    const { data: history } = await historyQuery.limit(40)
+
+    const historyMessages = (history ?? []).map((h) => ({
       role: h.role as 'user' | 'assistant',
       content: h.content,
     }))
@@ -361,6 +368,7 @@ export async function POST(request: NextRequest) {
 
     const encoder = new TextEncoder()
     const userId = user.id
+    const currentSessionId = sessionId
 
     const stream = new ReadableStream({
       async start(controller) {
@@ -462,12 +470,12 @@ export async function POST(request: NextRequest) {
 
           const userMsg = messages[messages.length - 1]
           await supabase.from('chat_history').insert([
-            { user_id: userId, role: 'user', content: userMsg.content },
-            { user_id: userId, role: 'assistant', content: fullContent },
+            { user_id: userId, session_id: currentSessionId, role: 'user', content: userMsg.content },
+            { user_id: userId, session_id: currentSessionId, role: 'assistant', content: fullContent },
           ])
 
           controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ type: 'done' })}\n\n`)
+            encoder.encode(`data: ${JSON.stringify({ type: 'done', session_id: currentSessionId })}\n\n`)
           )
           controller.close()
         } catch (err) {

@@ -67,6 +67,7 @@ create policy "users own debts" on debts
 create table if not exists chat_history (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users not null,
+  session_id uuid not null default gen_random_uuid(),
   role text check (role in ('user', 'assistant')) not null,
   content text not null,
   created_at timestamptz default now()
@@ -75,6 +76,11 @@ alter table chat_history enable row level security;
 create policy "users own chat_history" on chat_history
   for all using (auth.uid() = user_id);
 
+-- Migration: add session_id to existing deployments
+-- Run this separately in Supabase SQL Editor if table already exists:
+-- ALTER TABLE chat_history ADD COLUMN IF NOT EXISTS session_id uuid NOT NULL DEFAULT gen_random_uuid();
+-- CREATE INDEX IF NOT EXISTS idx_chat_history_session ON chat_history(user_id, session_id, created_at ASC);
+
 -- Indexes for performance
 create index if not exists idx_transactions_user_date on transactions(user_id, date desc);
 create index if not exists idx_transactions_user_type on transactions(user_id, type);
@@ -82,3 +88,4 @@ create index if not exists idx_budgets_user_month on budgets(user_id, month);
 create index if not exists idx_goals_user on goals(user_id, created_at desc);
 create index if not exists idx_debts_user_settled on debts(user_id, settled);
 create index if not exists idx_chat_history_user on chat_history(user_id, created_at desc);
+create index if not exists idx_chat_history_session on chat_history(user_id, session_id, created_at asc);

@@ -81,6 +81,10 @@ function WelcomeMessage({ onHint }: { onHint: (h: string) => void }) {
   )
 }
 
+function generateSessionId() {
+  return crypto.randomUUID()
+}
+
 export default function ChatPage() {
   const router = useRouter()
   const [messages, setMessages] = useState<Message[]>([])
@@ -88,6 +92,7 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false)
   const [userEmail, setUserEmail] = useState('')
   const [historyOpen, setHistoryOpen] = useState(false)
+  const [sessionId, setSessionId] = useState<string>(() => generateSessionId())
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -95,20 +100,6 @@ export default function ChatPage() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user?.email) setUserEmail(user.email)
     })
-    supabase
-      .from('chat_history')
-      .select('role, content')
-      .order('created_at', { ascending: true })
-      .limit(40)
-      .then(({ data }) => {
-        if (data && data.length > 0) {
-          setMessages(data.map((row, i) => ({
-            id: String(i),
-            role: row.role as 'user' | 'assistant',
-            content: row.content,
-          })))
-        }
-      })
   }, [])
 
   useEffect(() => {
@@ -130,7 +121,7 @@ export default function ChatPage() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [{ role: 'user', content: msg }] }),
+        body: JSON.stringify({ messages: [{ role: 'user', content: msg }], session_id: sessionId }),
       })
       if (!res.ok) throw new Error('API error')
 
@@ -156,6 +147,7 @@ export default function ChatPage() {
             } else if (event.type === 'navigate') {
               router.push(event.page)
             } else if (event.type === 'done') {
+              if (event.session_id) setSessionId(event.session_id)
               setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, isStreaming: false } : m))
             }
           } catch { /* skip */ }
@@ -172,11 +164,12 @@ export default function ChatPage() {
     } finally {
       setLoading(false)
     }
-  }, [input, loading, router])
+  }, [input, loading, router, sessionId])
 
   function startNewChat() {
     setMessages([])
     setInput('')
+    setSessionId(generateSessionId())
   }
 
   const userInitial = userEmail ? userEmail[0].toUpperCase() : 'K'
@@ -353,7 +346,7 @@ export default function ChatPage() {
       <HistoryDrawer
         open={historyOpen}
         onClose={() => setHistoryOpen(false)}
-        onRestore={(msgs) => setMessages(msgs)}
+        onRestore={(msgs, sid) => { setMessages(msgs); setSessionId(sid) }}
       />
     </>
   )

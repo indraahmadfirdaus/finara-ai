@@ -10,47 +10,62 @@ interface HistoryRow {
   role: 'user' | 'assistant'
   content: string
   created_at: string
+  session_id: string
 }
 
 interface Session {
-  date: string
+  session_id: string
   label: string
   preview: string
+  created_at: string
   messages: HistoryRow[]
 }
 
-function groupByDate(rows: HistoryRow[]): Session[] {
+function groupBySession(rows: HistoryRow[]): Session[] {
   const map = new Map<string, HistoryRow[]>()
   for (const row of rows) {
-    const d = row.created_at.slice(0, 10)
-    if (!map.has(d)) map.set(d, [])
-    map.get(d)!.push(row)
+    if (!map.has(row.session_id)) map.set(row.session_id, [])
+    map.get(row.session_id)!.push(row)
   }
 
-  const sessions: Session[] = []
   const today = new Date().toISOString().slice(0, 10)
   const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
 
-  for (const [date, msgs] of map) {
-    const userMsgs = msgs.filter((m) => m.role === 'user')
-    const preview = userMsgs[userMsgs.length - 1]?.content ?? msgs[msgs.length - 1]?.content ?? ''
-    let label = date
-    if (date === today) label = 'Hari ini'
-    else if (date === yesterday) label = 'Kemarin'
+  const sessions: Session[] = []
+  for (const [sid, msgs] of map) {
+    const firstUserMsg = msgs.find((m) => m.role === 'user')
+    const preview = firstUserMsg?.content ?? msgs[0]?.content ?? ''
+    const created_at = msgs[0]?.created_at ?? ''
+    const date = created_at.slice(0, 10)
+
+    let dateLabel = date
+    if (date === today) dateLabel = 'Hari ini'
+    else if (date === yesterday) dateLabel = 'Kemarin'
     else {
       const d = new Date(date)
-      label = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long' })
+      dateLabel = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long' })
     }
-    sessions.push({ date, label, preview: preview.slice(0, 60), messages: msgs })
+
+    const time = created_at
+      ? new Date(created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+      : ''
+
+    sessions.push({
+      session_id: sid,
+      label: `${dateLabel}${time ? `, ${time}` : ''}`,
+      preview: preview.slice(0, 70),
+      created_at,
+      messages: msgs,
+    })
   }
 
-  return sessions.sort((a, b) => b.date.localeCompare(a.date))
+  return sessions.sort((a, b) => b.created_at.localeCompare(a.created_at))
 }
 
 interface HistoryDrawerProps {
   open: boolean
   onClose: () => void
-  onRestore: (messages: Array<{ id: string; role: 'user' | 'assistant'; content: string }>) => void
+  onRestore: (messages: Array<{ id: string; role: 'user' | 'assistant'; content: string }>, sessionId: string) => void
 }
 
 export default function HistoryDrawer({ open, onClose, onRestore }: HistoryDrawerProps) {
@@ -63,11 +78,11 @@ export default function HistoryDrawer({ open, onClose, onRestore }: HistoryDrawe
     const supabase = createClient()
     supabase
       .from('chat_history')
-      .select('id, role, content, created_at')
+      .select('id, role, content, created_at, session_id')
       .order('created_at', { ascending: true })
-      .limit(200)
+      .limit(400)
       .then(({ data }) => {
-        if (data) setSessions(groupByDate(data as HistoryRow[]))
+        if (data) setSessions(groupBySession(data as HistoryRow[]))
         setLoading(false)
       })
   }, [open])
@@ -76,7 +91,6 @@ export default function HistoryDrawer({ open, onClose, onRestore }: HistoryDrawe
     <AnimatePresence>
       {open && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -86,7 +100,6 @@ export default function HistoryDrawer({ open, onClose, onRestore }: HistoryDrawe
             style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
           />
 
-          {/* Drawer */}
           <motion.div
             initial={{ x: '-100%' }}
             animate={{ x: 0 }}
@@ -95,7 +108,6 @@ export default function HistoryDrawer({ open, onClose, onRestore }: HistoryDrawe
             className="fixed left-0 top-0 bottom-0 z-50 w-80 flex flex-col"
             style={{ background: 'var(--bg-surface)', borderRight: '1px solid var(--border-light)' }}
           >
-            {/* Header */}
             <div
               className="flex items-center justify-between px-5 py-4 flex-shrink-0"
               style={{ borderBottom: '1px solid var(--border-light)' }}
@@ -115,7 +127,6 @@ export default function HistoryDrawer({ open, onClose, onRestore }: HistoryDrawe
               </button>
             </div>
 
-            {/* Sessions list */}
             <div className="flex-1 overflow-y-auto py-2">
               {loading && (
                 <div className="px-5 py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
@@ -132,15 +143,16 @@ export default function HistoryDrawer({ open, onClose, onRestore }: HistoryDrawe
               )}
               {sessions.map((s) => (
                 <button
-                  key={s.date}
+                  key={s.session_id}
                   onClick={() => {
-                    onRestore(s.messages.map((m, i) => ({ id: String(i), role: m.role, content: m.content })))
+                    onRestore(
+                      s.messages.map((m, i) => ({ id: String(i), role: m.role, content: m.content })),
+                      s.session_id
+                    )
                     onClose()
                   }}
                   className="w-full text-left px-5 py-3.5 transition-colors"
-                  style={{
-                    borderBottom: '1px solid var(--border-light)',
-                  }}
+                  style={{ borderBottom: '1px solid var(--border-light)' }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-elevated)')}
                   onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                 >
@@ -161,7 +173,7 @@ export default function HistoryDrawer({ open, onClose, onRestore }: HistoryDrawe
               className="px-5 py-3 flex-shrink-0 text-center text-xs"
               style={{ color: 'var(--text-muted)', borderTop: '1px solid var(--border-light)' }}
             >
-              {sessions.length} hari percakapan tersimpan
+              {sessions.length} sesi percakapan tersimpan
             </div>
           </motion.div>
         </>
