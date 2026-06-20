@@ -73,7 +73,7 @@ export default function BudgetsPage() {
         }
       />
 
-      <div className="px-4 pt-3">
+      <div className="px-4 pt-3 lg:max-w-3xl lg:mx-auto lg:px-6">
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => <SkeletonLoader key={i} variant="card" />)}

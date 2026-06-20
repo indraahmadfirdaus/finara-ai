@@ -134,7 +134,12 @@ export default function TransactionsPage() {
     <PageTransition>
       <TopBar title="Transaksi" />
 
-      <div className="px-4 pt-3 pb-8 space-y-3">
+      {/* Desktop page header */}
+      <div className="hidden lg:flex items-center px-6 py-5" style={{ borderBottom: '1px solid var(--border-light)' }}>
+        <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Transaksi</h1>
+      </div>
+
+      <div className="px-4 pt-3 pb-8 space-y-3 lg:max-w-3xl lg:mx-auto lg:px-6">
 
         {/* ── Period quick-select ── */}
         <div className="flex gap-2 overflow-x-auto pb-0.5" style={{ scrollbarWidth: 'none' }}>

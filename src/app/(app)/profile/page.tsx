@@ -47,7 +47,7 @@ export default function ProfilePage() {
   return (
     <PageTransition>
       <TopBar title="Profil" />
-      <div className="px-4 pt-3 space-y-4">
+      <div className="px-4 pt-3 space-y-4 lg:max-w-2xl lg:mx-auto lg:px-6">
         {/* User card */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}

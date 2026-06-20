@@ -31,7 +31,7 @@ function WelcomeMessage({ onHint }: { onHint: (h: string) => void }) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="flex flex-col items-center justify-center py-10 px-6 text-center"
+      className="flex flex-col items-center justify-center py-10 px-6 text-center h-full"
     >
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
@@ -54,15 +54,13 @@ function WelcomeMessage({ onHint }: { onHint: (h: string) => void }) {
           </defs>
         </svg>
       </motion.div>
-
       <h2 className="text-xl font-bold mb-1" style={{ color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
         Halo! Aku Finara 👋
       </h2>
       <p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>
         Coba tanya atau catat sesuatu
       </p>
-
-      <div className="flex flex-wrap gap-2 justify-center">
+      <div className="flex flex-wrap gap-2 justify-center max-w-sm">
         {WELCOME_HINTS.map((hint) => (
           <motion.button
             key={hint}
@@ -83,6 +81,16 @@ function WelcomeMessage({ onHint }: { onHint: (h: string) => void }) {
   )
 }
 
+const SESSION_KEY = 'finara_chat_session_id'
+
+function getOrCreateSessionId(): string {
+  const existing = sessionStorage.getItem(SESSION_KEY)
+  if (existing) return existing
+  const id = crypto.randomUUID()
+  sessionStorage.setItem(SESSION_KEY, id)
+  return id
+}
+
 export default function ChatPage() {
   const router = useRouter()
   const [messages, setMessages] = useState<Message[]>([])
@@ -90,27 +98,15 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false)
   const [userEmail, setUserEmail] = useState('')
   const [historyOpen, setHistoryOpen] = useState(false)
+  const [sessionId, setSessionId] = useState<string>('')
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    setSessionId(getOrCreateSessionId())
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user?.email) setUserEmail(user.email)
     })
-    supabase
-      .from('chat_history')
-      .select('role, content')
-      .order('created_at', { ascending: true })
-      .limit(40)
-      .then(({ data }) => {
-        if (data && data.length > 0) {
-          setMessages(data.map((row, i) => ({
-            id: String(i),
-            role: row.role as 'user' | 'assistant',
-            content: row.content,
-          })))
-        }
-      })
   }, [])
 
   useEffect(() => {
@@ -132,7 +128,7 @@ export default function ChatPage() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [{ role: 'user', content: msg }] }),
+        body: JSON.stringify({ messages: [{ role: 'user', content: msg }], session_id: sessionId }),
       })
       if (!res.ok) throw new Error('API error')
 
@@ -158,6 +154,7 @@ export default function ChatPage() {
             } else if (event.type === 'navigate') {
               router.push(event.page)
             } else if (event.type === 'done') {
+              if (event.session_id) setSessionId(event.session_id)
               setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, isStreaming: false } : m))
             }
           } catch { /* skip */ }
@@ -174,9 +171,12 @@ export default function ChatPage() {
     } finally {
       setLoading(false)
     }
-  }, [input, loading, router])
+  }, [input, loading, router, sessionId])
 
   function startNewChat() {
+    const newId = crypto.randomUUID()
+    sessionStorage.setItem(SESSION_KEY, newId)
+    setSessionId(newId)
     setMessages([])
     setInput('')
   }
@@ -185,128 +185,182 @@ export default function ChatPage() {
   const showSuggestions = messages.length > 0 && !loading
 
   return (
-    <div className="flex flex-col h-screen" style={{ background: 'var(--bg-base)' }}>
-      {/* Header — sticky */}
-      <div
-        className="sticky top-0 z-40 flex items-center justify-between px-5 py-3 flex-shrink-0"
-        style={{
-          borderBottom: '1px solid var(--border-light)',
-          background: 'var(--header-bg)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-        }}
-      >
-        {/* Left: logo + status */}
-        <div className="flex items-center gap-3">
-          <svg width="28" height="28" viewBox="0 0 72 72" fill="none">
-            <circle cx="36" cy="36" r="34" stroke="url(#hg1)" strokeWidth="2.5" />
-            <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="url(#hg1)" strokeWidth="3" strokeLinecap="round" fill="none" />
-            <circle cx="36" cy="36" r="3.5" fill="url(#hg1)" />
-            <defs>
-              <linearGradient id="hg1" x1="16" y1="16" x2="56" y2="56" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stopColor="#A78BFA" /><stop offset="100%" stopColor="#7C5CFC" />
-              </linearGradient>
-            </defs>
-          </svg>
-          <div>
-            <p className="text-sm font-bold" style={{ color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
-              finara
-            </p>
-            <div className="flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#22C55E' }} />
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Online</p>
+    <>
+      {/*
+        Mobile: full-screen flex column with fixed-positioned input
+        Desktop: fills the right column of the sidebar layout, h-screen flex column
+      */}
+      <div className="flex flex-col h-screen lg:h-screen" style={{ background: 'var(--bg-base)' }}>
+
+        {/* Header */}
+        <div
+          className="sticky top-0 z-40 flex items-center justify-between px-5 py-3 flex-shrink-0"
+          style={{
+            borderBottom: '1px solid var(--border-light)',
+            background: 'var(--header-bg)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+          }}
+        >
+          {/* Logo — hidden on desktop since sidebar shows it */}
+          <div className="flex items-center gap-3 lg:hidden">
+            <svg width="28" height="28" viewBox="0 0 72 72" fill="none">
+              <circle cx="36" cy="36" r="34" stroke="url(#hg1)" strokeWidth="2.5" />
+              <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="url(#hg1)" strokeWidth="3" strokeLinecap="round" fill="none" />
+              <circle cx="36" cy="36" r="3.5" fill="url(#hg1)" />
+              <defs>
+                <linearGradient id="hg1" x1="16" y1="16" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#A78BFA" /><stop offset="100%" stopColor="#7C5CFC" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <div>
+              <p className="text-sm font-bold" style={{ color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>finara</p>
+              <div className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#22C55E' }} />
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Online</p>
+              </div>
             </div>
+          </div>
+
+          {/* Desktop: page title */}
+          <p className="hidden lg:block text-base font-semibold" style={{ color: 'var(--text-primary)' }}>Chat</p>
+
+          {/* Actions */}
+          <div className="flex items-center gap-2">
+            <AnimatePresence>
+              {messages.length > 0 && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={startNewChat}
+                  className="w-9 h-9 rounded-xl flex items-center justify-center"
+                  style={{ background: 'var(--accent-dim)', color: 'var(--accent-light)' }}
+                  title="Chat baru"
+                >
+                  <SquarePen size={15} />
+                </motion.button>
+              )}
+            </AnimatePresence>
+            <button
+              onClick={() => setHistoryOpen(true)}
+              className="w-9 h-9 rounded-xl flex items-center justify-center"
+              style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}
+              title="Riwayat chat"
+            >
+              <History size={16} />
+            </button>
           </div>
         </div>
 
-        {/* Right: new chat + history */}
-        <div className="flex items-center gap-2">
-          <AnimatePresence>
-            {messages.length > 0 && (
-              <motion.button
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={startNewChat}
-                className="w-9 h-9 rounded-xl flex items-center justify-center"
-                style={{ background: 'var(--accent-dim)', color: 'var(--accent-light)' }}
-                title="Chat baru"
-              >
-                <SquarePen size={15} />
-              </motion.button>
-            )}
+        {/* Messages — scrollable area */}
+        <div
+          className="flex-1 overflow-y-auto px-4 py-4 space-y-4 lg:px-8"
+          style={{ paddingBottom: showSuggestions ? '9rem' : '6rem' }}
+        >
+          {messages.length === 0 && !loading && (
+            <WelcomeMessage onHint={(h) => sendMessage(h)} />
+          )}
+          <AnimatePresence initial={false}>
+            {messages.map((msg) => (
+              <ChatBubble key={msg.id} message={msg} userInitial={userInitial} />
+            ))}
           </AnimatePresence>
-          <button
-            onClick={() => setHistoryOpen(true)}
-            className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}
-            title="Riwayat chat"
-          >
-            <History size={16} />
-          </button>
+          <div ref={bottomRef} />
         </div>
-      </div>
 
-      {/* Messages */}
-      <div
-        className="flex-1 overflow-y-auto px-4 py-4 space-y-4"
-        style={{ paddingBottom: showSuggestions ? '9rem' : '6rem' }}
-      >
-        {messages.length === 0 && !loading && (
-          <WelcomeMessage onHint={(h) => sendMessage(h)} />
-        )}
-        <AnimatePresence initial={false}>
-          {messages.map((msg) => (
-            <ChatBubble key={msg.id} message={msg} userInitial={userInitial} />
-          ))}
+        {/* Suggestion chips */}
+        <AnimatePresence>
+          {showSuggestions && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              className="fixed left-0 right-0 z-20 px-4 pb-1 lg:left-64"
+              style={{ bottom: 'calc(4rem + 68px)' }}
+            >
+              <div className="flex gap-2 overflow-x-auto pb-1 lg:max-w-3xl lg:mx-auto" style={{ scrollbarWidth: 'none' }}>
+                {SUGGESTIONS.map((s) => (
+                  <button
+                    key={s.text}
+                    onClick={() => sendMessage(s.text)}
+                    disabled={loading}
+                    className="flex-shrink-0 px-3.5 py-2 rounded-2xl text-xs font-medium transition-opacity disabled:opacity-40"
+                    style={{
+                      background: 'var(--bg-surface)',
+                      color: 'var(--accent-light)',
+                      border: '1px solid var(--border)',
+                    }}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>
-        <div ref={bottomRef} />
-      </div>
 
-      {/* Suggestion chips */}
-      <AnimatePresence>
-        {showSuggestions && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
-            className="fixed left-0 right-0 z-20 px-4 pb-1"
-            style={{ bottom: 'calc(4rem + 68px)' }}
-          >
-            <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-              {SUGGESTIONS.map((s) => (
-                <button
-                  key={s.text}
-                  onClick={() => sendMessage(s.text)}
-                  disabled={loading}
-                  className="flex-shrink-0 px-3.5 py-2 rounded-2xl text-xs font-medium transition-opacity disabled:opacity-40"
-                  style={{
-                    background: 'var(--bg-surface)',
-                    color: 'var(--accent-light)',
-                    border: '1px solid var(--border)',
-                  }}
-                >
-                  {s.label}
-                </button>
-              ))}
+        {/* Input — fixed on mobile, accounts for sidebar on desktop */}
+        <div
+          className="fixed bottom-16 left-0 right-0 z-30 px-4 py-3 lg:bottom-0 lg:left-64"
+          style={{ background: 'linear-gradient(to top, var(--bg-base) 70%, transparent)' }}
+        >
+          <div className="max-w-3xl mx-auto flex items-end gap-2">
+            <div
+              className="flex-1 rounded-3xl flex items-end overflow-hidden"
+              style={{ background: 'var(--input-bg)', border: '1px solid var(--input-border)' }}
+            >
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() }
+                }}
+                placeholder="Ketik pesan..."
+                rows={1}
+                className="flex-1 px-4 py-3.5 resize-none bg-transparent outline-none text-sm leading-relaxed placeholder:opacity-40"
+                style={{ color: 'var(--text-primary)', maxHeight: 120 }}
+              />
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <motion.button
+              whileTap={{ scale: 0.88 }}
+              onClick={() => sendMessage()}
+              disabled={loading || !input.trim()}
+              className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all"
+              style={
+                input.trim() && !loading
+                  ? { background: 'linear-gradient(135deg, #FBB724 0%, #F97316 100%)' }
+                  : { background: 'var(--bg-elevated)', border: '1px solid var(--border)' }
+              }
+            >
+              {loading ? (
+                <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeOpacity="0.25" />
+                  <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M22 2L11 13" stroke={input.trim() ? 'black' : 'var(--text-muted)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke={input.trim() ? 'black' : 'var(--text-muted)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+            </motion.button>
+          </div>
+        </div>
 
-      <ChatInput
-        value={input}
-        onChange={setInput}
-        onSubmit={() => sendMessage()}
-        loading={loading}
-      />
+      </div>
 
       <HistoryDrawer
         open={historyOpen}
         onClose={() => setHistoryOpen(false)}
-        onRestore={(msgs) => setMessages(msgs)}
+        onRestore={(msgs, sid) => {
+          sessionStorage.setItem(SESSION_KEY, sid)
+          setSessionId(sid)
+          setMessages(msgs)
+        }}
       />
-    </div>
+    </>
   )
 }
