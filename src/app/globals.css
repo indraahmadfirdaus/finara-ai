@@ -24,6 +24,24 @@
   --nav-bg: #13131E;
   --nav-border: rgba(255, 255, 255, 0.05);
   --header-bg: #0D0D14;
+  /* Landing page */
+  --land-bg: #0D0D14;
+  --land-surface: #13111E;
+  --land-chat-ai: #1E1E2E;
+  --land-chat-ai-border: rgba(255, 255, 255, 0.07);
+  --land-chat-input-bg: rgba(255, 255, 255, 0.05);
+  --land-chat-input-border: rgba(255, 255, 255, 0.08);
+  --land-orb-purple: rgba(124, 92, 252, 0.2);
+  --land-orb-gold: rgba(251, 183, 36, 0.1);
+  --land-nav-btn: rgba(255, 255, 255, 0.07);
+  --land-glass: rgba(255, 255, 255, 0.03);
+  --land-glass-border: rgba(255, 255, 255, 0.07);
+  --land-muted: rgba(255, 255, 255, 0.48);
+  --land-dimmer: rgba(255, 255, 255, 0.22);
+  --land-ghost: rgba(255, 255, 255, 0.18);
+  --land-tile-btn: rgba(255, 255, 255, 0.06);
+  --land-tile-btn-border: rgba(255, 255, 255, 0.1);
+  --land-separator: rgba(255, 255, 255, 0.06);
 }
 
 [data-theme="light"] {
@@ -50,6 +68,24 @@
   --nav-bg: #FFFFFF;
   --nav-border: rgba(0, 0, 0, 0.06);
   --header-bg: #F4F4F8;
+  /* Landing page */
+  --land-bg: #F0EFFA;
+  --land-surface: #FFFFFF;
+  --land-chat-ai: #F0EFFA;
+  --land-chat-ai-border: rgba(0, 0, 0, 0.07);
+  --land-chat-input-bg: rgba(0, 0, 0, 0.04);
+  --land-chat-input-border: rgba(0, 0, 0, 0.1);
+  --land-orb-purple: rgba(124, 92, 252, 0.12);
+  --land-orb-gold: rgba(251, 183, 36, 0.08);
+  --land-nav-btn: rgba(0, 0, 0, 0.06);
+  --land-glass: rgba(0, 0, 0, 0.02);
+  --land-glass-border: rgba(0, 0, 0, 0.08);
+  --land-muted: rgba(0, 0, 0, 0.5);
+  --land-dimmer: rgba(0, 0, 0, 0.35);
+  --land-ghost: rgba(0, 0, 0, 0.18);
+  --land-tile-btn: rgba(0, 0, 0, 0.04);
+  --land-tile-btn-border: rgba(0, 0, 0, 0.1);
+  --land-separator: rgba(0, 0, 0, 0.07);
 }
 
 :root {

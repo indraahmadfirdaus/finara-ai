@@ -50,7 +50,7 @@ function TypingDots() {
         <motion.div
           key={i}
           className="w-1.5 h-1.5 rounded-full"
-          style={{ background: '#A78BFA' }}
+          style={{ background: 'var(--accent-light)' }}
           animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }}
           transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.16 }}
         />
@@ -68,13 +68,13 @@ function MiniCard({ label, amount, type }: { label: string; amount: number; type
       transition={{ type: 'spring', stiffness: 320, damping: 24 }}
       className="mt-2 px-3 py-2.5 rounded-xl flex items-center justify-between"
       style={{
-        background: 'rgba(255,255,255,0.05)',
+        background: 'var(--land-glass)',
         border: `1px solid ${isIncome ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'}`,
-        borderLeft: `3px solid ${isIncome ? '#22C55E' : '#EF4444'}`,
+        borderLeft: `3px solid ${isIncome ? 'var(--success)' : 'var(--danger)'}`,
       }}
     >
-      <span className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.6)' }}>{label}</span>
-      <span className="text-xs font-bold" style={{ color: isIncome ? '#22C55E' : '#EF4444' }}>
+      <span className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{label}</span>
+      <span className="text-xs font-bold" style={{ color: isIncome ? 'var(--success)' : 'var(--danger)' }}>
         {isIncome ? '+' : '-'}{formatIDR(amount)}
       </span>
     </motion.div>
@@ -87,7 +87,7 @@ function InlineMd({ text }: { text: string }) {
     <>
       {parts.map((p, i) =>
         p.startsWith('**') ? (
-          <strong key={i} style={{ color: '#fff', fontWeight: 700 }}>{p.slice(2, -2)}</strong>
+          <strong key={i} style={{ color: 'var(--text-primary)', fontWeight: 700 }}>{p.slice(2, -2)}</strong>
         ) : (
           <span key={i}>{p}</span>
         )
@@ -100,12 +100,29 @@ function delay(ms: number) {
   return new Promise<void>((r) => setTimeout(r, ms))
 }
 
+// Animated theme icon — rotates out old, rotates in new
+function ThemeIcon({ theme }: { theme: string }) {
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.span
+        key={theme}
+        initial={{ rotate: -90, opacity: 0, scale: 0.5 }}
+        animate={{ rotate: 0, opacity: 1, scale: 1 }}
+        exit={{ rotate: 90, opacity: 0, scale: 0.5 }}
+        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+        style={{ display: 'flex' }}
+      >
+        {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+      </motion.span>
+    </AnimatePresence>
+  )
+}
+
 function ChatDemo() {
   const [shown, setShown] = useState<number[]>([])
   const [typing, setTyping] = useState(false)
   const [userTypingIdx, setUserTypingIdx] = useState<number | null>(null)
   const [userTypingText, setUserTypingText] = useState('')
-  // Ref to the scrollable messages container — NOT bottomRef that triggers page scroll
   const msgsRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -117,7 +134,6 @@ function ChatDemo() {
 
       for (let i = 0; i < DEMO.length; i++) {
         const item = DEMO[i]
-
         if (item.role === 'user') {
           setUserTypingIdx(i)
           setUserTypingText('')
@@ -154,7 +170,7 @@ function ChatDemo() {
     return () => { cancelled = true }
   }, [])
 
-  // Scroll only the messages container div — never touches window.scrollY
+  // Scroll only the messages container — never the page
   useEffect(() => {
     const el = msgsRef.current
     if (el) el.scrollTop = el.scrollHeight
@@ -164,16 +180,23 @@ function ChatDemo() {
     <div
       className="w-full rounded-3xl overflow-hidden flex flex-col"
       style={{
-        background: '#13111E',
-        border: '1px solid rgba(255,255,255,0.08)',
+        background: 'var(--land-surface)',
+        border: '1px solid var(--land-glass-border)',
         height: 400,
         maxWidth: 320,
-        boxShadow: '0 40px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(124,92,252,0.15), inset 0 1px 0 rgba(255,255,255,0.06)',
+        boxShadow: '0 40px 80px rgba(0,0,0,0.3), 0 0 0 1px rgba(124,92,252,0.12), inset 0 1px 0 var(--land-glass-border)',
+        transition: 'background 0.25s ease, border-color 0.25s ease',
       }}
     >
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-3 flex-shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <div className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(124,92,252,0.2)' }}>
+      <div
+        className="flex items-center gap-2 px-4 py-3 flex-shrink-0"
+        style={{ borderBottom: '1px solid var(--land-glass-border)' }}
+      >
+        <div
+          className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ background: 'var(--accent-dim)' }}
+        >
           <svg width="16" height="16" viewBox="0 0 72 72" fill="none">
             <circle cx="36" cy="36" r="28" stroke="url(#dlg)" strokeWidth="3" />
             <path d="M22 38 Q29 28 36 36 Q43 44 50 34" stroke="url(#dlg)" strokeWidth="3" strokeLinecap="round" fill="none" />
@@ -186,21 +209,20 @@ function ChatDemo() {
           </svg>
         </div>
         <div>
-          <p className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.9)' }}>finara</p>
+          <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>finara</p>
           <div className="flex items-center gap-1">
-            <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#22C55E' }} />
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 10 }}>Online</p>
+            <div className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--success)' }} />
+            <p style={{ color: 'var(--text-muted)', fontSize: 10 }}>Online</p>
           </div>
         </div>
       </div>
 
-      {/* Scrollable messages — overflow-y-auto scoped here only */}
+      {/* Scrollable messages */}
       <div
         ref={msgsRef}
         className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-2.5"
         style={{ scrollbarWidth: 'none' }}
       >
-        {/* flex-1 spacer keeps messages anchored to bottom when few items */}
         <div className="flex-1 min-h-0" />
 
         <AnimatePresence initial={false}>
@@ -219,8 +241,18 @@ function ChatDemo() {
                   className="px-3 py-2 rounded-2xl text-xs leading-relaxed max-w-[85%]"
                   style={
                     isUser
-                      ? { background: 'linear-gradient(135deg,#7C5CFC,#6B46FC)', color: '#fff', borderBottomRightRadius: 4 }
-                      : { background: '#1E1E2E', color: 'rgba(255,255,255,0.85)', border: '1px solid rgba(255,255,255,0.07)', borderBottomLeftRadius: 4 }
+                      ? {
+                          background: 'linear-gradient(135deg, var(--bubble-user-from), var(--bubble-user-to))',
+                          color: '#fff',
+                          borderBottomRightRadius: 4,
+                        }
+                      : {
+                          background: 'var(--land-chat-ai)',
+                          color: 'var(--text-primary)',
+                          border: '1px solid var(--land-chat-ai-border)',
+                          borderBottomLeftRadius: 4,
+                          transition: 'background 0.25s ease',
+                        }
                   }
                 >
                   <InlineMd text={item.text} />
@@ -235,27 +267,56 @@ function ChatDemo() {
           })}
 
           {userTypingIdx !== null && (
-            <motion.div key="user-typing" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="flex justify-end">
+            <motion.div
+              key="user-typing"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex justify-end"
+            >
               <div
                 className="px-3 py-2 rounded-2xl text-xs leading-relaxed max-w-[85%]"
-                style={{ background: 'linear-gradient(135deg,#7C5CFC,#6B46FC)', color: '#fff', borderBottomRightRadius: 4 }}
+                style={{
+                  background: 'linear-gradient(135deg, var(--bubble-user-from), var(--bubble-user-to))',
+                  color: '#fff',
+                  borderBottomRightRadius: 4,
+                }}
               >
-                {userTypingText || ' '}
-                <span className="inline-block w-0.5 h-3 ml-0.5 align-middle" style={{ background: 'rgba(255,255,255,0.7)', animation: 'cursor-blink 0.8s step-end infinite' }} />
+                {userTypingText || ' '}
+                <span
+                  className="inline-block w-0.5 h-3 ml-0.5 align-middle"
+                  style={{ background: 'rgba(255,255,255,0.7)', animation: 'cursor-blink 0.8s step-end infinite' }}
+                />
               </div>
             </motion.div>
           )}
 
           {typing && (
-            <motion.div key="ai-typing" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="flex items-start gap-2">
-              <div className="w-6 h-6 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(124,92,252,0.2)' }}>
+            <motion.div
+              key="ai-typing"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="flex items-start gap-2"
+            >
+              <div
+                className="w-6 h-6 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: 'var(--accent-dim)' }}
+              >
                 <svg width="12" height="12" viewBox="0 0 72 72" fill="none">
                   <circle cx="36" cy="36" r="28" stroke="#A78BFA" strokeWidth="4" />
                   <path d="M22 38 Q29 28 36 36 Q43 44 50 34" stroke="#A78BFA" strokeWidth="4" strokeLinecap="round" fill="none" />
                   <circle cx="36" cy="36" r="4" fill="#A78BFA" />
                 </svg>
               </div>
-              <div className="rounded-2xl" style={{ background: '#1E1E2E', border: '1px solid rgba(255,255,255,0.07)', borderBottomLeftRadius: 4 }}>
+              <div
+                className="rounded-2xl"
+                style={{
+                  background: 'var(--land-chat-ai)',
+                  border: '1px solid var(--land-chat-ai-border)',
+                  borderBottomLeftRadius: 4,
+                  transition: 'background 0.25s ease',
+                }}
+              >
                 <TypingDots />
               </div>
             </motion.div>
@@ -265,9 +326,19 @@ function ChatDemo() {
 
       {/* Fake input */}
       <div className="px-3 pb-3 pt-1 flex-shrink-0">
-        <div className="flex items-center gap-2 px-3 py-2.5 rounded-2xl" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <span className="flex-1 text-xs" style={{ color: 'rgba(255,255,255,0.2)' }}>Ketik pesan...</span>
-          <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg,#FBB724,#F97316)' }}>
+        <div
+          className="flex items-center gap-2 px-3 py-2.5 rounded-2xl"
+          style={{
+            background: 'var(--land-chat-input-bg)',
+            border: '1px solid var(--land-chat-input-border)',
+            transition: 'background 0.25s ease',
+          }}
+        >
+          <span className="flex-1 text-xs" style={{ color: 'var(--text-muted)', opacity: 0.5 }}>Ketik pesan...</span>
+          <div
+            className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg,#FBB724,#F97316)' }}
+          >
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
               <path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -289,13 +360,17 @@ function FeatureTile({ icon: Icon, title, desc, color, bg, delay: d }: typeof FE
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5, delay: d, ease: [0.22, 1, 0.36, 1] }}
       className="flex-1 rounded-2xl p-5"
-      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+      style={{
+        background: 'var(--land-glass)',
+        border: '1px solid var(--land-glass-border)',
+        transition: 'background 0.25s ease, border-color 0.25s ease',
+      }}
     >
       <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ background: bg }}>
         <Icon size={18} style={{ color }} />
       </div>
-      <p className="text-sm font-semibold mb-2" style={{ color: 'rgba(255,255,255,0.9)' }}>{title}</p>
-      <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.4)' }}>{desc}</p>
+      <p className="text-sm font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>{title}</p>
+      <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>{desc}</p>
     </motion.div>
   )
 }
@@ -305,21 +380,29 @@ export default function LandingPage() {
   const { theme, toggle } = useTheme()
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden" style={{ background: '#0D0D14', color: '#F1F1F3' }}>
-
-      {/* Ambient orbs — fixed, pointer-events-none, never affect layout */}
+    <div
+      className="min-h-screen relative overflow-x-hidden"
+      style={{
+        background: 'var(--land-bg)',
+        color: 'var(--text-primary)',
+        transition: 'background 0.25s ease, color 0.15s ease',
+      }}
+    >
+      {/* Ambient orbs */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden>
         <div style={{
           position: 'absolute', top: '-15%', right: '-5%',
           width: '55vw', height: '55vw', maxWidth: 640, maxHeight: 640,
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(124,92,252,0.2) 0%, transparent 65%)',
+          background: `radial-gradient(circle, var(--land-orb-purple) 0%, transparent 65%)`,
+          transition: 'background 0.4s ease',
         }} />
         <div style={{
           position: 'absolute', bottom: '-10%', left: '-8%',
           width: '42vw', height: '42vw', maxWidth: 480, maxHeight: 480,
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(251,183,36,0.1) 0%, transparent 65%)',
+          background: `radial-gradient(circle, var(--land-orb-gold) 0%, transparent 65%)`,
+          transition: 'background 0.4s ease',
         }} />
       </div>
 
@@ -330,7 +413,6 @@ export default function LandingPage() {
         transition={{ duration: 0.5 }}
         className="relative z-10 flex items-center justify-between px-5 py-4 sm:px-8 lg:px-16"
       >
-        {/* Logo */}
         <div className="flex items-center gap-2.5">
           <svg width="26" height="26" viewBox="0 0 72 72" fill="none">
             <circle cx="36" cy="36" r="34" stroke="url(#navg)" strokeWidth="2.5" />
@@ -345,27 +427,31 @@ export default function LandingPage() {
           <span className="text-sm font-bold" style={{ letterSpacing: '-0.02em' }}>finara</span>
         </div>
 
-        {/* Right actions */}
         <div className="flex items-center gap-2">
-          {/* Theme toggle */}
+          {/* Theme toggle with animated icon */}
           <motion.button
-            whileTap={{ scale: 0.9 }}
+            whileTap={{ scale: 0.88 }}
             onClick={toggle}
-            className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors"
-            style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.5)' }}
+            className="w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden"
+            style={{
+              background: 'var(--land-nav-btn)',
+              color: 'var(--text-secondary)',
+              border: '1px solid var(--land-glass-border)',
+              transition: 'background 0.2s ease',
+            }}
             title={theme === 'dark' ? 'Mode terang' : 'Mode gelap'}
-            onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
-            onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.07)')}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--land-glass-border)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--land-nav-btn)')}
           >
-            {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+            <ThemeIcon theme={theme} />
           </motion.button>
 
           <button
             onClick={() => router.push('/login')}
             className="hidden sm:block px-4 py-2 rounded-xl text-sm font-medium transition-colors"
-            style={{ color: 'rgba(255,255,255,0.55)' }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = '#fff')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.55)')}
+            style={{ color: 'var(--text-muted)' }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-primary)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
           >
             Masuk
           </button>
@@ -391,7 +477,7 @@ export default function LandingPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.5 }}
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-5"
-              style={{ background: 'rgba(124,92,252,0.15)', color: '#A78BFA', border: '1px solid rgba(124,92,252,0.25)' }}
+              style={{ background: 'var(--accent-dim)', color: 'var(--accent-light)', border: '1px solid rgba(124,92,252,0.25)' }}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-current" />
               AI Finance Assistant · Bahasa Indonesia
@@ -405,7 +491,11 @@ export default function LandingPage() {
               style={{ letterSpacing: '-0.03em' }}
             >
               Catat keuangan{' '}
-              <span style={{ background: 'linear-gradient(135deg,#A78BFA 0%,#7C5CFC 50%,#FBB724 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <span style={{
+                background: 'linear-gradient(135deg,#A78BFA 0%,#7C5CFC 50%,#FBB724 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}>
                 cukup dengan chat
               </span>
             </motion.h1>
@@ -415,7 +505,7 @@ export default function LandingPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.28, duration: 0.5 }}
               className="text-sm sm:text-base leading-relaxed mb-7"
-              style={{ color: 'rgba(255,255,255,0.48)' }}
+              style={{ color: 'var(--text-muted)' }}
             >
               Gak perlu aplikasi ribet. Finara ngerti bahasa sehari-hari kamu —
               cukup ketik kayak chat sama teman, data keuangan langsung tersimpan rapi.
@@ -441,9 +531,14 @@ export default function LandingPage() {
                 whileTap={{ scale: 0.97 }}
                 onClick={() => router.push('/login')}
                 className="flex items-center justify-center px-6 py-3.5 rounded-2xl text-sm font-medium"
-                style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.1)' }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
+                style={{
+                  background: 'var(--land-tile-btn)',
+                  color: 'var(--text-secondary)',
+                  border: '1px solid var(--land-tile-btn-border)',
+                  transition: 'background 0.2s ease',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--land-glass-border)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--land-tile-btn)')}
               >
                 Sudah punya akun
               </motion.button>
@@ -454,13 +549,13 @@ export default function LandingPage() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.52 }}
               className="mt-4 text-xs"
-              style={{ color: 'rgba(255,255,255,0.22)' }}
+              style={{ color: 'var(--text-muted)', opacity: 0.6 }}
             >
               Gratis selamanya · Tidak perlu kartu kredit · Data aman & terenkripsi
             </motion.p>
           </div>
 
-          {/* Right — chat demo, centered on mobile */}
+          {/* Right — chat demo */}
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -472,11 +567,16 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Section divider */}
+      {/* Divider */}
       <div className="relative z-10 flex items-center gap-4 px-5 sm:px-8 lg:px-16 mb-8 max-w-6xl mx-auto">
-        <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
-        <span className="text-xs font-semibold tracking-widest uppercase flex-shrink-0" style={{ color: 'rgba(255,255,255,0.18)' }}>Kenapa Finara?</span>
-        <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
+        <div className="flex-1 h-px" style={{ background: 'var(--land-separator)' }} />
+        <span
+          className="text-xs font-semibold tracking-widest uppercase flex-shrink-0"
+          style={{ color: 'var(--text-muted)', opacity: 0.6 }}
+        >
+          Kenapa Finara?
+        </span>
+        <div className="flex-1 h-px" style={{ background: 'var(--land-separator)' }} />
       </div>
 
       {/* Features */}
@@ -491,19 +591,18 @@ export default function LandingPage() {
       {/* Footer */}
       <footer
         className="relative z-10 px-5 sm:px-8 lg:px-16 py-6 flex flex-col sm:flex-row items-center justify-between gap-3"
-        style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
+        style={{ borderTop: '1px solid var(--land-separator)' }}
       >
         <div className="flex items-center gap-2">
           <svg width="16" height="16" viewBox="0 0 72 72" fill="none">
-            <circle cx="36" cy="36" r="34" stroke="#7C5CFC" strokeWidth="2.5" />
-            <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="#7C5CFC" strokeWidth="3" strokeLinecap="round" fill="none" />
-            <circle cx="36" cy="36" r="3.5" fill="#7C5CFC" />
+            <circle cx="36" cy="36" r="34" stroke="var(--accent)" strokeWidth="2.5" />
+            <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="var(--accent)" strokeWidth="3" strokeLinecap="round" fill="none" />
+            <circle cx="36" cy="36" r="3.5" fill="var(--accent)" />
           </svg>
-          <span className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.25)' }}>finara · v1.0 Beta</span>
+          <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>finara · v1.0 Beta</span>
         </div>
-        <span className="text-xs" style={{ color: 'rgba(255,255,255,0.18)' }}>Dibuat untuk Indonesia 🇮🇩</span>
+        <span className="text-xs" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>Dibuat untuk Indonesia 🇮🇩</span>
       </footer>
-
     </div>
   )
 }
