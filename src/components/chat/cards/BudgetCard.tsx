@@ -12,6 +12,7 @@ interface BudgetCardData {
 }
 
 export default function BudgetCard({ data }: { data: BudgetCardData }) {
+  const percent = data.percent ?? (data.limit > 0 ? (data.used / data.limit) * 100 : 0)
   const remaining = data.limit - data.used
   const isOver = remaining < 0
 
@@ -29,10 +30,10 @@ export default function BudgetCard({ data }: { data: BudgetCardData }) {
             Budget {data.category}
           </p>
           <p className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
-            {data.percent.toFixed(0)}%
+            {percent.toFixed(0)}%
           </p>
         </div>
-        <ProgressBar percent={data.percent} height={5} className="mb-2" />
+        <ProgressBar percent={percent} height={5} className="mb-2" />
         <div className="flex items-center justify-between text-xs">
           <span style={{ color: 'var(--text-muted)' }}>
             Terpakai {formatIDR(data.used)} dari {formatIDR(data.limit)}

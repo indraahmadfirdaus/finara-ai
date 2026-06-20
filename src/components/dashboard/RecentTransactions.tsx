@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { formatIDR } from '@/lib/utils/currency'
 import { formatRelative } from '@/lib/utils/date'
-import { TrendingUp, TrendingDown } from 'lucide-react'
+import { getCategoryMeta } from '@/lib/utils/categoryIcon'
 
 interface Transaction {
   id: string
@@ -39,40 +39,37 @@ export default function RecentTransactions({ transactions }: RecentTransactionsP
 
   return (
     <motion.div variants={containerVariants} initial="initial" animate="animate" className="space-y-1">
-      {transactions.map((tx) => (
-        <motion.div
-          key={tx.id}
-          variants={itemVariants}
-          className="flex items-center gap-3 py-2.5"
-        >
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{
-              background: tx.type === 'income' ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)',
-            }}
+      {transactions.map((tx) => {
+        const { icon: Icon, bg, color } = getCategoryMeta(tx.category, tx.type)
+        return (
+          <motion.div
+            key={tx.id}
+            variants={itemVariants}
+            className="flex items-center gap-3 py-2.5"
           >
-            {tx.type === 'income' ? (
-              <TrendingUp size={15} style={{ color: 'var(--success)' }} />
-            ) : (
-              <TrendingDown size={15} style={{ color: 'var(--danger)' }} />
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm truncate" style={{ color: 'var(--text-primary)' }}>
-              {tx.note ?? tx.category}
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+              style={{ background: bg }}
+            >
+              <Icon size={15} style={{ color }} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm truncate" style={{ color: 'var(--text-primary)' }}>
+                {tx.note ?? tx.category}
+              </p>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                {formatRelative(tx.date)} · {tx.category}
+              </p>
+            </div>
+            <p
+              className="text-sm font-semibold flex-shrink-0"
+              style={{ color: tx.type === 'income' ? 'var(--success)' : 'var(--danger)' }}
+            >
+              {tx.type === 'income' ? '+' : '-'}{formatIDR(tx.amount)}
             </p>
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-              {formatRelative(tx.date)} · {tx.category}
-            </p>
-          </div>
-          <p
-            className="text-sm font-semibold flex-shrink-0"
-            style={{ color: tx.type === 'income' ? 'var(--success)' : 'var(--danger)' }}
-          >
-            {tx.type === 'income' ? '+' : '-'}{formatIDR(tx.amount)}
-          </p>
-        </motion.div>
-      ))}
+          </motion.div>
+        )
+      })}
 
       <Link
         href="/transactions"

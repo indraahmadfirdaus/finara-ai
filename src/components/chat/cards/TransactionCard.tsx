@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import { formatIDR } from '@/lib/utils/currency'
 import { formatDateShort } from '@/lib/utils/date'
-import { TrendingUp, TrendingDown } from 'lucide-react'
+import { getCategoryMeta } from '@/lib/utils/categoryIcon'
 
 interface TransactionCardData {
   type: 'income' | 'expense'
@@ -15,6 +15,7 @@ interface TransactionCardData {
 
 export default function TransactionCard({ data }: { data: TransactionCardData }) {
   const isIncome = data.type === 'income'
+  const { icon: Icon, bg, color } = getCategoryMeta(data.category, data.type)
 
   return (
     <motion.div
@@ -33,13 +34,9 @@ export default function TransactionCard({ data }: { data: TransactionCardData })
           <div className="flex items-center gap-2">
             <div
               className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-              style={{ background: isIncome ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)' }}
+              style={{ background: bg }}
             >
-              {isIncome ? (
-                <TrendingUp size={14} style={{ color: 'var(--success)' }} />
-              ) : (
-                <TrendingDown size={14} style={{ color: 'var(--danger)' }} />
-              )}
+              <Icon size={14} style={{ color }} />
             </div>
             <div>
               <p className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>

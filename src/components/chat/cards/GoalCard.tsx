@@ -14,6 +14,7 @@ interface GoalCardData {
 }
 
 export default function GoalCard({ data }: { data: GoalCardData }) {
+  const percent = data.percent ?? (data.target > 0 ? (data.current / data.target) * 100 : 0)
   const remaining = data.target - data.current
 
   return (
@@ -43,10 +44,10 @@ export default function GoalCard({ data }: { data: GoalCardData }) {
             )}
           </div>
           <p className="text-sm font-bold ml-auto" style={{ color: 'var(--accent)' }}>
-            {data.percent.toFixed(0)}%
+            {percent.toFixed(0)}%
           </p>
         </div>
-        <ProgressBar percent={data.percent} height={5} className="mb-2" />
+        <ProgressBar percent={percent} height={5} className="mb-2" />
         <div className="flex items-center justify-between text-xs">
           <span style={{ color: 'var(--text-muted)' }}>
             {formatIDR(data.current)} terkumpul

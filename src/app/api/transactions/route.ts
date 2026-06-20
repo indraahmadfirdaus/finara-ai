@@ -20,7 +20,9 @@ export async function GET(request: NextRequest) {
   const period = searchParams.get('period') as 'today' | 'week' | 'month' | 'year' | null
   const category = searchParams.get('category')
   const type = searchParams.get('type') as 'income' | 'expense' | null
-  const limit = parseInt(searchParams.get('limit') ?? '50')
+  const dateFrom = searchParams.get('date_from')
+  const dateTo = searchParams.get('date_to')
+  const limit = parseInt(searchParams.get('limit') ?? '200')
 
   let query = supabase
     .from('transactions')
@@ -30,11 +32,13 @@ export async function GET(request: NextRequest) {
     .order('created_at', { ascending: false })
     .limit(limit)
 
-  if (period) {
+  if (dateFrom && dateTo) {
+    query = query.gte('date', dateFrom).lte('date', dateTo)
+  } else if (period) {
     const range = getPeriodRange(period)
     query = query.gte('date', range.start).lte('date', range.end)
   }
-  if (category) query = query.eq('category', category)
+  if (category) query = query.ilike('category', `%${category}%`)
   if (type) query = query.eq('type', type)
 
   const { data, error } = await query

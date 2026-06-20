@@ -32,12 +32,13 @@ export async function proxy(request: NextRequest) {
   const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register')
   const isApiRoute = pathname.startsWith('/api/')
   const isAuthCallback = pathname.startsWith('/auth/')
+  const isSplash = pathname === '/splash'
 
   if (isApiRoute || isAuthCallback) return supabaseResponse
 
-  if (!user && !isAuthPage) {
+  if (!user && !isAuthPage && !isSplash) {
     const url = request.nextUrl.clone()
-    url.pathname = '/login'
+    url.pathname = '/splash'
     return NextResponse.redirect(url)
   }
 

@@ -22,47 +22,63 @@ export default function ChatBubble({ message, userInitial = 'K' }: ChatBubblePro
 
   return (
     <motion.div
-      initial={{ x: isUser ? 20 : -20, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-      className={`flex items-end gap-2 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}
+      initial={{ x: isUser ? 20 : -20, opacity: 0, y: 8 }}
+      animate={{ x: 0, opacity: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 340, damping: 28 }}
+      className={`flex items-end gap-2.5 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}
     >
-      {/* Avatar */}
-      <div
-        className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mb-0.5"
-        style={{
-          background: isUser ? 'var(--accent-dim)' : 'var(--accent)',
-          color: isUser ? 'var(--accent)' : 'white',
-          border: isUser ? '1px solid var(--accent)' : 'none',
-        }}
-      >
-        {isUser ? userInitial : 'F'}
-      </div>
+      {/* Assistant avatar */}
+      {!isUser && (
+        <div className="w-8 h-8 rounded-2xl flex items-center justify-center flex-shrink-0 mb-0.5 overflow-hidden">
+          <svg width="32" height="32" viewBox="0 0 72 72" fill="none">
+            <rect width="72" height="72" rx="16" fill="var(--accent-dim)" />
+            <circle cx="36" cy="36" r="28" stroke="url(#ba1)" strokeWidth="2" />
+            <path d="M22 38 Q29 28 36 36 Q43 44 50 34" stroke="url(#ba1)" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+            <circle cx="36" cy="36" r="3" fill="url(#ba1)" />
+            <defs>
+              <linearGradient id="ba1" x1="16" y1="16" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#A78BFA" /><stop offset="100%" stopColor="#7C5CFC" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+      )}
 
       {/* Bubble */}
       <div
-        className="max-w-[82%] px-4 py-3 rounded-2xl"
+        className="max-w-[78%] px-4 py-3 rounded-3xl"
         style={
           isUser
             ? {
-                background: 'var(--accent)',
+                background: 'linear-gradient(135deg, var(--bubble-user-from) 0%, var(--bubble-user-to) 100%)',
                 color: 'white',
-                borderBottomRightRadius: 4,
+                borderBottomRightRadius: 6,
               }
             : {
-                background: 'var(--bg-surface)',
-                borderBottomLeftRadius: 4,
+                background: 'var(--bubble-ai)',
+                borderBottomLeftRadius: 6,
+                border: '1px solid var(--bubble-ai-border)',
               }
         }
       >
         {message.isTyping ? (
           <TypingIndicator />
         ) : isUser ? (
-          <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+          <p className="text-sm whitespace-pre-wrap leading-relaxed font-medium">{message.content}</p>
         ) : (
           <StreamingText content={message.content} isStreaming={message.isStreaming} />
         )}
       </div>
+
+      {/* User avatar initial */}
+      {isUser && (
+        <div
+          className="w-8 h-8 rounded-2xl flex items-center justify-center text-xs font-bold flex-shrink-0 mb-0.5"
+          style={{ background: 'var(--accent-dim)', color: 'var(--accent-light)', border: '1px solid rgba(124,92,252,0.3)' }}
+        >
+          {userInitial}
+        </div>
+      )}
     </motion.div>
   )
 }

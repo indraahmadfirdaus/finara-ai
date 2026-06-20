@@ -3,11 +3,12 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { LogOut, User, MessageCircle } from 'lucide-react'
+import { LogOut, User, MessageCircle, Sun, Moon } from 'lucide-react'
 import TopBar from '@/components/layout/TopBar'
 import PageTransition from '@/components/layout/PageTransition'
 import { createClient } from '@/lib/supabase/client'
 import { formatIDR } from '@/lib/utils/currency'
+import { useTheme } from '@/lib/theme'
 
 interface Stats {
   income: number
@@ -16,6 +17,7 @@ interface Stats {
 
 export default function ProfilePage() {
   const router = useRouter()
+  const { theme, toggle } = useTheme()
   const [email, setEmail] = useState('')
   const [stats, setStats] = useState<Stats>({ income: 0, expense: 0 })
 
@@ -93,17 +95,49 @@ export default function ProfilePage() {
           </div>
         </motion.div>
 
+        {/* Theme toggle */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="rounded-2xl p-4 flex items-center justify-between"
+          style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+        >
+          <div className="flex items-center gap-3">
+            {theme === 'dark' ? (
+              <Moon size={18} style={{ color: 'var(--accent-light)' }} />
+            ) : (
+              <Sun size={18} style={{ color: '#F59E0B' }} />
+            )}
+            <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+              {theme === 'dark' ? 'Mode Gelap' : 'Mode Terang'}
+            </p>
+          </div>
+          <button
+            onClick={toggle}
+            className="relative w-12 h-6 rounded-full transition-colors duration-300 flex-shrink-0"
+            style={{ background: theme === 'dark' ? 'var(--accent)' : 'var(--border)' }}
+          >
+            <motion.div
+              animate={{ x: theme === 'dark' ? 24 : 2 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 32 }}
+              className="absolute top-1 w-4 h-4 rounded-full"
+              style={{ background: 'white' }}
+            />
+          </button>
+        </motion.div>
+
         {/* Chat with Finara */}
         <motion.button
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
+          transition={{ delay: 0.2 }}
           whileTap={{ scale: 0.97 }}
           onClick={() => router.push('/')}
           className="w-full rounded-2xl p-4 flex items-center gap-3"
-          style={{ background: 'var(--accent-dim)', border: '1px solid var(--accent)' }}
+          style={{ background: 'var(--accent-dim)', border: '1px solid rgba(124,92,252,0.3)' }}
         >
-          <MessageCircle size={18} style={{ color: 'var(--accent)' }} />
+          <MessageCircle size={18} style={{ color: 'var(--accent-light)' }} />
           <p className="text-sm font-medium" style={{ color: 'var(--accent-light)' }}>
             Chat dengan Finara
           </p>
@@ -113,7 +147,7 @@ export default function ProfilePage() {
         <motion.button
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.25 }}
           whileTap={{ scale: 0.97 }}
           onClick={handleLogout}
           className="w-full rounded-2xl p-4 flex items-center gap-3"

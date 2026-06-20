@@ -19,19 +19,19 @@ export default function TopBar({ title, showBack = false, action }: TopBarProps)
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
       className="sticky top-0 z-30 flex items-center justify-between px-4 py-3"
-      style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--border-light)' }}
+      style={{ background: '#0D0D14', borderBottom: '1px solid rgba(255,255,255,0.05)' }}
     >
       <div className="flex items-center gap-2">
         {showBack && (
           <button
             onClick={() => router.back()}
             className="p-2 -ml-2 rounded-xl min-h-[44px] min-w-[44px] flex items-center justify-center"
-            style={{ color: 'var(--text-secondary)' }}
+            style={{ color: 'rgba(161,161,170,0.7)' }}
           >
             <ChevronLeft size={20} />
           </button>
         )}
-        <h1 className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
+        <h1 className="text-base font-semibold" style={{ color: '#F1F1F3' }}>
           {title}
         </h1>
       </div>

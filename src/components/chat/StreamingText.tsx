@@ -40,6 +40,37 @@ function parseContent(content: string): ParsedSegment[] {
   return segments
 }
 
+function renderInlineMarkdown(text: string): React.ReactNode[] {
+  // Split on **bold**, *italic*, then render each token
+  const tokens = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g)
+  return tokens.map((token, i) => {
+    if (token.startsWith('**') && token.endsWith('**')) {
+      return <strong key={i} style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{token.slice(2, -2)}</strong>
+    }
+    if (token.startsWith('*') && token.endsWith('*')) {
+      return <em key={i}>{token.slice(1, -1)}</em>
+    }
+    return token
+  })
+}
+
+function renderTextSegment(text: string, isLast: boolean, isStreaming: boolean): React.ReactNode {
+  const lines = text.split('\n')
+  return (
+    <>
+      {lines.map((line, i) => (
+        <span key={i}>
+          {renderInlineMarkdown(line)}
+          {i < lines.length - 1 && <br />}
+        </span>
+      ))}
+      {isStreaming && isLast && (
+        <span className="cursor-blink inline-block w-0.5 h-4 ml-0.5 align-middle" style={{ background: 'var(--accent)' }} />
+      )}
+    </>
+  )
+}
+
 function renderCard(type: CardType, content: string) {
   try {
     const data = JSON.parse(content)
@@ -63,11 +94,8 @@ export default function StreamingText({ content, isStreaming = false }: Streamin
       {segments.map((seg, i) => {
         if (seg.type === 'text') {
           return (
-            <span key={i} className="whitespace-pre-wrap">
-              {seg.content}
-              {isStreaming && i === segments.length - 1 && (
-                <span className="cursor-blink inline-block w-0.5 h-4 ml-0.5 align-middle" style={{ background: 'var(--accent)' }} />
-              )}
+            <span key={i}>
+              {renderTextSegment(seg.content, i === segments.length - 1, isStreaming)}
             </span>
           )
         }
