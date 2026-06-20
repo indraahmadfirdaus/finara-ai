@@ -61,7 +61,7 @@ export default function RegisterPage() {
         className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full pointer-events-none"
         style={{ background: 'radial-gradient(circle, rgba(124,92,252,0.18) 0%, transparent 70%)' }}
       />
-      <div className="flex-1 flex flex-col justify-end px-5 pb-8 pt-16 relative z-10">
+      <div className="flex-1 flex flex-col justify-end px-5 pb-8 pt-16 relative z-10 lg:justify-center lg:max-w-md lg:mx-auto lg:w-full">
         <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8">
           <svg width="44" height="44" viewBox="0 0 72 72" fill="none" className="mx-auto mb-3">

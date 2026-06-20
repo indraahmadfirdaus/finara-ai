@@ -88,7 +88,7 @@ export default function DebtsPage() {
         }
       />
 
-      <div className="px-4 pt-3">
+      <div className="px-4 pt-3 lg:max-w-3xl lg:mx-auto lg:px-6">
         {/* Summary cards */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div className="rounded-xl p-3" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}>

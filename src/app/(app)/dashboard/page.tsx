@@ -70,14 +70,27 @@ export default async function DashboardPage() {
   return (
     <PageTransition>
       <TopBar title="Dashboard" />
-      <div className="pb-4 space-y-5">
-        <BalanceHero
-          income={data?.income ?? 0}
-          expense={data?.expense ?? 0}
-          balance={data?.balance ?? 0}
-        />
 
-        <section className="mx-4">
+      {/* Desktop: page header */}
+      <div className="hidden lg:flex items-center justify-between px-6 py-5" style={{ borderBottom: '1px solid var(--border-light)' }}>
+        <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Dashboard</h1>
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Bulan ini</p>
+      </div>
+
+      <div className="pb-6 lg:p-6 lg:max-w-5xl lg:mx-auto">
+        {/* Balance hero — full width on mobile, full width on desktop too but inside container */}
+        <div className="lg:mb-6">
+          <BalanceHero
+            income={data?.income ?? 0}
+            expense={data?.expense ?? 0}
+            balance={data?.balance ?? 0}
+          />
+        </div>
+
+        {/* Desktop: two-column grid */}
+        <div className="lg:grid lg:grid-cols-2 lg:gap-5 space-y-5 lg:space-y-0 mt-5 lg:mt-0 mx-4 lg:mx-0">
+
+          {/* Spending chart */}
           <div
             className="rounded-2xl p-4"
             style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
@@ -87,23 +100,8 @@ export default async function DashboardPage() {
             </h3>
             <SpendingChartClient data={data?.spendingChartData ?? []} />
           </div>
-        </section>
 
-        {data?.budgets && data.budgets.length > 0 && (
-          <section className="mx-4">
-            <div
-              className="rounded-2xl p-4"
-              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
-            >
-              <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
-                Anggaran Bulan Ini
-              </h3>
-              <BudgetProgress budgets={data.budgets} />
-            </div>
-          </section>
-        )}
-
-        <section className="mx-4">
+          {/* Recent transactions */}
           <div
             className="rounded-2xl p-4"
             style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
@@ -113,7 +111,20 @@ export default async function DashboardPage() {
             </h3>
             <RecentTransactions transactions={data?.recentTransactions ?? []} />
           </div>
-        </section>
+
+          {/* Budget progress — spans full width on desktop */}
+          {data?.budgets && data.budgets.length > 0 && (
+            <div
+              className="rounded-2xl p-4 lg:col-span-2"
+              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+            >
+              <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
+                Anggaran Bulan Ini
+              </h3>
+              <BudgetProgress budgets={data.budgets} />
+            </div>
+          )}
+        </div>
       </div>
     </PageTransition>
   )
