@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { createClient } from '@/lib/supabase/server'
 import { getPeriodRange, getMonthKey } from '@/lib/utils/date'
+import Link from 'next/link'
 import TopBar from '@/components/layout/TopBar'
 import PageTransition from '@/components/layout/PageTransition'
 import BalanceHero from '@/components/dashboard/BalanceHero'
@@ -130,37 +131,40 @@ export default async function DashboardPage() {
         <div className="lg:grid lg:grid-cols-2 lg:gap-5 space-y-5 lg:space-y-0 mt-5 lg:mt-0 mx-4 lg:mx-0">
 
           {/* Spending chart (pie/donut) */}
-          <div
-            className="rounded-2xl p-4"
+          <Link
+            href="/transactions"
+            className="rounded-2xl p-4 block hover:opacity-90 transition-opacity"
             style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
           >
             <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
               Distribusi Pengeluaran
             </h3>
             <SpendingChartClient data={data?.spendingChartData ?? []} />
-          </div>
+          </Link>
 
           {/* Spending bars — category breakdown with animated bars */}
-          <div
-            className="rounded-2xl p-4"
+          <Link
+            href="/transactions"
+            className="rounded-2xl p-4 block hover:opacity-90 transition-opacity"
             style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
           >
             <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
               Pengeluaran per Kategori
             </h3>
             <SpendingBars data={data?.spendingChartData ?? []} />
-          </div>
+          </Link>
 
           {/* Balance trend sparkline — full width */}
-          <div
-            className="rounded-2xl p-4 lg:col-span-2"
+          <Link
+            href="/transactions"
+            className="rounded-2xl p-4 lg:col-span-2 block hover:opacity-90 transition-opacity"
             style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
           >
             <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
               Tren Keuangan Bulan Ini
             </h3>
             <BalanceTrend points={data?.dailyTrend ?? []} />
-          </div>
+          </Link>
 
           {/* Recent transactions */}
           <div

@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { formatIDR } from '@/lib/utils/currency'
 import ProgressBar from '@/components/shared/ProgressBar'
@@ -54,6 +55,14 @@ export default function BudgetProgress({ budgets }: BudgetProgressProps) {
           <ProgressBar percent={b.percent} height={5} />
         </motion.div>
       ))}
+
+      <Link
+        href="/budgets"
+        className="block text-center text-xs py-2 rounded-xl mt-1 transition-opacity hover:opacity-80"
+        style={{ color: 'var(--accent-light)', background: 'var(--accent-dim)' }}
+      >
+        Lihat semua anggaran →
+      </Link>
     </motion.div>
   )
 }

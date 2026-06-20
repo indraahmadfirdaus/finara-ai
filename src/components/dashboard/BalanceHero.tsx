@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import AnimatedNumber from '@/components/shared/AnimatedNumber'
 
@@ -11,12 +12,16 @@ interface BalanceHeroProps {
 }
 
 export default function BalanceHero({ income, expense, balance, period = 'Bulan Ini' }: BalanceHeroProps) {
+  const router = useRouter()
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-      className="mx-4 mt-4 lg:mx-0 lg:mt-0 rounded-2xl p-5 relative overflow-hidden"
+      whileTap={{ scale: 0.98 }}
+      onClick={() => router.push('/transactions')}
+      className="mx-4 mt-4 lg:mx-0 lg:mt-0 rounded-2xl p-5 relative overflow-hidden cursor-pointer"
       style={{
         background: 'var(--bg-surface)',
         border: '1px solid var(--border)',
