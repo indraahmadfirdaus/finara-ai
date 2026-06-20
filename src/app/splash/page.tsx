@@ -349,6 +349,223 @@ function ChatDemo() {
   )
 }
 
+// ── Dashboard Preview ────────────────────────────────────────────────────────
+
+const SPEND_BARS = [
+  { label: 'Makanan', pct: 68, color: '#F97316' },
+  { label: 'Transport', pct: 42, color: '#3B82F6' },
+  { label: 'Belanja', pct: 55, color: '#EC4899' },
+  { label: 'Hiburan', pct: 28, color: '#8B5CF6' },
+  { label: 'Tagihan', pct: 80, color: '#F59E0B' },
+]
+
+const SPARKLINE = [40, 55, 38, 70, 52, 88, 63, 95, 72, 110, 84, 128]
+
+// Simple SVG sparkline
+function Sparkline({ values, color }: { values: number[]; color: string }) {
+  const w = 160, h = 48
+  const min = Math.min(...values), max = Math.max(...values)
+  const pts = values.map((v, i) => {
+    const x = (i / (values.length - 1)) * w
+    const y = h - ((v - min) / (max - min)) * (h - 8) - 4
+    return `${x},${y}`
+  })
+  const polyline = pts.join(' ')
+  // Fill area under line
+  const fill = `${pts[0].split(',')[0]},${h} ` + polyline + ` ${pts[pts.length - 1].split(',')[0]},${h}`
+
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} fill="none">
+      <defs>
+        <linearGradient id="spkgrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.25" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <polygon points={fill} fill="url(#spkgrad)" />
+      <polyline points={polyline} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+// Animated donut (pure SVG, no recharts dep)
+function MiniDonut({ inView }: { inView: boolean }) {
+  const slices = [
+    { pct: 0.38, color: '#F97316', label: 'Makanan' },
+    { pct: 0.22, color: '#3B82F6', label: 'Transport' },
+    { pct: 0.19, color: '#EC4899', label: 'Belanja' },
+    { pct: 0.21, color: '#8B5CF6', label: 'Lainnya' },
+  ]
+  const r = 36, cx = 44, cy = 44, stroke = 14
+  const circ = 2 * Math.PI * r
+
+  let cum = 0
+  return (
+    <svg width={88} height={88} viewBox="0 0 88 88">
+      {slices.map((s, i) => {
+        const offset = circ * (1 - cum)
+        const dash = circ * s.pct
+        cum += s.pct
+        return (
+          <motion.circle
+            key={i}
+            cx={cx} cy={cy} r={r}
+            fill="none"
+            stroke={s.color}
+            strokeWidth={stroke}
+            strokeDasharray={`${dash} ${circ - dash}`}
+            strokeDashoffset={offset}
+            strokeLinecap="butt"
+            initial={{ opacity: 0 }}
+            animate={inView ? { opacity: 1 } : { opacity: 0 }}
+            transition={{ delay: 0.3 + i * 0.12, duration: 0.4 }}
+            style={{ transform: 'rotate(-90deg)', transformOrigin: `${cx}px ${cy}px` }}
+          />
+        )
+      })}
+      {/* Center text */}
+      <text x={cx} y={cy - 5} textAnchor="middle" style={{ fontSize: 9, fill: 'var(--text-muted)', fontFamily: 'inherit' }}>Total</text>
+      <text x={cx} y={cy + 8} textAnchor="middle" style={{ fontSize: 11, fontWeight: 700, fill: 'var(--text-primary)', fontFamily: 'inherit' }}>1,4 Jt</text>
+    </svg>
+  )
+}
+
+function DashboardPreview() {
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: true, margin: '-60px' })
+
+  return (
+    <section ref={ref} className="relative z-10 px-5 sm:px-8 lg:px-16 pb-16">
+      <div className="max-w-6xl mx-auto">
+
+        {/* Section label */}
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.4 }}
+          className="text-xs font-semibold uppercase tracking-widest mb-5 text-center"
+          style={{ color: 'var(--accent-light)' }}
+        >
+          Dashboard Keuangan Kamu
+        </motion.p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+          {/* Panel 1 — Balance + sparkline */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
+            className="rounded-2xl p-5 flex flex-col gap-3"
+            style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)' }}
+          >
+            <div>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Saldo bulan ini</p>
+              <motion.p
+                className="text-2xl font-bold mt-1"
+                style={{ color: 'var(--text-primary)', letterSpacing: '-0.03em' }}
+                initial={{ opacity: 0 }}
+                animate={inView ? { opacity: 1 } : {}}
+                transition={{ delay: 0.2, duration: 0.5 }}
+              >
+                Rp 3,6 Jt
+              </motion.p>
+              <div className="flex items-center gap-1 mt-1">
+                <span className="text-xs font-semibold" style={{ color: 'var(--success)' }}>▲ 12%</span>
+                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>vs bulan lalu</span>
+              </div>
+            </div>
+            <div className="overflow-hidden">
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={inView ? { opacity: 1, x: 0 } : {}}
+                transition={{ delay: 0.35, duration: 0.5 }}
+              >
+                <Sparkline values={SPARKLINE} color="#7C5CFC" />
+              </motion.div>
+            </div>
+            <div className="flex gap-3 mt-1">
+              <div>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Pemasukan</p>
+                <p className="text-sm font-semibold" style={{ color: 'var(--success)' }}>+Rp 5 Jt</p>
+              </div>
+              <div>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Pengeluaran</p>
+                <p className="text-sm font-semibold" style={{ color: 'var(--danger)' }}>-Rp 1,4 Jt</p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Panel 2 — Spending bars per kategori */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+            className="rounded-2xl p-5 flex flex-col gap-3"
+            style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)' }}
+          >
+            <p className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>Pengeluaran per kategori</p>
+            <div className="flex flex-col gap-2.5">
+              {SPEND_BARS.map((bar, i) => (
+                <div key={bar.label}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{bar.label}</span>
+                    <span className="text-xs font-semibold" style={{ color: bar.color }}>{bar.pct}%</span>
+                  </div>
+                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--land-separator)' }}>
+                    <motion.div
+                      className="h-full rounded-full"
+                      style={{ background: bar.color }}
+                      initial={{ width: 0 }}
+                      animate={inView ? { width: `${bar.pct}%` } : { width: 0 }}
+                      transition={{ duration: 0.7, delay: 0.2 + i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Panel 3 — Donut + legend */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            className="rounded-2xl p-5 flex flex-col gap-3 sm:col-span-2 lg:col-span-1"
+            style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)' }}
+          >
+            <p className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>Distribusi pengeluaran</p>
+            <div className="flex items-center gap-4">
+              <MiniDonut inView={inView} />
+              <div className="flex flex-col gap-2">
+                {[
+                  { label: 'Makanan', color: '#F97316', pct: '38%' },
+                  { label: 'Transport', color: '#3B82F6', pct: '22%' },
+                  { label: 'Belanja', color: '#EC4899', pct: '19%' },
+                  { label: 'Lainnya', color: '#8B5CF6', pct: '21%' },
+                ].map((item, i) => (
+                  <motion.div
+                    key={item.label}
+                    className="flex items-center gap-2"
+                    initial={{ opacity: 0, x: 8 }}
+                    animate={inView ? { opacity: 1, x: 0 } : {}}
+                    transition={{ delay: 0.4 + i * 0.07, duration: 0.3 }}
+                  >
+                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: item.color }} />
+                    <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{item.label}</span>
+                    <span className="text-xs font-semibold ml-auto" style={{ color: 'var(--text-primary)' }}>{item.pct}</span>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function FeatureTile({ icon: Icon, title, desc, color, bg, delay: d }: typeof FEATURES[0] & { delay: number }) {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-40px' })
@@ -566,6 +783,9 @@ export default function LandingPage() {
           </motion.div>
         </div>
       </section>
+
+      {/* Dashboard Preview */}
+      <DashboardPreview />
 
       {/* Divider */}
       <div className="relative z-10 flex items-center gap-4 px-5 sm:px-8 lg:px-16 mb-8 max-w-6xl mx-auto">
