@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import { formatIDR } from '@/lib/utils/currency'
-import { CATEGORY_COLORS } from '@/lib/utils/categories'
+import { getCategoryMeta } from '@/lib/utils/categoryIcon'
 
 interface SpendingChartProps {
   data: { category: string; amount: number }[]
@@ -151,7 +151,7 @@ export default function SpendingChart({ data }: SpendingChartProps) {
             {data.map((entry) => (
               <Cell
                 key={entry.category}
-                fill={CATEGORY_COLORS[entry.category] ?? '#6B7280'}
+                fill={getCategoryMeta(entry.category, 'expense').color}
                 stroke="transparent"
               />
             ))}

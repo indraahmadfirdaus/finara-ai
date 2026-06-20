@@ -2,43 +2,74 @@
 
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { ArrowLeft, MessageCircle, ShieldCheck, Zap, BarChart2, Target, BookOpen } from 'lucide-react'
+import {
+  ArrowLeft, MessageCircle, ShieldCheck, Zap, BarChart2, Target,
+  BookOpen, HandCoins, Landmark, ScanLine,
+} from 'lucide-react'
 import PageTransition from '@/components/layout/PageTransition'
 
 const features = [
   {
     icon: MessageCircle,
     title: 'Chat Natural',
-    desc: 'Catat transaksi hanya dengan ketik seperti chat biasa. "Beli makan siang 25k" — Finara langsung simpan.',
+    desc: 'Catat transaksi cukup dengan ketik seperti chat biasa. "Beli makan siang 25k" — Finara langsung simpan.',
   },
   {
     icon: BarChart2,
-    title: 'Rekap Otomatis',
-    desc: 'Lihat ringkasan pemasukan, pengeluaran, dan saldo kapan saja tanpa hitung manual.',
+    title: 'Rekap & Dashboard',
+    desc: 'Ringkasan pemasukan, pengeluaran, dan saldo realtime. Lengkap dengan grafik tren dan breakdown per kategori.',
   },
   {
     icon: Target,
-    title: 'Goals & Budget',
-    desc: 'Buat target tabungan dan anggaran bulanan. Finara pantau progresnya untukmu.',
+    title: 'Anggaran & Goals',
+    desc: 'Set budget bulanan per kategori dan buat target tabungan. Finara pantau progres dan kasih peringatan saat mendekati batas.',
+  },
+  {
+    icon: HandCoins,
+    title: 'Hutang & Piutang',
+    desc: 'Catat siapa yang berhutang atau kamu hutangi. Tandai lunas saat sudah dibayar.',
+  },
+  {
+    icon: Landmark,
+    title: 'Manajemen Aset',
+    desc: 'Pantau total kekayaan bersih dari rekening, investasi, properti, hingga kendaraan dalam satu tempat.',
+  },
+  {
+    icon: ScanLine,
+    title: 'Scan Struk',
+    desc: 'Foto struk belanja dan Finara ekstrak detailnya otomatis — tidak perlu ketik manual.',
   },
   {
     icon: Zap,
     title: 'AI Proaktif',
-    desc: 'Finara kasih insight kalau ada pola pengeluaran tidak biasa atau budget mendekati batas.',
+    desc: 'Finara beri insight saat ada pola pengeluaran tidak biasa, budget hampir habis, atau tagihan jatuh tempo.',
   },
   {
     icon: ShieldCheck,
     title: 'Privasi Terjaga',
-    desc: 'Data keuanganmu hanya bisa diakses oleh akunmu sendiri. Tidak ada yang bisa melihat datamu.',
+    desc: 'Data keuanganmu hanya bisa diakses oleh akunmu sendiri, dilindungi Row Level Security di level database.',
   },
 ]
 
 const stack = [
   { label: 'AI', value: 'DeepSeek Chat' },
-  { label: 'Frontend', value: 'Next.js 16 + React' },
+  { label: 'Framework', value: 'Next.js 16 + React 19' },
+  { label: 'Styling', value: 'Tailwind CSS v4' },
   { label: 'Database', value: 'Supabase (PostgreSQL)' },
   { label: 'Auth', value: 'Supabase Auth' },
-  { label: 'Animasi', value: 'Framer Motion' },
+  { label: 'Animasi', value: 'Framer Motion v12' },
+  { label: 'Grafik', value: 'Recharts' },
+]
+
+const usage = [
+  { q: 'Catat pengeluaran', a: '"Beli bensin 50k" atau "makan siang 25rb di warteg"' },
+  { q: 'Catat pemasukan', a: '"Gaji masuk 5 juta" atau "terima transfer 200k dari Budi"' },
+  { q: 'Lihat rekap', a: '"Rekap bulan ini" atau "pengeluaran minggu ini"' },
+  { q: 'Kelola budget', a: '"Set budget makanan 1 juta bulan ini" atau "budget saya apa aja?"' },
+  { q: 'Goals tabungan', a: '"Buat goal liburan Bali target 5 juta" atau "tambah 200k ke goal Bali"' },
+  { q: 'Hutang & piutang', a: '"Catat hutang ke Budi 150k untuk kopi" atau "Budi sudah bayar"' },
+  { q: 'Cek aset', a: '"Berapa total aset saya?" atau "update saldo BCA jadi 3 juta"' },
+  { q: 'Navigasi', a: '"Buka dashboard" atau "lihat daftar transaksi bulan lalu"' },
 ]
 
 export default function AboutPage() {
@@ -90,7 +121,7 @@ export default function AboutPage() {
             finara
           </h1>
           <p className="text-sm leading-relaxed max-w-xs" style={{ color: 'var(--text-muted)' }}>
-            Asisten keuangan pribadi bertenaga AI. Dirancang untuk membantu orang Indonesia kelola uang dengan cara yang terasa natural — cukup ngobrol.
+            Asisten keuangan pribadi bertenaga AI untuk orang Indonesia. Kelola transaksi, anggaran, hutang, sampai aset — cukup dengan ngobrol.
           </p>
           <div
             className="mt-4 px-3 py-1 rounded-full text-xs font-semibold"
@@ -116,7 +147,7 @@ export default function AboutPage() {
                   key={f.title}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 + i * 0.06 }}
+                  transition={{ delay: 0.08 + i * 0.05 }}
                   className="flex items-start gap-4 px-5 py-4"
                   style={i < features.length - 1 ? { borderBottom: '1px solid var(--border-light)' } : undefined}
                 >
@@ -136,6 +167,34 @@ export default function AboutPage() {
           </div>
         </div>
 
+        {/* Cara pakai */}
+        <div className="px-4 mt-6">
+          <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-muted)' }}>
+            Cara Pakai
+          </p>
+          <div
+            className="rounded-2xl overflow-hidden"
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+          >
+            {usage.map((item, i) => (
+              <motion.div
+                key={item.q}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 + i * 0.04 }}
+                className="px-5 py-3.5"
+                style={i < usage.length - 1 ? { borderBottom: '1px solid var(--border-light)' } : undefined}
+              >
+                <div className="flex items-center gap-2 mb-0.5">
+                  <BookOpen size={11} style={{ color: 'var(--accent-light)', flexShrink: 0 }} />
+                  <p className="text-xs font-semibold" style={{ color: 'var(--accent-light)' }}>{item.q}</p>
+                </div>
+                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{item.a}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
         {/* Tech stack */}
         <div className="px-4 mt-6">
           <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-muted)' }}>
@@ -150,46 +209,12 @@ export default function AboutPage() {
                 key={s.label}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.35 + i * 0.05 }}
+                transition={{ delay: 0.6 + i * 0.04 }}
                 className="flex items-center justify-between px-5 py-3.5"
                 style={i < stack.length - 1 ? { borderBottom: '1px solid var(--border-light)' } : undefined}
               >
                 <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{s.label}</p>
                 <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{s.value}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-        {/* Panduan singkat */}
-        <div className="px-4 mt-6">
-          <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--text-muted)' }}>
-            Cara Pakai
-          </p>
-          <div
-            className="rounded-2xl overflow-hidden"
-            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
-          >
-            {[
-              { q: 'Catat pengeluaran', a: '"Beli bensin 50k" atau "makan siang 25rb"' },
-              { q: 'Catat pemasukan', a: '"Gaji masuk 5 juta" atau "terima transfer 200k"' },
-              { q: 'Lihat rekap', a: '"Rekap bulan ini" atau "pengeluaran minggu ini"' },
-              { q: 'Buat budget', a: '"Set budget makanan 1 juta bulan ini"' },
-              { q: 'Navigasi', a: '"Buka dashboard" atau "lihat goals saya"' },
-            ].map((item, i, arr) => (
-              <motion.div
-                key={item.q}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 + i * 0.05 }}
-                className="px-5 py-3.5"
-                style={i < arr.length - 1 ? { borderBottom: '1px solid var(--border-light)' } : undefined}
-              >
-                <div className="flex items-center gap-2 mb-0.5">
-                  <BookOpen size={11} style={{ color: 'var(--accent-light)', flexShrink: 0 }} />
-                  <p className="text-xs font-semibold" style={{ color: 'var(--accent-light)' }}>{item.q}</p>
-                </div>
-                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{item.a}</p>
               </motion.div>
             ))}
           </div>

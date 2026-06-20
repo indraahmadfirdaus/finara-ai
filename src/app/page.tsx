@@ -970,10 +970,8 @@ export default function LandingPage() {
           </motion.button>
 
           {/* Support developer */}
-          <motion.a
-            href="https://saweria.co/indrafrds"
-            target="_blank"
-            rel="noopener noreferrer"
+          <motion.button
+            onClick={() => router.push("/support")}
             whileTap={{ scale: 0.93 }}
             className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold"
             style={{
@@ -992,7 +990,7 @@ export default function LandingPage() {
             }
           >
             ☕ Support
-          </motion.a>
+          </motion.button>
 
           <button
             onClick={() => router.push("/login")}
@@ -1212,10 +1210,8 @@ export default function LandingPage() {
               indrafrds
             </span>
           </span>
-          <motion.a
-            href="https://saweria.co/indrafrds"
-            target="_blank"
-            rel="noopener noreferrer"
+          <motion.button
+            onClick={() => router.push("/support")}
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.95 }}
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold"
@@ -1224,7 +1220,6 @@ export default function LandingPage() {
               color: "#FBB724",
               border: "1px solid rgba(251,183,36,0.22)",
               transition: "background 0.2s ease",
-              textDecoration: "none",
             }}
             onMouseEnter={(e) =>
               ((e.currentTarget as HTMLElement).style.background =
@@ -1236,7 +1231,7 @@ export default function LandingPage() {
             }
           >
             ☕ Support di Saweria
-          </motion.a>
+          </motion.button>
         </div>
       </footer>
     </div>

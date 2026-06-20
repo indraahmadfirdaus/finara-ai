@@ -167,6 +167,20 @@ export default function AssetsPage() {
         }
       />
 
+      {/* Desktop page header */}
+      <div className="hidden lg:flex items-center justify-between px-6 py-5" style={{ borderBottom: '1px solid var(--border-light)' }}>
+        <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Aset</h1>
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={() => setShowAddModal(true)}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-white"
+          style={{ background: 'var(--accent)' }}
+        >
+          <Plus size={15} />
+          Tambah Aset
+        </motion.button>
+      </div>
+
       <div className="px-4 pt-3 pb-6 lg:max-w-3xl lg:mx-auto lg:px-6">
         {/* Hero net worth */}
         <motion.div
