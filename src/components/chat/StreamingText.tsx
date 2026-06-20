@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import React, { useMemo } from 'react'
 import { motion } from 'framer-motion'
 import TransactionCard from './cards/TransactionCard'
 import SummaryCard from './cards/SummaryCard'
@@ -30,14 +30,13 @@ export function parseContent(content: string): ParsedSegment[] {
 
   while ((match = blockRegex.exec(content)) !== null) {
     if (match.index > lastIndex) {
-      segments.push({ type: 'text', content: content.slice(lastIndex, match.index) })
+      const text = content.slice(lastIndex, match.index)
+      if (text.trim()) segments.push({ type: 'text', content: text })
     }
 
     if (match[1]) {
-      // card block
       segments.push({ type: match[1] as CardType, content: match[2].trim() })
     } else if (match[3]) {
-      // markdown table
       segments.push({ type: 'table', content: match[3].trim() })
     }
 
@@ -45,25 +44,33 @@ export function parseContent(content: string): ParsedSegment[] {
   }
 
   if (lastIndex < content.length) {
-    segments.push({ type: 'text', content: content.slice(lastIndex) })
+    const tail = content.slice(lastIndex)
+    if (tail.trim()) segments.push({ type: 'text', content: tail })
   }
 
   return segments
 }
 
-function parseMarkdownTable(raw: string): { headers: string[]; rows: string[][] } | null {
+function stripMarkdownBold(text: string): string {
+  return text.replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1')
+}
+
+function parseMarkdownTable(raw: string): { headers: string[]; rows: string[][]; boldRows: boolean[] } | null {
   const lines = raw.trim().split('\n').filter((l) => l.trim())
   if (lines.length < 2) return null
 
   const parseRow = (line: string) =>
     line.split('|').map((c) => c.trim()).filter((_, i, arr) => i > 0 && i < arr.length - 1)
 
-  const headers = parseRow(lines[0])
+  const headers = parseRow(lines[0]).map(stripMarkdownBold)
   // lines[1] is the separator (---|---), skip it
-  const rows = lines.slice(2).map(parseRow)
+  const rawRows = lines.slice(2).map(parseRow)
+  // Track which rows had bold markers (for styling the total/summary row)
+  const boldRows = rawRows.map((row) => row.some((c) => c.startsWith('**') && c.endsWith('**')))
+  const rows = rawRows.map((row) => row.map(stripMarkdownBold))
 
   if (headers.length === 0) return null
-  return { headers, rows }
+  return { headers, rows, boldRows }
 }
 
 function MarkdownTable({ raw }: { raw: string }) {
@@ -94,22 +101,32 @@ function MarkdownTable({ raw }: { raw: string }) {
             </tr>
           </thead>
           <tbody>
-            {table.rows.map((row, ri) => (
-              <tr
-                key={ri}
-                style={ri < table.rows.length - 1 ? { borderBottom: '1px solid var(--border-light)' } : {}}
-              >
-                {row.map((cell, ci) => (
-                  <td
-                    key={ci}
-                    className="px-3 py-2"
-                    style={{ color: 'var(--text-primary)', whiteSpace: 'nowrap' }}
-                  >
-                    {cell}
-                  </td>
-                ))}
-              </tr>
-            ))}
+            {table.rows.map((row, ri) => {
+              const isBold = table.boldRows[ri]
+              return (
+                <tr
+                  key={ri}
+                  style={{
+                    borderBottom: ri < table.rows.length - 1 ? '1px solid var(--border-light)' : undefined,
+                    background: isBold ? 'var(--bg-surface)' : undefined,
+                  }}
+                >
+                  {row.map((cell, ci) => (
+                    <td
+                      key={ci}
+                      className="px-3 py-2"
+                      style={{
+                        color: 'var(--text-primary)',
+                        whiteSpace: 'nowrap',
+                        fontWeight: isBold ? 600 : 400,
+                      }}
+                    >
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>
@@ -130,16 +147,60 @@ function renderInlineMarkdown(text: string): React.ReactNode[] {
   })
 }
 
+function renderLine(line: string, key: number): React.ReactNode {
+  // horizontal rule
+  if (/^---+$/.test(line.trim())) {
+    return <div key={key} className="my-1.5" style={{ height: 1, background: 'var(--border-light)' }} />
+  }
+  // ### heading
+  if (line.startsWith('### ')) {
+    return (
+      <p key={key} className="text-sm font-bold mt-2 mb-0.5" style={{ color: 'var(--text-primary)' }}>
+        {renderInlineMarkdown(line.slice(4))}
+      </p>
+    )
+  }
+  // ## heading
+  if (line.startsWith('## ')) {
+    return (
+      <p key={key} className="text-base font-bold mt-2 mb-0.5" style={{ color: 'var(--text-primary)' }}>
+        {renderInlineMarkdown(line.slice(3))}
+      </p>
+    )
+  }
+  // # heading
+  if (line.startsWith('# ')) {
+    return (
+      <p key={key} className="text-base font-bold mt-2 mb-1" style={{ color: 'var(--text-primary)' }}>
+        {renderInlineMarkdown(line.slice(2))}
+      </p>
+    )
+  }
+  // bullet list (- or *)
+  if (/^[-*] /.test(line)) {
+    return (
+      <p key={key} className="flex gap-1.5 leading-relaxed">
+        <span style={{ color: 'var(--accent-light)', flexShrink: 0 }}>•</span>
+        <span>{renderInlineMarkdown(line.slice(2))}</span>
+      </p>
+    )
+  }
+  return <span key={key}>{renderInlineMarkdown(line)}</span>
+}
+
 function renderTextSegment(text: string, isLast: boolean, isStreaming: boolean): React.ReactNode {
   const lines = text.split('\n')
   return (
     <>
-      {lines.map((line, i) => (
-        <span key={i}>
-          {renderInlineMarkdown(line)}
-          {i < lines.length - 1 && <br />}
-        </span>
-      ))}
+      {lines.map((line, i) => {
+        const isHeadingOrBullet = /^#{1,3} |^[-*] /.test(line)
+        return (
+          <React.Fragment key={i}>
+            {renderLine(line, i)}
+            {!isHeadingOrBullet && i < lines.length - 1 && <br />}
+          </React.Fragment>
+        )
+      })}
       {isStreaming && isLast && (
         <span className="cursor-blink inline-block w-0.5 h-4 ml-0.5 align-middle" style={{ background: 'var(--accent)' }} />
       )}
@@ -199,26 +260,27 @@ export default function StreamingText({ content, isStreaming = false }: Streamin
   }
 
   return (
-    <div className="text-sm leading-relaxed flex flex-col gap-1" style={{ color: 'var(--text-primary)' }}>
+    <div className="text-sm leading-relaxed flex flex-col gap-1.5" style={{ color: 'var(--text-primary)' }}>
       {groups.map((group, gi) => {
         if (group.kind === 'rich') {
           if (group.seg.type === 'table') return <MarkdownTable key={gi} raw={group.seg.content} />
-          return <div key={gi}>{renderCard(group.seg.type as CardType, group.seg.content)}</div>
+          // Remove card's own mt-2 by wrapping with no margin
+          return <div key={gi} className="[&>*]:mt-0">{renderCard(group.seg.type as CardType, group.seg.content)}</div>
         }
 
-        // Merge all text in the group — trim leading/trailing blank lines
+        // Merge all text in the group — trim leading/trailing whitespace/newlines
         const merged = group.texts.map((s) => s.content).join('')
-        const trimmed = merged.replace(/^\n+|\n+$/g, '')
+        const trimmed = merged.replace(/^\s+|\s+$/g, '')
         if (!trimmed) return null
         const isLast = gi === groups.length - 1
 
         return (
           <div
             key={gi}
-            className="px-4 py-3 rounded-3xl"
-            style={{ background: 'var(--bubble-ai)', border: '1px solid var(--bubble-ai-border)', borderBottomLeftRadius: 6 }}
+            className="px-4 py-2.5 rounded-3xl"
+            style={{ background: 'var(--bubble-ai)', border: '1px solid var(--bubble-ai-border)' }}
           >
-            {renderTextSegment(merged, isLast, isStreaming)}
+            {renderTextSegment(trimmed, isLast, isStreaming)}
           </div>
         )
       })}

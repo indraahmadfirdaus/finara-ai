@@ -10,20 +10,15 @@ import HistoryDrawer from '@/components/chat/HistoryDrawer'
 import ImageOCR from '@/components/chat/ImageOCR'
 import { createClient } from '@/lib/supabase/client'
 
-const SUGGESTIONS = [
+const WELCOME_HINTS = [
+  { label: 'Catat pengeluaran', text: 'beli makan siang 25k' },
   { label: 'Rekap bulan ini', text: 'rekap keuangan bulan ini' },
-  { label: 'Catat pengeluaran', text: 'catat pengeluaran' },
   { label: 'Cek saldo', text: 'berapa saldo saya?' },
-  { label: 'Hutangku', text: 'hutang aku ke siapa saja?' },
+  { label: 'Fitur Finara', text: 'fitur-fitur Finara ada apa saja?' },
   { label: 'Buat anggaran', text: 'bantu aku buat anggaran bulanan' },
   { label: 'Goals tabungan', text: 'lihat goals tabungan saya' },
-]
-
-const WELCOME_HINTS = [
-  'beli makan siang 25k',
-  'rekap bulan ini',
-  'buka dashboard',
-  'hutang aku ke siapa?',
+  { label: 'Hutang saya', text: 'hutang aku ke siapa saja?' },
+  { label: 'Analisis pengeluaran', text: 'analisis pengeluaran saya minggu ini' },
 ]
 
 function WelcomeMessage({ onHint }: { onHint: (h: string) => void }) {
@@ -64,9 +59,9 @@ function WelcomeMessage({ onHint }: { onHint: (h: string) => void }) {
       <div className="flex flex-wrap gap-2 justify-center max-w-sm">
         {WELCOME_HINTS.map((hint) => (
           <motion.button
-            key={hint}
+            key={hint.text}
             whileTap={{ scale: 0.95 }}
-            onClick={() => onHint(hint)}
+            onClick={() => onHint(hint.text)}
             className="px-3.5 py-2 rounded-2xl text-xs font-medium"
             style={{
               background: 'var(--accent-dim)',
@@ -74,7 +69,7 @@ function WelcomeMessage({ onHint }: { onHint: (h: string) => void }) {
               border: '1px solid rgba(124,92,252,0.25)',
             }}
           >
-            {hint}
+            {hint.label}
           </motion.button>
         ))}
       </div>
@@ -83,14 +78,6 @@ function WelcomeMessage({ onHint }: { onHint: (h: string) => void }) {
 }
 
 const SESSION_KEY = 'finara_chat_session_id'
-
-function getOrCreateSessionId(): string {
-  const existing = sessionStorage.getItem(SESSION_KEY)
-  if (existing) return existing
-  const id = crypto.randomUUID()
-  sessionStorage.setItem(SESSION_KEY, id)
-  return id
-}
 
 export default function ChatPage() {
   const router = useRouter()
@@ -101,13 +88,84 @@ export default function ChatPage() {
   const [historyOpen, setHistoryOpen] = useState(false)
   const [sessionId, setSessionId] = useState<string>('')
   const bottomRef = useRef<HTMLDivElement>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const autoScrollRef = useRef(true) // track whether we should auto-scroll
+
+  // Always scroll to bottom immediately (no animation jank)
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
+    const el = bottomRef.current
+    if (!el) return
+    el.scrollIntoView({ behavior, block: 'end' })
+  }, [])
+
+  // During streaming: only follow if user hasn't scrolled up
+  const scrollFollowIfAtBottom = useCallback(() => {
+    const container = scrollContainerRef.current
+    if (!container) return
+    const distFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight
+    if (distFromBottom < 120) {
+      scrollToBottom('smooth')
+    }
+  }, [scrollToBottom])
+
+  // Track when user manually scrolls up — disable auto-follow
+  useEffect(() => {
+    const container = scrollContainerRef.current
+    if (!container) return
+    function onScroll() {
+      const distFromBottom = container!.scrollHeight - container!.scrollTop - container!.clientHeight
+      autoScrollRef.current = distFromBottom < 120
+    }
+    container.addEventListener('scroll', onScroll, { passive: true })
+    return () => container.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // Scroll on messages change — force for new user message, follow for streaming
+  useEffect(() => {
+    if (messages.length === 0) return
+    const lastMsg = messages[messages.length - 1]
+    // Force scroll when user sends (new user message or typing indicator appears)
+    if (lastMsg.role === 'user' || lastMsg.isTyping) {
+      autoScrollRef.current = true
+      // Use rAF so DOM has updated before measuring
+      requestAnimationFrame(() => scrollToBottom('smooth'))
+    } else if (autoScrollRef.current) {
+      requestAnimationFrame(() => scrollFollowIfAtBottom())
+    }
+  }, [messages, scrollToBottom, scrollFollowIfAtBottom])
 
   useEffect(() => {
-    setSessionId(getOrCreateSessionId())
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user?.email) setUserEmail(user.email)
     })
+
+    const existing = sessionStorage.getItem(SESSION_KEY)
+    if (existing) {
+      // Restore messages for existing session so navigating away and back keeps history
+      setSessionId(existing)
+      supabase
+        .from('chat_history')
+        .select('id, role, content, created_at')
+        .eq('session_id', existing)
+        .order('created_at', { ascending: true })
+        .limit(200)
+        .then(({ data }) => {
+          if (data && data.length > 0) {
+            setMessages(
+              data.map((r) => ({
+                id: r.id as string,
+                role: r.role as 'user' | 'assistant',
+                content: r.content as string,
+              }))
+            )
+          }
+        })
+    } else {
+      const id = crypto.randomUUID()
+      sessionStorage.setItem(SESSION_KEY, id)
+      setSessionId(id)
+    }
   }, [])
 
   useEffect(() => {
@@ -194,7 +252,6 @@ export default function ChatPage() {
   }
 
   const userInitial = userEmail ? userEmail[0].toUpperCase() : 'K'
-  const showSuggestions = messages.length > 0 && !loading
 
   return (
     <>
@@ -240,11 +297,9 @@ export default function ChatPage() {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-            {/* Saweria support — mobile only */}
-            <motion.a
-              href="https://saweria.co/indrafrds"
-              target="_blank"
-              rel="noopener noreferrer"
+            {/* Support page — mobile only */}
+            <motion.button
+              onClick={() => router.push('/support')}
               whileTap={{ scale: 0.88 }}
               className="lg:hidden w-9 h-9 rounded-xl flex items-center justify-center"
               style={{
@@ -252,10 +307,10 @@ export default function ChatPage() {
                 color: '#FBB724',
                 border: '1px solid rgba(251,183,36,0.22)',
               }}
-              title="Support di Saweria"
+              title="Dukung Developer"
             >
               <Coffee size={16} />
-            </motion.a>
+            </motion.button>
 
             <AnimatePresence>
               {messages.length > 0 && (
@@ -294,8 +349,9 @@ export default function ChatPage() {
         {/* Messages — scrollable area, only rendered when there are messages */}
         {(messages.length > 0 || loading) && (
           <div
+            ref={scrollContainerRef}
             className="flex-1 overflow-y-auto px-4 py-4 space-y-4 lg:px-8"
-            style={{ paddingBottom: showSuggestions ? '9rem' : '6rem' }}
+            style={{ paddingBottom: '6rem' }}
           >
             <AnimatePresence initial={false}>
               {messages.map((msg) => (
@@ -305,37 +361,6 @@ export default function ChatPage() {
             <div ref={bottomRef} />
           </div>
         )}
-
-        {/* Suggestion chips */}
-        <AnimatePresence>
-          {showSuggestions && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 8 }}
-              className="fixed left-0 right-0 z-20 px-4 pb-1 lg:left-64"
-              style={{ bottom: 'calc(4rem + 68px)' }}
-            >
-              <div className="flex gap-2 overflow-x-auto pb-1 lg:max-w-3xl lg:mx-auto" style={{ scrollbarWidth: 'none' }}>
-                {SUGGESTIONS.map((s) => (
-                  <button
-                    key={s.text}
-                    onClick={() => sendMessage(s.text)}
-                    disabled={loading}
-                    className="flex-shrink-0 px-3.5 py-2 rounded-2xl text-xs font-medium transition-opacity disabled:opacity-40"
-                    style={{
-                      background: 'var(--bg-surface)',
-                      color: 'var(--accent-light)',
-                      border: '1px solid var(--border)',
-                    }}
-                  >
-                    {s.label}
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         {/* Input — fixed on mobile, accounts for sidebar on desktop */}
         <div
