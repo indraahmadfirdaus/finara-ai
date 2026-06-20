@@ -69,7 +69,7 @@ export default function ImageOCR({ onResult, disabled }: ImageOCRProps) {
         disabled={disabled || status === 'loading'}
         whileTap={{ scale: 0.88 }}
         onClick={() => status === 'idle' ? setMenuOpen((v) => !v) : reset()}
-        className="w-10 h-10 rounded-2xl flex items-center justify-center transition-colors"
+        className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
         style={{
           background: status === 'loading' ? 'var(--accent-dim)' : menuOpen ? 'var(--accent-dim)' : 'var(--bg-elevated)',
           color: status === 'loading' ? 'var(--accent-light)' : status === 'done' ? 'var(--success)' : status === 'error' ? 'var(--danger)' : 'var(--text-secondary)',

@@ -309,17 +309,19 @@ export default function ChatPage() {
           style={{ background: 'linear-gradient(to top, var(--bg-base) 70%, transparent)' }}
         >
           <div className="max-w-3xl mx-auto flex items-end gap-2">
-            <ImageOCR
-              disabled={loading}
-              onResult={(ocrText) => {
-                const prompt = `Ini hasil scan struk/invoice:\n\n${ocrText}\n\nTolong parse dan catat transaksinya.`
-                sendMessage(prompt)
-              }}
-            />
             <div
               className="flex-1 rounded-3xl flex items-end overflow-hidden"
               style={{ background: 'var(--input-bg)', border: '1px solid var(--input-border)' }}
             >
+              <div className="flex items-end px-2 py-2 flex-shrink-0">
+                <ImageOCR
+                  disabled={loading}
+                  onResult={(ocrText) => {
+                    const prompt = `Ini hasil scan struk/invoice:\n\n${ocrText}\n\nTolong parse dan catat transaksinya.`
+                    sendMessage(prompt)
+                  }}
+                />
+              </div>
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -328,7 +330,7 @@ export default function ChatPage() {
                 }}
                 placeholder="Ketik pesan..."
                 rows={1}
-                className="flex-1 px-4 py-3.5 resize-none bg-transparent outline-none text-sm leading-relaxed placeholder:opacity-40"
+                className="flex-1 py-3.5 pr-4 resize-none bg-transparent outline-none text-sm leading-relaxed placeholder:opacity-40"
                 style={{ color: 'var(--text-primary)', maxHeight: 120 }}
               />
             </div>
