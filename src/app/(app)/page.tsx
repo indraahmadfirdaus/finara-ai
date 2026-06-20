@@ -7,6 +7,7 @@ import { History, SquarePen } from 'lucide-react'
 import ChatBubble, { type Message } from '@/components/chat/ChatBubble'
 import ChatInput from '@/components/chat/ChatInput'
 import HistoryDrawer from '@/components/chat/HistoryDrawer'
+import ImageOCR from '@/components/chat/ImageOCR'
 import { createClient } from '@/lib/supabase/client'
 
 const SUGGESTIONS = [
@@ -308,6 +309,13 @@ export default function ChatPage() {
           style={{ background: 'linear-gradient(to top, var(--bg-base) 70%, transparent)' }}
         >
           <div className="max-w-3xl mx-auto flex items-end gap-2">
+            <ImageOCR
+              disabled={loading}
+              onResult={(ocrText) => {
+                const prompt = `Ini hasil scan struk/invoice:\n\n${ocrText}\n\nTolong parse dan catat transaksinya.`
+                sendMessage(prompt)
+              }}
+            />
             <div
               className="flex-1 rounded-3xl flex items-end overflow-hidden"
               style={{ background: 'var(--input-bg)', border: '1px solid var(--input-border)' }}
