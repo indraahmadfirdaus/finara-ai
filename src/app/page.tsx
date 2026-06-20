@@ -1018,8 +1018,8 @@ export default function LandingPage() {
         </div>
       </motion.nav>
 
-      {/* Hero — top padding accounts for fixed nav height (~68px) */}
-      <section className="relative z-10 px-5 sm:px-8 lg:px-16 pt-24 pb-16 lg:pt-28 lg:pb-24">
+      {/* Hero — top padding accounts for fixed nav height */}
+      <section className="relative z-10 px-5 sm:px-8 lg:px-16 pt-28 pb-16 lg:pt-32 lg:pb-24">
         <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-10 lg:gap-14">
           {/* Left copy — narrower on desktop so demo has room */}
           <div className="w-full lg:w-[46%] text-center lg:text-left">
