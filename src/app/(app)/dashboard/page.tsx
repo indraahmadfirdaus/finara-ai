@@ -10,6 +10,7 @@ import BudgetProgress from '@/components/dashboard/BudgetProgress'
 import RecentTransactions from '@/components/dashboard/RecentTransactions'
 import SpendingBars from '@/components/dashboard/SpendingBars'
 import BalanceTrend from '@/components/dashboard/BalanceTrend'
+import AssetNetWorth from '@/components/dashboard/AssetNetWorth'
 
 async function getDashboardData() {
   const supabase = await createClient()
@@ -19,7 +20,7 @@ async function getDashboardData() {
   const range = getPeriodRange('month')
   const month = getMonthKey()
 
-  const [txResult, budgetsResult, recentResult] = await Promise.all([
+  const [txResult, budgetsResult, recentResult, assetsResult, debtsResult] = await Promise.all([
     supabase
       .from('transactions')
       .select('amount, type, category, date')
@@ -37,6 +38,16 @@ async function getDashboardData() {
       .eq('user_id', user.id)
       .order('date', { ascending: false })
       .limit(5),
+    supabase
+      .from('assets')
+      .select('value')
+      .eq('user_id', user.id),
+    supabase
+      .from('debts')
+      .select('amount')
+      .eq('user_id', user.id)
+      .eq('type', 'owe')
+      .eq('settled', false),
   ])
 
   const txRows = txResult.data ?? []
@@ -73,6 +84,11 @@ async function getDashboardData() {
     percent: b.limit_amount > 0 ? ((expenseByCategory[b.category] ?? 0) / b.limit_amount) * 100 : 0,
   }))
 
+  const assetRows = assetsResult.data ?? []
+  const totalAssets = assetRows.reduce((s, a) => s + Number(a.value), 0)
+  const debtRows = debtsResult.data ?? []
+  const totalDebts = debtRows.reduce((s, d) => s + Number(d.amount), 0)
+
   return {
     income,
     expense,
@@ -81,6 +97,9 @@ async function getDashboardData() {
     dailyTrend,
     budgets,
     recentTransactions: recentResult.data ?? [],
+    totalAssets,
+    netWorth: totalAssets - totalDebts,
+    assetCount: assetRows.length,
   }
 }
 
@@ -165,6 +184,15 @@ export default async function DashboardPage() {
               </h3>
               <BudgetProgress budgets={data.budgets} />
             </div>
+          )}
+
+          {/* Asset net worth widget */}
+          {data && data.assetCount > 0 && (
+            <AssetNetWorth
+              totalAssets={data.totalAssets}
+              netWorth={data.netWorth}
+              count={data.assetCount}
+            />
           )}
         </div>
       </div>
