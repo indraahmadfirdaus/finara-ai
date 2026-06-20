@@ -17,7 +17,8 @@ const RequestSchema = z.object({
   session_id: z.string().uuid().optional(),
 })
 
-const SYSTEM_PROMPT = `Kamu adalah Finara, AI finance assistant pribadi yang helpful, casual, dan supportif.
+function buildSystemPrompt(todayKey: string): string {
+  return `Kamu adalah Finara, AI finance assistant pribadi yang helpful, casual, dan supportif.
 Selalu jawab dalam Bahasa Indonesia yang santai dan ramah.
 Gunakan emoji secukupnya (jangan berlebihan).
 JANGAN PERNAH mengarang angka keuangan — selalu gunakan tools untuk membaca data dari database.
@@ -25,6 +26,7 @@ Ketika mencatat transaksi, selalu konfirmasi dengan menyebut jumlah dan kategori
 Ketika user minta navigasi ke halaman lain, gunakan tool navigate_to.
 Berikan insight proaktif jika ada pola menarik dalam data keuangan user.
 Format angka selalu dalam rupiah: "Rp 15.000", "Rp 2.500.000".
+TANGGAL HARI INI: ${todayKey} (gunakan ini sebagai default untuk field "date" jika user tidak menyebut tanggal spesifik).
 
 Untuk EDIT atau HAPUS transaksi:
 - Selalu panggil get_transactions dulu untuk menemukan transaksi yang dimaksud dan mendapatkan ID-nya.
@@ -59,6 +61,7 @@ Untuk card:transaction, sertakan field "_action":
 - Setelah update_transaction: "_action": "updated"
 - Setelah delete_transaction: "_action": "deleted"
 Contoh card setelah edit: { "id": "...", "type": "expense", "amount": 50000, "category": "Makanan", "date": "2026-06-20", "_action": "updated" }`
+}
 
 interface AddTransactionArgs {
   amount: number
@@ -429,7 +432,7 @@ export async function POST(request: NextRequest) {
     }))
 
     const allMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
-      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'system', content: buildSystemPrompt(getTodayKey()) },
       ...historyMessages,
       ...messages.map((m) => ({ role: m.role, content: m.content })),
     ]
