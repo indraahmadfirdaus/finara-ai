@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
   Sun, Moon, MessageCircle, LogOut, ChevronRight,
-  TrendingUp, TrendingDown, Palette,
+  TrendingUp, TrendingDown, KeyRound, Info,
 } from 'lucide-react'
 import PageTransition from '@/components/layout/PageTransition'
 import { createClient } from '@/lib/supabase/client'
@@ -200,7 +200,20 @@ export default function ProfilePage() {
           </div>
 
           {/* Lainnya */}
-          <SectionLabel label="Lainnya" delay={0.3} />
+          <SectionLabel label="Akun" delay={0.3} />
+          <div
+            className="mx-4 rounded-2xl overflow-hidden"
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+          >
+            <Row
+              icon={<KeyRound size={17} />}
+              label="Ganti Password"
+              delay={0.32}
+              onClick={() => router.push('/profile/change-password')}
+            />
+          </div>
+
+          <SectionLabel label="Lainnya" delay={0.34} />
           <div
             className="mx-4 rounded-2xl overflow-hidden"
             style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
@@ -208,18 +221,22 @@ export default function ProfilePage() {
             <Row
               icon={<MessageCircle size={17} />}
               label="Chat dengan Finara"
-              delay={0.32}
+              delay={0.36}
               onClick={() => router.push('/')}
             />
             <Divider />
             <Row
-              icon={<Palette size={17} />}
+              icon={<Info size={17} />}
               label="Tentang Finara"
-              delay={0.34}
+              delay={0.38}
+              onClick={() => router.push('/about')}
               right={
-                <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: 'var(--accent-dim)', color: 'var(--accent-light)' }}>
-                  v1.0
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: 'var(--accent-dim)', color: 'var(--accent-light)' }}>
+                    v1.0
+                  </span>
+                  <ChevronRight size={15} style={{ color: 'var(--text-muted)' }} />
+                </div>
               }
             />
           </div>
