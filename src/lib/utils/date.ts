@@ -38,9 +38,14 @@ export function getMonthLabel(monthKey: string): string {
   return d.toLocaleDateString(LOCALE, { month: 'long', year: 'numeric' })
 }
 
+// Returns YYYY-MM-DD in WIB (UTC+7) — server runs UTC, toISOString() would give wrong date before 07:00 WIB
+function toWIBDateString(date: Date): string {
+  const wib = new Date(date.getTime() + 7 * 60 * 60 * 1000)
+  return wib.toISOString().split('T')[0]
+}
+
 export function getTodayKey(): string {
-  const now = new Date()
-  return now.toISOString().split('T')[0]
+  return toWIBDateString(new Date())
 }
 
 export function getPeriodRange(period: 'today' | 'week' | 'month' | 'year'): {
@@ -48,7 +53,7 @@ export function getPeriodRange(period: 'today' | 'week' | 'month' | 'year'): {
   end: string
 } {
   const now = new Date()
-  const end = now.toISOString().split('T')[0]
+  const end = toWIBDateString(now)
 
   if (period === 'today') {
     return { start: end, end }
@@ -56,13 +61,15 @@ export function getPeriodRange(period: 'today' | 'week' | 'month' | 'year'): {
   if (period === 'week') {
     const start = new Date(now)
     start.setDate(start.getDate() - 7)
-    return { start: start.toISOString().split('T')[0], end }
+    return { start: toWIBDateString(start), end }
   }
   if (period === 'month') {
-    const start = new Date(now.getFullYear(), now.getMonth(), 1)
+    const wibNow = new Date(now.getTime() + 7 * 60 * 60 * 1000)
+    const start = new Date(Date.UTC(wibNow.getUTCFullYear(), wibNow.getUTCMonth(), 1))
     return { start: start.toISOString().split('T')[0], end }
   }
   // year
-  const start = new Date(now.getFullYear(), 0, 1)
+  const wibNow = new Date(now.getTime() + 7 * 60 * 60 * 1000)
+  const start = new Date(Date.UTC(wibNow.getUTCFullYear(), 0, 1))
   return { start: start.toISOString().split('T')[0], end }
 }

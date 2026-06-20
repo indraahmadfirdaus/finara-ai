@@ -586,7 +586,7 @@ export async function POST(request: NextRequest) {
                   currentMessages.push({
                     role: 'tool',
                     tool_call_id: tc.id,
-                    content: JSON.stringify({ error: String(err) }),
+                    content: JSON.stringify({ success: false, error: String(err), message: 'Gagal menyimpan data. Informasikan ke user bahwa terjadi error dan jangan tampilkan card sukses.' }),
                   })
                 }
               }

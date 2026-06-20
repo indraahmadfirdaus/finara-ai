@@ -164,35 +164,64 @@ function renderCard(type: CardType, content: string) {
 
 export default function StreamingText({ content, isStreaming = false }: StreamingTextProps) {
   const segments = useMemo(() => parseContent(content), [content])
-
   const hasRich = segments.some((s) => s.type !== 'text')
 
+  if (!hasRich) {
+    // Pure text — ChatBubble wraps this in a bubble already, render inline
+    return (
+      <div className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>
+        {segments.map((seg, i) => (
+          <span key={i}>
+            {renderTextSegment(seg.content, i === segments.length - 1, isStreaming)}
+          </span>
+        ))}
+        {isStreaming && segments.length === 0 && (
+          <span className="cursor-blink inline-block w-0.5 h-4 ml-0.5 align-middle" style={{ background: 'var(--accent)' }} />
+        )}
+      </div>
+    )
+  }
+
+  // Rich content — ChatBubble gives us full-width flex column.
+  // Collect consecutive text segments into one bubble, cards/tables render standalone.
+  const groups: Array<{ kind: 'text-group'; texts: ParsedSegment[] } | { kind: 'rich'; seg: ParsedSegment }> = []
+  for (const seg of segments) {
+    if (seg.type === 'text') {
+      const last = groups[groups.length - 1]
+      if (last?.kind === 'text-group') {
+        last.texts.push(seg)
+      } else {
+        groups.push({ kind: 'text-group', texts: [seg] })
+      }
+    } else {
+      groups.push({ kind: 'rich', seg })
+    }
+  }
+
   return (
-    <div className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>
-      {segments.map((seg, i) => {
-        const isLast = i === segments.length - 1
-
-        if (seg.type === 'text') {
-          const trimmed = seg.content.replace(/^\n+|\n+$/g, '')
-          if (!trimmed) return null
-          // Text adjacent to cards renders without a bubble wrapper (parent already full-width)
-          // Text-only messages keep bubble styling applied by ChatBubble
-          return (
-            <span key={i} className={hasRich ? 'block px-4 py-3 rounded-3xl mb-1' : ''} style={hasRich ? { background: 'var(--bubble-ai)', border: '1px solid var(--bubble-ai-border)', borderBottomLeftRadius: 6 } : {}}>
-              {renderTextSegment(seg.content, isLast, isStreaming)}
-            </span>
-          )
+    <div className="text-sm leading-relaxed flex flex-col gap-1" style={{ color: 'var(--text-primary)' }}>
+      {groups.map((group, gi) => {
+        if (group.kind === 'rich') {
+          if (group.seg.type === 'table') return <MarkdownTable key={gi} raw={group.seg.content} />
+          return <div key={gi}>{renderCard(group.seg.type as CardType, group.seg.content)}</div>
         }
 
-        if (seg.type === 'table') {
-          return <MarkdownTable key={i} raw={seg.content} />
-        }
+        // Merge all text in the group — trim leading/trailing blank lines
+        const merged = group.texts.map((s) => s.content).join('')
+        const trimmed = merged.replace(/^\n+|\n+$/g, '')
+        if (!trimmed) return null
+        const isLast = gi === groups.length - 1
 
-        return <div key={i}>{renderCard(seg.type as CardType, seg.content)}</div>
+        return (
+          <div
+            key={gi}
+            className="px-4 py-3 rounded-3xl"
+            style={{ background: 'var(--bubble-ai)', border: '1px solid var(--bubble-ai-border)', borderBottomLeftRadius: 6 }}
+          >
+            {renderTextSegment(merged, isLast, isStreaming)}
+          </div>
+        )
       })}
-      {isStreaming && segments.length === 0 && (
-        <span className="cursor-blink inline-block w-0.5 h-4 ml-0.5 align-middle" style={{ background: 'var(--accent)' }} />
-      )}
     </div>
   )
 }
