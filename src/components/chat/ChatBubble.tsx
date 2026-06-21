@@ -85,7 +85,7 @@ export default function ChatBubble({ message, userInitial = 'K' }: ChatBubblePro
         {avatar}
         <div
           className="max-w-[78%] px-4 py-3"
-          style={{ borderRadius: '20px 20px 20px 4px' }}
+          style={{ borderRadius: '20px 20px 20px 4px', border: '1px solid var(--bubble-ai-border)' }}
         >
           <TypingIndicator />
         </div>
@@ -123,7 +123,7 @@ export default function ChatBubble({ message, userInitial = 'K' }: ChatBubblePro
       {avatar}
       <div
         className="max-w-[78%] px-4 py-3"
-        style={{ borderRadius: '20px 20px 20px 4px' }}
+        style={{ borderRadius: '20px 20px 20px 4px', border: '1px solid var(--bubble-ai-border)' }}
       >
         <StreamingText content={message.content} isStreaming={message.isStreaming} />
       </div>
