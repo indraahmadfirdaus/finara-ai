@@ -1016,7 +1016,7 @@ export default function LandingPage() {
             className="px-4 py-2 rounded-xl text-sm font-semibold text-black"
             style={{ background: "linear-gradient(135deg,#FBB724,#F97316)" }}
           >
-            Daftar
+            Daftar gratis
           </motion.button>
         </div>
       </motion.nav>
@@ -1092,7 +1092,7 @@ export default function LandingPage() {
                   background: "linear-gradient(135deg,#FBB724 0%,#F97316 100%)",
                 }}
               >
-                Mulai chat dengan Finara
+                Mulai gratis sekarang
                 <ArrowRight size={15} />
               </motion.button>
               <motion.button
