@@ -557,6 +557,7 @@ export async function POST(request: NextRequest) {
       .from('chat_history')
       .select('role, content')
       .eq('user_id', user.id)
+      .is('deleted_at', null)
       .order('created_at', { ascending: true })
 
     if (rawSessionId) {
@@ -778,4 +779,27 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
+}
+
+export async function DELETE(request: NextRequest) {
+  const supabase = await createClient()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { searchParams } = new URL(request.url)
+  const session_id = searchParams.get('session_id')
+  if (!session_id) return NextResponse.json({ error: 'Missing session_id' }, { status: 400 })
+
+  const uuidParsed = z.string().uuid().safeParse(session_id)
+  if (!uuidParsed.success) return NextResponse.json({ error: 'Invalid session_id' }, { status: 400 })
+
+  const { error } = await supabase
+    .from('chat_history')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('session_id', session_id)
+    .eq('user_id', user.id)
+    .is('deleted_at', null)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ success: true })
 }
