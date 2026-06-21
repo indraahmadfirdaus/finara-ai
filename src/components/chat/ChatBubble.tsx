@@ -9,6 +9,7 @@ export interface Message {
   id: string
   role: 'user' | 'assistant'
   content: string
+  displayContent?: string  // shown in bubble; falls back to content when absent
   isStreaming?: boolean
   isTyping?: boolean
 }
@@ -61,7 +62,7 @@ export default function ChatBubble({ message, userInitial = 'K' }: ChatBubblePro
             borderRadius: '20px 20px 4px 20px',
           }}
         >
-          <p className="text-sm whitespace-pre-wrap leading-relaxed font-medium">{message.content}</p>
+          <p className="text-sm whitespace-pre-wrap leading-relaxed font-medium">{message.displayContent ?? message.content}</p>
         </div>
         <div
           className="w-8 h-8 rounded-2xl flex items-center justify-center text-xs font-bold flex-shrink-0 mb-0.5"

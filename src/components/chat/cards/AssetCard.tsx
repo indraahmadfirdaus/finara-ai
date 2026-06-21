@@ -42,7 +42,7 @@ function SingleAssetCard({ item }: { item: AssetItem }) {
       style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
     >
       <div className="flex items-stretch">
-        <div className="w-1 flex-shrink-0 rounded-l-xl" style={{ background: meta.accent }} />
+        <div className="w-1 flex-shrink-0" style={{ background: meta.accent }} />
         <div className="flex-1 p-3 pl-4">
           <div className="flex items-center gap-3">
             <div className="flex-1 min-w-0">
