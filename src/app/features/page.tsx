@@ -28,6 +28,230 @@ function ThemeIcon({ theme }: { theme: string }) {
   )
 }
 
+// ── Tile: Anggaran & Goals ────────────────────────────────────────────────────
+function AnggrangTile() {
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: true, margin: '-40px' })
+
+  const bars = [
+    { label: 'Makanan', pct: 72, color: '#F59E0B' },
+    { label: 'Transport', pct: 40, color: 'var(--accent)' },
+    { label: 'Goal Bali', pct: 60, color: 'var(--success)' },
+  ]
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 20 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.5, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
+      className="rounded-2xl p-5 flex flex-col gap-4"
+      style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)', boxShadow: 'var(--land-card-shadow)' }}
+    >
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ background: 'rgba(245,158,11,0.12)' }}>
+          <Target size={16} style={{ color: '#F59E0B' }} />
+        </div>
+        <div>
+          <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Anggaran & Goals</p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Set budget bulanan dan pantau progress tabungan kamu.</p>
+        </div>
+      </div>
+      <div className="flex flex-col gap-3">
+        {bars.map((bar, i) => (
+          <div key={bar.label}>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{bar.label}</span>
+              <span className="text-xs font-semibold" style={{ color: bar.color }}>{bar.pct}%</span>
+            </div>
+            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--land-separator)' }}>
+              <motion.div
+                className="h-full rounded-full"
+                style={{ background: bar.color }}
+                initial={{ width: 0 }}
+                animate={inView ? { width: `${bar.pct}%` } : { width: 0 }}
+                transition={{ duration: 0.7, delay: 0.25 + i * 0.15, ease: [0.22, 1, 0.36, 1] }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </motion.div>
+  )
+}
+
+// ── Tile: Hutang & Piutang ────────────────────────────────────────────────────
+function HutangTile() {
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: true, margin: '-40px' })
+  const [settled, setSettled] = useState(false)
+
+  useEffect(() => {
+    if (!inView) return
+    const t = setTimeout(() => setSettled(true), 2200)
+    return () => clearTimeout(t)
+  }, [inView])
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 20 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.5, delay: 0.21, ease: [0.22, 1, 0.36, 1] }}
+      className="rounded-2xl p-5 flex flex-col gap-4"
+      style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)', boxShadow: 'var(--land-card-shadow)' }}
+    >
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ background: 'rgba(34,197,94,0.12)' }}>
+          <HandCoins size={16} style={{ color: 'var(--success)' }} />
+        </div>
+        <div>
+          <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Hutang & Piutang</p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Catat siapa yang berhutang, selesaikan satu tap.</p>
+        </div>
+      </div>
+      <div className="flex flex-col gap-2">
+        {/* Chip: Budi — settles after inView */}
+        <motion.div
+          initial={{ opacity: 0, x: -8 }}
+          animate={inView ? { opacity: settled ? 0.35 : 1, x: 0 } : {}}
+          transition={{ delay: 0.3, duration: 0.4 }}
+          className="flex items-center justify-between px-3 py-2 rounded-xl"
+          style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold" style={{ color: 'var(--danger)', textDecoration: settled ? 'line-through' : 'none' }}>Budi</span>
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Rp 50.000</span>
+          </div>
+          <AnimatePresence>
+            {settled && (
+              <motion.span
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold"
+                style={{ background: 'rgba(34,197,94,0.15)', color: 'var(--success)' }}
+              >
+                Lunas ✓
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </motion.div>
+        {/* Chip: Sari */}
+        <motion.div
+          initial={{ opacity: 0, x: -8 }}
+          animate={inView ? { opacity: 1, x: 0 } : {}}
+          transition={{ delay: 0.45, duration: 0.4 }}
+          className="flex items-center justify-between px-3 py-2 rounded-xl"
+          style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}
+        >
+          <span className="text-xs font-semibold" style={{ color: 'var(--success)' }}>Sari</span>
+          <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Rp 120.000</span>
+        </motion.div>
+      </div>
+    </motion.div>
+  )
+}
+
+// ── Tile: Privasi ─────────────────────────────────────────────────────────────
+function PrivasiTile() {
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: true, margin: '-40px' })
+
+  const labels = ['🔒 Encrypted', '🛡️ Row Level Security', '🚫 No Data Sharing']
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 20 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.5, delay: 0.07, ease: [0.22, 1, 0.36, 1] }}
+      className="rounded-2xl p-5 flex flex-col gap-4"
+      style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)', boxShadow: 'var(--land-card-shadow)' }}
+    >
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ background: 'rgba(34,197,94,0.12)' }}>
+          <motion.div
+            animate={inView ? { scale: [1, 1.12, 1] } : {}}
+            transition={{ delay: 0.4, duration: 0.6, repeat: Infinity, repeatDelay: 2.5 }}
+          >
+            <ShieldCheck size={16} style={{ color: 'var(--success)' }} />
+          </motion.div>
+        </div>
+        <div>
+          <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Privasi Terjaga</p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Data kamu dienkripsi dan hanya bisa diakses akunmu sendiri.</p>
+        </div>
+      </div>
+      <div className="flex flex-col gap-2">
+        {labels.map((label, i) => (
+          <motion.div
+            key={label}
+            initial={{ opacity: 0, x: -8 }}
+            animate={inView ? { opacity: 1, x: 0 } : {}}
+            transition={{ delay: 0.35 + i * 0.15, duration: 0.4 }}
+            className="text-xs px-3 py-2 rounded-xl font-medium"
+            style={{ background: 'rgba(34,197,94,0.08)', color: 'var(--success)', border: '1px solid rgba(34,197,94,0.15)' }}
+          >
+            {label}
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  )
+}
+
+// ── Tile: AI Proaktif ─────────────────────────────────────────────────────────
+function AITile() {
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: true, margin: '-40px' })
+
+  const insights = [
+    { emoji: '⚠️', text: 'Budget Makanan 85% terpakai' },
+    { emoji: '📈', text: 'Pengeluaran naik 23% vs minggu lalu' },
+    { emoji: '🎯', text: 'Goal Bali sudah 60%!' },
+  ]
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 20 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.5, delay: 0.0, ease: [0.22, 1, 0.36, 1] }}
+      className="sm:col-span-2 lg:col-span-3 rounded-2xl p-5 flex flex-col gap-4"
+      style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)', boxShadow: 'var(--land-card-shadow)' }}
+    >
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ background: 'rgba(251,183,36,0.12)' }}>
+          <Zap size={16} style={{ color: '#FBB724' }} />
+        </div>
+        <div>
+          <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>AI Proaktif</p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Finara kasih insight otomatis — budget hampir habis, pola pengeluaran aneh, dan lainnya.</p>
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {insights.map((ins, i) => (
+          <motion.div
+            key={ins.text}
+            initial={{ opacity: 0, y: 8, scale: 0.95 }}
+            animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
+            transition={{ delay: 0.3 + i * 0.2, type: 'spring', stiffness: 320, damping: 24 }}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium"
+            style={{ background: 'rgba(251,183,36,0.1)', color: '#FBB724', border: '1px solid rgba(251,183,36,0.2)' }}
+          >
+            <span>{ins.emoji}</span>
+            {ins.text}
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  )
+}
+
 export default function FeaturesPage() {
   const router = useRouter()
   const { theme, toggle } = useTheme()
@@ -188,7 +412,40 @@ export default function FeaturesPage() {
         </motion.button>
       </section>
 
-      {/* BENTO GRID — added in Task 3 */}
+      {/* Bento Grid */}
+      <section className="relative z-10 px-5 sm:px-8 lg:px-16 pb-8 max-w-6xl mx-auto w-full">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-auto">
+
+          {/* Tile: Chat Natural — placeholder, filled in Task 4 */}
+          <div className="sm:col-span-1 lg:col-span-1 lg:row-span-2 rounded-2xl min-h-[320px] sm:min-h-[360px]"
+            style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)', boxShadow: 'var(--land-card-shadow)' }} />
+
+          {/* Tile: Dashboard — placeholder, filled in Task 4 */}
+          <div className="sm:col-span-1 lg:col-span-1 lg:row-span-2 rounded-2xl min-h-[320px] sm:min-h-[360px]"
+            style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)', boxShadow: 'var(--land-card-shadow)' }} />
+
+          {/* Tile 3: Anggaran & Goals */}
+          <AnggrangTile />
+
+          {/* Tile 4: Hutang & Piutang */}
+          <HutangTile />
+
+          {/* Tile 5: Aset — placeholder, filled in Task 5 */}
+          <div className="sm:col-span-2 lg:col-span-2 rounded-2xl min-h-[160px]"
+            style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)', boxShadow: 'var(--land-card-shadow)' }} />
+
+          {/* Tile 6: Scan Struk — placeholder, filled in Task 5 */}
+          <div className="sm:col-span-2 lg:col-span-2 rounded-2xl min-h-[160px]"
+            style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)', boxShadow: 'var(--land-card-shadow)' }} />
+
+          {/* Tile 7: Privasi */}
+          <PrivasiTile />
+
+          {/* Tile 8: AI Proaktif */}
+          <AITile />
+
+        </div>
+      </section>
 
       {/* Bottom CTA strip */}
       <section className="relative z-10 px-5 sm:px-8 lg:px-16 py-16 text-center">
