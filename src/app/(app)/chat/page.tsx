@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
-import { History, SquarePen, Coffee } from 'lucide-react'
+import { History, SquarePen, Coffee, Square } from 'lucide-react'
 import ChatBubble, { type Message } from '@/components/chat/ChatBubble'
 import ChatInput from '@/components/chat/ChatInput'
 import HistoryDrawer from '@/components/chat/HistoryDrawer'
@@ -92,6 +92,7 @@ export default function ChatPage() {
   const bottomRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const autoScrollRef = useRef(true) // track whether we should auto-scroll
+  const abortRef = useRef<AbortController | null>(null)
 
   // Always scroll to bottom immediately (no animation jank)
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
@@ -185,6 +186,10 @@ export default function ChatPage() {
     }
   }, [messages])
 
+  function handleStop() {
+    abortRef.current?.abort()
+  }
+
   const sendMessage = useCallback(async (text?: string) => {
     const msg = (text ?? input).trim()
     if (!msg || loading) return
@@ -196,11 +201,15 @@ export default function ChatPage() {
     setInput('')
     setLoading(true)
 
+    const controller = new AbortController()
+    abortRef.current = controller
+
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: [{ role: 'user', content: msg }], session_id: sessionId }),
+        signal: controller.signal,
       })
       if (!res.ok) throw new Error('API error')
 
@@ -232,14 +241,19 @@ export default function ChatPage() {
           } catch { /* skip */ }
         }
       }
-    } catch {
-      setMessages((prev) =>
-        prev.filter((m) => !m.isTyping).concat({
-          id: Date.now().toString(),
-          role: 'assistant',
-          content: 'Finara lagi sibuk, coba lagi ya 😅',
-        })
-      )
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        // User cancelled — stop gracefully without showing an error
+        setMessages((prev) => prev.map((m) => m.isTyping ? { ...m, isTyping: false, content: '' } : m.isStreaming ? { ...m, isStreaming: false } : m))
+      } else {
+        setMessages((prev) =>
+          prev.filter((m) => !m.isTyping).concat({
+            id: Date.now().toString(),
+            role: 'assistant',
+            content: 'Finara lagi sibuk, coba lagi ya 😅',
+          })
+        )
+      }
     } finally {
       setLoading(false)
     }
@@ -395,29 +409,37 @@ export default function ChatPage() {
                 style={{ color: 'var(--text-primary)', maxHeight: 120 }}
               />
             </div>
-            <motion.button
-              whileTap={{ scale: 0.88 }}
-              onClick={() => sendMessage()}
-              disabled={loading || !input.trim()}
-              className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all"
-              style={
-                input.trim() && !loading
-                  ? { background: 'linear-gradient(135deg, #FBB724 0%, #F97316 100%)' }
-                  : { background: 'var(--bg-elevated)', border: '1px solid var(--border)' }
-              }
-            >
-              {loading ? (
-                <svg className="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeOpacity="0.25" />
-                  <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              ) : (
+            {loading ? (
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.88 }}
+                onClick={handleStop}
+                className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all"
+                style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+                title="Hentikan"
+              >
+                <Square size={16} />
+              </motion.button>
+            ) : (
+              <motion.button
+                type="button"
+                whileTap={{ scale: 0.88 }}
+                onClick={() => sendMessage()}
+                disabled={!input.trim()}
+                className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all"
+                style={
+                  input.trim()
+                    ? { background: 'linear-gradient(135deg, #FBB724 0%, #F97316 100%)' }
+                    : { background: 'var(--bg-elevated)', border: '1px solid var(--border)' }
+                }
+                title="Kirim"
+              >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                   <path d="M22 2L11 13" stroke={input.trim() ? 'black' : 'var(--text-muted)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke={input.trim() ? 'black' : 'var(--text-muted)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-              )}
-            </motion.button>
+              </motion.button>
+            )}
           </div>
         </div>
 
