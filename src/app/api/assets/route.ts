@@ -30,6 +30,7 @@ export async function GET() {
     .from('assets')
     .select('*')
     .eq('user_id', user.id)
+    .is('deleted_at', null)
     .order('type', { ascending: true })
     .order('name', { ascending: true })
 
@@ -127,10 +128,11 @@ export async function DELETE(request: NextRequest) {
 
   const { error } = await supabase
     .from('assets')
-    .delete()
+    .update({ deleted_at: new Date().toISOString() })
     .eq('id', id)
     .eq('user_id', user.id)
+    .is('deleted_at', null)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return new NextResponse(null, { status: 204 })
+  return NextResponse.json({ success: true })
 }

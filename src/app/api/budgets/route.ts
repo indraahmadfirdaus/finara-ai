@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
   const range = getPeriodRange('month')
 
   const [budgetsResult, txResult] = await Promise.all([
-    supabase.from('budgets').select('*').eq('user_id', user.id).eq('month', month),
+    supabase.from('budgets').select('*').eq('user_id', user.id).eq('month', month).is('deleted_at', null),
     supabase
       .from('transactions')
       .select('amount, category')
@@ -67,4 +67,27 @@ export async function POST(request: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ budget: data }, { status: 201 })
+}
+
+export async function DELETE(request: NextRequest) {
+  const supabase = await createClient()
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { searchParams } = new URL(request.url)
+  const id = searchParams.get('id')
+  if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
+
+  const uuidParsed = z.string().uuid().safeParse(id)
+  if (!uuidParsed.success) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
+
+  const { error } = await supabase
+    .from('budgets')
+    .update({ deleted_at: new Date().toISOString() })
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .is('deleted_at', null)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ success: true })
 }
