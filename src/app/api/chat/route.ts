@@ -574,15 +574,19 @@ export async function POST(request: NextRequest) {
 
     const { data: history } = await historyQuery.limit(40)
 
+    function stripScanSentinel(content: string): string {
+      return content.replace(/^\[scan:[^\]]+\]\n/, '')
+    }
+
     const historyMessages = (history ?? []).map((h) => ({
       role: h.role as 'user' | 'assistant',
-      content: h.content,
+      content: h.role === 'user' ? stripScanSentinel(h.content) : h.content,
     }))
 
     const allMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
       { role: 'system', content: buildSystemPrompt(getTodayKey()) },
       ...historyMessages,
-      ...messages.map((m) => ({ role: m.role, content: m.content })),
+      ...messages.map((m) => ({ role: m.role, content: m.role === 'user' ? stripScanSentinel(m.content) : m.content })),
     ]
 
     const encoder = new TextEncoder()

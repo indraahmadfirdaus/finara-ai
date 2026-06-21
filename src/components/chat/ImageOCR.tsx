@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Paperclip, Camera, X, Loader2, FileImage } from 'lucide-react'
 
 interface ImageOCRProps {
-  onResult: (text: string, imageUrl: string) => void
+  onResult: (text: string, imageUrl: string, fileName: string) => void
   disabled?: boolean
 }
 
@@ -62,7 +62,7 @@ export default function ImageOCR({ onResult, disabled }: ImageOCRProps) {
         return
       }
       setStatus('done')
-      onResult(cleaned, url)
+      onResult(cleaned, url, file.name)
     } catch {
       setStatus('error')
     }

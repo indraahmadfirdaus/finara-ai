@@ -461,9 +461,9 @@ export default function ChatPage() {
               <div className="flex items-end px-2 py-2 flex-shrink-0">
                 <ImageOCR
                   disabled={loading}
-                  onResult={(ocrText) => {
-                    const prompt = `Ini hasil scan struk/invoice:\n\n${ocrText}\n\nTolong parse dan catat transaksinya.`
-                    sendMessage(prompt, 'Scan berhasil')
+                  onResult={(ocrText, _imageUrl, fileName) => {
+                    const prompt = `[scan:${fileName}]\nIni hasil scan struk/invoice:\n\n${ocrText}\n\nTolong parse dan catat transaksinya.`
+                    sendMessage(prompt)
                   }}
                 />
               </div>
