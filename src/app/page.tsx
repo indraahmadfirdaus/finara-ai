@@ -1016,7 +1016,7 @@ export default function LandingPage() {
             className="px-4 py-2 rounded-xl text-sm font-semibold text-black"
             style={{ background: "linear-gradient(135deg,#FBB724,#F97316)" }}
           >
-            Daftar gratis
+            Daftar
           </motion.button>
         </div>
       </motion.nav>
@@ -1072,9 +1072,7 @@ export default function LandingPage() {
               className="text-sm sm:text-base leading-relaxed mb-7 lg:max-w-sm"
               style={{ color: "var(--text-muted)" }}
             >
-              Gak perlu aplikasi ribet. Finara ngerti bahasa sehari-hari kamu —
-              cukup ketik kayak chat sama teman, data keuangan langsung
-              tersimpan rapi.
+              Ketik kayak chat biasa — Finara langsung ngerti dan catat.
             </motion.p>
 
             <motion.div
@@ -1098,20 +1096,21 @@ export default function LandingPage() {
               <motion.button
                 whileTap={{ scale: 0.97 }}
                 onClick={() => router.push("/features")}
-                className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-medium"
+                className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-semibold"
                 style={{
-                  background: "var(--land-tile-btn)",
-                  color: "var(--text-secondary)",
-                  border: "1px solid var(--land-tile-btn-border)",
-                  transition: "background 0.2s ease",
+                  background: "var(--accent-dim)",
+                  color: "var(--accent-light)",
+                  border: "1px solid rgba(124,92,252,0.35)",
+                  transition: "background 0.2s ease, border-color 0.2s ease",
                 }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.background =
-                    "var(--land-glass-border)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = "var(--land-tile-btn)")
-                }
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "rgba(124,92,252,0.22)";
+                  e.currentTarget.style.borderColor = "rgba(124,92,252,0.55)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "var(--accent-dim)";
+                  e.currentTarget.style.borderColor = "rgba(124,92,252,0.35)";
+                }}
               >
                 Lihat fitur-fiturnya
               </motion.button>

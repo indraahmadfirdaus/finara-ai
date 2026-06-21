@@ -77,6 +77,10 @@ export default function DebtCard({ data }: { data: DebtCardData }) {
   const totalLent = items.filter(i => i.type === 'lent' && !i.settled).reduce((s, i) => s + (i.amount ?? 0), 0)
   const showSummary = items.length > 1
 
+  if (!showSummary) {
+    return <SingleDebt item={items[0]} index={0} />
+  }
+
   return (
     <motion.div
       initial={{ y: 20, opacity: 0 }}
@@ -84,21 +88,19 @@ export default function DebtCard({ data }: { data: DebtCardData }) {
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
       className="mt-2"
     >
-      {showSummary && (
-        <div className="px-4 pt-3 pb-2 flex items-center justify-between">
-          <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-            {items.length} catatan hutang/piutang
-          </p>
-          <div className="flex items-center gap-3">
-            {totalOwe > 0 && (
-              <span className="text-xs font-bold" style={{ color: 'var(--danger)' }}>−{formatIDR(totalOwe)}</span>
-            )}
-            {totalLent > 0 && (
-              <span className="text-xs font-bold" style={{ color: 'var(--success)' }}>+{formatIDR(totalLent)}</span>
-            )}
-          </div>
+      <div className="px-4 pt-3 pb-2 flex items-center justify-between">
+        <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+          {items.length} catatan hutang/piutang
+        </p>
+        <div className="flex items-center gap-3">
+          {totalOwe > 0 && (
+            <span className="text-xs font-bold" style={{ color: 'var(--danger)' }}>−{formatIDR(totalOwe)}</span>
+          )}
+          {totalLent > 0 && (
+            <span className="text-xs font-bold" style={{ color: 'var(--success)' }}>+{formatIDR(totalLent)}</span>
+          )}
         </div>
-      )}
+      </div>
 
       <div className="flex flex-col gap-2 p-3">
         {items.map((item, i) => (

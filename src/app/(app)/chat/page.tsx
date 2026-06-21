@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
-import { History, SquarePen, Coffee, Square } from 'lucide-react'
+import { History, SquarePen, Coffee, Square, MoreHorizontal, X } from 'lucide-react'
 import ChatBubble, { type Message } from '@/components/chat/ChatBubble'
 import ChatInput from '@/components/chat/ChatInput'
 import HistoryDrawer from '@/components/chat/HistoryDrawer'
@@ -88,6 +88,8 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false)
   const [userEmail, setUserEmail] = useState('')
   const [historyOpen, setHistoryOpen] = useState(false)
+  const [moreOpen, setMoreOpen] = useState(false)
+  const moreMenuRef = useRef<HTMLDivElement>(null)
   const [sessionId, setSessionId] = useState<string>('')
   const bottomRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -186,15 +188,26 @@ export default function ChatPage() {
     }
   }, [messages])
 
+  useEffect(() => {
+    if (!moreOpen) return
+    function handle(e: MouseEvent) {
+      if (moreMenuRef.current && !moreMenuRef.current.contains(e.target as Node)) {
+        setMoreOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handle)
+    return () => document.removeEventListener('mousedown', handle)
+  }, [moreOpen])
+
   function handleStop() {
     abortRef.current?.abort()
   }
 
-  const sendMessage = useCallback(async (text?: string) => {
+  const sendMessage = useCallback(async (text?: string, displayText?: string) => {
     const msg = (text ?? input).trim()
     if (!msg || loading) return
 
-    const userMsg: Message = { id: Date.now().toString(), role: 'user', content: msg }
+    const userMsg: Message = { id: Date.now().toString(), role: 'user', content: msg, displayContent: displayText }
     const typingMsg: Message = { id: Date.now().toString() + '-typing', role: 'assistant', content: '', isTyping: true }
 
     setMessages((prev) => [...prev, userMsg, typingMsg])
@@ -313,45 +326,102 @@ export default function ChatPage() {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-            {/* Support page — mobile only */}
-            <motion.button
-              onClick={() => router.push('/support')}
-              whileTap={{ scale: 0.88 }}
-              className="lg:hidden w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{
-                background: 'rgba(251,183,36,0.12)',
-                color: '#FBB724',
-                border: '1px solid rgba(251,183,36,0.22)',
-              }}
-              title="Dukung Developer"
-            >
-              <Coffee size={16} />
-            </motion.button>
-
-            <AnimatePresence>
-              {messages.length > 0 && (
-                <motion.button
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={startNewChat}
-                  className="w-9 h-9 rounded-xl flex items-center justify-center"
-                  style={{ background: 'var(--accent-dim)', color: 'var(--accent-light)' }}
-                  title="Chat baru"
-                >
-                  <SquarePen size={15} />
-                </motion.button>
-              )}
-            </AnimatePresence>
+            {/* Desktop: history button only */}
             <button
               onClick={() => setHistoryOpen(true)}
-              className="w-9 h-9 rounded-xl flex items-center justify-center"
+              className="hidden lg:flex w-9 h-9 rounded-xl items-center justify-center"
               style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}
               title="Riwayat chat"
             >
               <History size={16} />
             </button>
+
+            {/* Mobile: ⋯ menu button */}
+            <div ref={moreMenuRef} className="relative lg:hidden">
+              <motion.button
+                whileTap={{ scale: 0.88 }}
+                onClick={() => setMoreOpen((v) => !v)}
+                className="w-9 h-9 rounded-xl flex items-center justify-center"
+                style={{ background: 'var(--bg-elevated)', color: 'var(--text-secondary)' }}
+              >
+                <motion.div
+                  animate={{ rotate: moreOpen ? 90 : 0 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 22 }}
+                >
+                  {moreOpen ? <X size={16} /> : <MoreHorizontal size={16} />}
+                </motion.div>
+              </motion.button>
+
+              <AnimatePresence>
+                {moreOpen && (
+                  <motion.div
+                    key="more-menu"
+                    initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                    transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+                    className="absolute right-0 top-11 z-50 rounded-2xl overflow-hidden shadow-2xl"
+                    style={{
+                      minWidth: 180,
+                      background: 'var(--bg-surface)',
+                      border: '1px solid var(--border)',
+                    }}
+                  >
+                    <div className="p-1.5 flex flex-col gap-0.5">
+                      {[
+                        {
+                          icon: SquarePen,
+                          label: 'Chat baru',
+                          disabled: messages.length === 0,
+                          action: () => { startNewChat(); setMoreOpen(false) },
+                          color: 'var(--accent-light)',
+                          bg: 'var(--accent-dim)',
+                        },
+                        {
+                          icon: History,
+                          label: 'Riwayat',
+                          disabled: false,
+                          action: () => { setHistoryOpen(true); setMoreOpen(false) },
+                          color: 'var(--text-secondary)',
+                          bg: 'var(--bg-elevated)',
+                        },
+                        {
+                          icon: Coffee,
+                          label: 'Dukung Dev',
+                          disabled: false,
+                          action: () => { router.push('/support'); setMoreOpen(false) },
+                          color: '#FBB724',
+                          bg: 'rgba(251,183,36,0.12)',
+                        },
+                      ].map(({ icon: Icon, label, disabled, action, color, bg }, i) => (
+                        <motion.button
+                          key={label}
+                          initial={{ opacity: 0, x: 8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.05, type: 'spring', stiffness: 400, damping: 28 }}
+                          onClick={action}
+                          disabled={disabled}
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left disabled:opacity-40"
+                          style={{ transition: 'background 0.15s ease' }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-elevated)' }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+                        >
+                          <div
+                            className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                            style={{ background: bg }}
+                          >
+                            <Icon size={13} style={{ color }} />
+                          </div>
+                          <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
+                            {label}
+                          </span>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
 
@@ -393,7 +463,7 @@ export default function ChatPage() {
                   disabled={loading}
                   onResult={(ocrText) => {
                     const prompt = `Ini hasil scan struk/invoice:\n\n${ocrText}\n\nTolong parse dan catat transaksinya.`
-                    sendMessage(prompt)
+                    sendMessage(prompt, 'Scan berhasil')
                   }}
                 />
               </div>

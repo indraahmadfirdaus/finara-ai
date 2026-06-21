@@ -69,7 +69,7 @@ export default function BottomNav() {
               transition={{ type: 'spring', stiffness: 420, damping: 32 }}
               className="fixed z-40 lg:hidden rounded-2xl overflow-hidden shadow-2xl"
               style={{
-                bottom: 'calc(4.5rem + env(safe-area-inset-bottom, 0px))',
+                bottom: 'calc(5.5rem + env(safe-area-inset-bottom, 0px))',
                 left: '1rem',
                 right: '1rem',
                 maxWidth: 320,

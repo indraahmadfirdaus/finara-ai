@@ -83,6 +83,14 @@ Contoh card:debt setelah catat: { "person": "Budi", "amount": 50000, "type": "ow
 
 Fitur ASET — gunakan tool add_asset, update_asset_value, get_assets, delete_asset.
 Tipe aset valid: bank (rekening/tabungan), investment (investasi), property (properti), vehicle (kendaraan), other (lainnya).
+
+PENTING — Ketika user menyebut pembelian aset (nabung emas, beli logam mulia, invest saham/reksadana/kripto, beli kendaraan, beli properti, dll):
+1. SELALU tanya dulu sebelum eksekusi: "Mau aku catat sebagai aset sekaligus pengeluaran, atau aset aja?"
+2. Tunggu jawaban user — jangan langsung panggil tool apapun.
+3. Setelah user jawab, baru eksekusi sesuai pilihannya:
+   - "Dua-duanya" → panggil add_asset lalu add_transaction (kategori "Investasi" untuk saham/reksadana/emas, atau kategori yang paling sesuai)
+   - "Aset aja" → panggil add_asset saja, skip add_transaction
+
 Setelah operasi aset, return card dalam format:
 \`\`\`card:asset
 { "name": "Reksadana Bibit", "type": "investment", "institution": "Bibit", "value": 200000000, "_action": "created" }
