@@ -279,8 +279,8 @@ export default function StreamingText({ content, isStreaming = false }: Streamin
         return (
           <div
             key={gi}
-            className="px-4 py-2.5 rounded-3xl"
-            style={{ background: 'var(--bubble-ai)', border: '1px solid var(--bubble-ai-border)' }}
+            className="px-4 py-2.5"
+            style={{ background: 'var(--bubble-ai)', border: '1px solid var(--bubble-ai-border)', borderRadius: '20px 20px 20px 4px' }}
           >
             {renderTextSegment(trimmed, isLast, isStreaming)}
           </div>

@@ -54,10 +54,11 @@ export default function ChatBubble({ message, userInitial = 'K' }: ChatBubblePro
         className="flex items-end gap-2.5 flex-row-reverse"
       >
         <div
-          className="max-w-[78%] px-4 py-3 rounded-3xl"
+          className="max-w-[78%] px-4 py-3"
           style={{
             background: 'linear-gradient(135deg, var(--bubble-user-from) 0%, var(--bubble-user-to) 100%)',
             color: 'white',
+            borderRadius: '20px 20px 4px 20px',
           }}
         >
           <p className="text-sm whitespace-pre-wrap leading-relaxed font-medium">{message.content}</p>
@@ -83,8 +84,8 @@ export default function ChatBubble({ message, userInitial = 'K' }: ChatBubblePro
       >
         {avatar}
         <div
-          className="max-w-[78%] px-4 py-3 rounded-3xl"
-          style={{ background: 'var(--bubble-ai)', border: '1px solid var(--bubble-ai-border)' }}
+          className="max-w-[78%] px-4 py-3"
+          style={{ background: 'var(--bubble-ai)', border: '1px solid var(--bubble-ai-border)', borderRadius: '20px 20px 20px 4px' }}
         >
           <TypingIndicator />
         </div>
@@ -121,8 +122,8 @@ export default function ChatBubble({ message, userInitial = 'K' }: ChatBubblePro
     >
       {avatar}
       <div
-        className="max-w-[78%] px-4 py-3 rounded-3xl"
-        style={{ background: 'var(--bubble-ai)', border: '1px solid var(--bubble-ai-border)' }}
+        className="max-w-[78%] px-4 py-3"
+        style={{ background: 'var(--bubble-ai)', border: '1px solid var(--bubble-ai-border)', borderRadius: '20px 20px 20px 4px' }}
       >
         <StreamingText content={message.content} isStreaming={message.isStreaming} />
       </div>

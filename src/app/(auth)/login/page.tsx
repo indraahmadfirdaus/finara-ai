@@ -21,9 +21,17 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
     const supabase = createClient()
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
     if (authError) {
       setError('Email atau password salah.')
+      setLoading(false)
+      setShake(true)
+      setTimeout(() => setShake(false), 600)
+      return
+    }
+    if (!data.user?.email_confirmed_at) {
+      await supabase.auth.signOut()
+      setError('Akun belum diverifikasi. Cek emailmu dan klik link konfirmasi terlebih dahulu.')
       setLoading(false)
       setShake(true)
       setTimeout(() => setShake(false), 600)

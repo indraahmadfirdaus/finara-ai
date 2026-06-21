@@ -21,11 +21,27 @@ export default function RegisterPage() {
     if (password.length < 6) { setError('Password minimal 6 karakter.'); return }
     setLoading(true)
     setError('')
+
+    const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`
+    console.log('[register] NEXT_PUBLIC_APP_URL =', process.env.NEXT_PUBLIC_APP_URL)
+    console.log('[register] emailRedirectTo =', redirectTo)
+    console.log('[register] email =', email)
+
     const supabase = createClient()
-    const { error: authError } = await supabase.auth.signUp({
+    console.log('[register] calling supabase.auth.signUp ...')
+    const { data, error: authError } = await supabase.auth.signUp({
       email, password,
-      options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback` },
+      options: { emailRedirectTo: redirectTo },
     })
+    console.log('[register] signUp response:', {
+      userId: data?.user?.id,
+      userEmail: data?.user?.email,
+      identities: data?.user?.identities,
+      confirmationSentAt: data?.user?.confirmation_sent_at,
+      error: authError?.message,
+      errorStatus: authError?.status,
+    })
+
     if (authError) { setError(authError.message); setLoading(false); return }
     setSuccess(true)
     setLoading(false)

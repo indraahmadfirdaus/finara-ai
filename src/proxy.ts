@@ -33,7 +33,7 @@ export async function proxy(request: NextRequest) {
   const isApiRoute = pathname.startsWith('/api/')
   const isAuthCallback = pathname.startsWith('/auth/')
   // Public routes — no auth required
-  const isPublic = pathname === '/' || isAuthPage || isApiRoute || isAuthCallback
+  const isPublic = pathname === '/' || pathname === '/support' || isAuthPage || isApiRoute || isAuthCallback
 
   if (isApiRoute || isAuthCallback) return supabaseResponse
 
