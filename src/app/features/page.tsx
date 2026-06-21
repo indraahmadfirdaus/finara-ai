@@ -7,6 +7,7 @@ import {
   ArrowRight, ArrowLeft, Sun, Moon,
   MessageCircle, BarChart2, Target, HandCoins,
   Landmark, ScanLine, Zap, ShieldCheck,
+  Lock, XCircle, AlertTriangle, TrendingUp,
 } from 'lucide-react'
 import { useTheme } from '@/lib/theme'
 
@@ -617,7 +618,11 @@ function PrivasiTile() {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-40px' })
 
-  const labels = ['🔒 Encrypted', '🛡️ Row Level Security', '🚫 No Data Sharing']
+  const labels = [
+    { icon: Lock, text: 'Encrypted' },
+    { icon: ShieldCheck, text: 'Row Level Security' },
+    { icon: XCircle, text: 'No Data Sharing' },
+  ]
 
   return (
     <motion.div
@@ -644,16 +649,17 @@ function PrivasiTile() {
         </div>
       </div>
       <div className="flex flex-col gap-2">
-        {labels.map((label, i) => (
+        {labels.map(({ icon: Icon, text }, i) => (
           <motion.div
-            key={label}
+            key={text}
             initial={{ opacity: 0, x: -8 }}
             animate={inView ? { opacity: 1, x: 0 } : {}}
             transition={{ delay: 0.35 + i * 0.15, duration: 0.4 }}
-            className="text-xs px-3 py-2 rounded-xl font-medium"
+            className="flex items-center gap-2 text-xs px-3 py-2 rounded-xl font-medium"
             style={{ background: 'rgba(34,197,94,0.08)', color: 'var(--success)', border: '1px solid rgba(34,197,94,0.15)' }}
           >
-            {label}
+            <Icon size={12} />
+            {text}
           </motion.div>
         ))}
       </div>
@@ -667,9 +673,9 @@ function AITile() {
   const inView = useInView(ref, { once: true, margin: '-40px' })
 
   const insights = [
-    { emoji: '⚠️', text: 'Budget Makanan 85% terpakai' },
-    { emoji: '📈', text: 'Pengeluaran naik 23% vs minggu lalu' },
-    { emoji: '🎯', text: 'Goal Bali sudah 60%!' },
+    { icon: AlertTriangle, text: 'Budget Makanan 85% terpakai' },
+    { icon: TrendingUp, text: 'Pengeluaran naik 23% vs minggu lalu' },
+    { icon: Target, text: 'Goal Bali sudah 60%!' },
   ]
 
   return (
@@ -692,17 +698,17 @@ function AITile() {
         </div>
       </div>
       <div className="flex flex-wrap gap-2">
-        {insights.map((ins, i) => (
+        {insights.map(({ icon: Icon, text }, i) => (
           <motion.div
-            key={ins.text}
+            key={text}
             initial={{ opacity: 0, y: 8, scale: 0.95 }}
             animate={inView ? { opacity: 1, y: 0, scale: 1 } : {}}
             transition={{ delay: 0.3 + i * 0.2, type: 'spring', stiffness: 320, damping: 24 }}
             className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium"
             style={{ background: 'rgba(251,183,36,0.1)', color: '#FBB724', border: '1px solid rgba(251,183,36,0.2)' }}
           >
-            <span>{ins.emoji}</span>
-            {ins.text}
+            <Icon size={12} />
+            {text}
           </motion.div>
         ))}
       </div>
@@ -869,6 +875,20 @@ export default function FeaturesPage() {
           <ArrowRight size={15} />
         </motion.button>
       </section>
+
+      {/* Section label */}
+      <div className="relative z-10 max-w-6xl mx-auto px-5 sm:px-8 lg:px-16 mb-4 text-center">
+        <motion.p
+          initial={{ opacity: 0, y: 8 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-40px' }}
+          transition={{ duration: 0.4 }}
+          className="text-xs font-semibold uppercase tracking-widest"
+          style={{ color: 'var(--accent-light)' }}
+        >
+          8 fitur dalam satu tempat
+        </motion.p>
+      </div>
 
       {/* Bento Grid */}
       <section className="relative z-10 px-5 sm:px-8 lg:px-16 pb-8 max-w-6xl mx-auto w-full">
