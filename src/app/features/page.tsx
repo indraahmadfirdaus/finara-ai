@@ -334,7 +334,7 @@ function AsetTile() {
       initial={{ opacity: 0, y: 20 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5, delay: 0.07, ease: [0.22, 1, 0.36, 1] }}
-      className="sm:col-span-2 lg:col-span-2 rounded-2xl p-5 flex flex-col gap-4"
+      className="sm:col-span-2 lg:col-span-1 rounded-2xl p-5 flex flex-col gap-4"
       style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)', boxShadow: 'var(--land-card-shadow)' }}
     >
       <div className="flex items-center gap-3">
@@ -417,7 +417,7 @@ function ScanTile() {
       initial={{ opacity: 0, y: 20 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
-      className="sm:col-span-2 lg:col-span-2 rounded-2xl p-5 flex flex-col gap-4"
+      className="sm:col-span-2 lg:col-span-1 rounded-2xl p-5 flex flex-col gap-4"
       style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)', boxShadow: 'var(--land-card-shadow)' }}
     >
       <div className="flex items-center gap-3">
@@ -431,12 +431,12 @@ function ScanTile() {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 items-start">
+      <div className="flex flex-col gap-4">
         {/* Fake receipt */}
-        <div className="relative rounded-xl overflow-hidden flex-shrink-0 w-28 sm:w-32"
-          style={{ background: 'var(--land-surface)', border: '1px solid var(--land-glass-border)', height: 100 }}>
+        <div className="relative rounded-xl overflow-hidden w-full"
+          style={{ background: 'var(--land-surface)', border: '1px solid var(--land-glass-border)', height: 64 }}>
           {/* Fake text lines */}
-          {[20, 35, 50, 65, 80].map((top) => (
+          {[12, 24, 36, 48].map((top) => (
             <div key={top} className="absolute h-1 rounded-full" style={{ top, left: 10, right: 10, background: 'var(--land-separator)', opacity: 0.6 }} />
           ))}
           {/* Scan line */}
@@ -445,7 +445,7 @@ function ScanTile() {
               className="absolute left-0 right-0 h-0.5"
               style={{ background: 'rgba(59,130,246,0.8)', boxShadow: '0 0 8px rgba(59,130,246,0.6)' }}
               initial={{ top: 0 }}
-              animate={{ top: 100 }}
+              animate={{ top: 64 }}
               transition={{ duration: 2, ease: 'linear' }}
             />
           )}
@@ -462,7 +462,7 @@ function ScanTile() {
         </div>
 
         {/* Extracted fields */}
-        <div className="flex-1 flex flex-col gap-2">
+        <div className="flex flex-col gap-2">
           {phase === 'idle' && (
             <p className="text-xs" style={{ color: 'var(--text-muted)', opacity: 0.5 }}>Arahkan kamera ke struk...</p>
           )}
@@ -630,7 +630,7 @@ function PrivasiTile() {
       initial={{ opacity: 0, y: 20 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5, delay: 0.07, ease: [0.22, 1, 0.36, 1] }}
-      className="rounded-2xl p-5 flex flex-col gap-4"
+      className="sm:col-span-1 lg:col-span-2 rounded-2xl p-5 flex flex-col gap-4"
       style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)', boxShadow: 'var(--land-card-shadow)' }}
     >
       <div className="flex items-center gap-3">
@@ -684,7 +684,7 @@ function AITile() {
       initial={{ opacity: 0, y: 20 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5, delay: 0.0, ease: [0.22, 1, 0.36, 1] }}
-      className="sm:col-span-2 lg:col-span-3 rounded-2xl p-5 flex flex-col gap-4"
+      className="sm:col-span-1 lg:col-span-1 rounded-2xl p-5 flex flex-col gap-4"
       style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)', boxShadow: 'var(--land-card-shadow)' }}
     >
       <div className="flex items-center gap-3">
