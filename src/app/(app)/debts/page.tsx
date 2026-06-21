@@ -20,10 +20,12 @@ interface Debt {
   created_at: string
 }
 
-type TabType = 'owe' | 'lent'
+type TabType = 'owe' | 'lent' | 'settled'
 
 const containerVariants = { animate: { transition: { staggerChildren: 0.05 } } }
 const itemVariants = { initial: { y: 10, opacity: 0 }, animate: { y: 0, opacity: 1 } }
+
+const TAB_LABELS: Record<TabType, string> = { owe: 'Hutangku', lent: 'Piutangku', settled: 'Lunas' }
 
 export default function DebtsPage() {
   const [debts, setDebts] = useState<Debt[]>([])
@@ -33,8 +35,10 @@ export default function DebtsPage() {
   const [formPerson, setFormPerson] = useState('')
   const [formAmount, setFormAmount] = useState('')
   const [formNote, setFormNote] = useState('')
-  const [formType, setFormType] = useState<TabType>('owe')
+  const [formType, setFormType] = useState<'owe' | 'lent'>('owe')
   const [saving, setSaving] = useState(false)
+  const [settledDebts, setSettledDebts] = useState<Debt[]>([])
+  const [settledLoading, setSettledLoading] = useState(false)
 
   const fetchDebts = useCallback(async () => {
     setLoading(true)
@@ -45,6 +49,14 @@ export default function DebtsPage() {
   }, [])
 
   useEffect(() => { fetchDebts() }, [fetchDebts])
+
+  useEffect(() => {
+    if (tab !== 'settled') return
+    setSettledLoading(true)
+    fetch('/api/debts?settled=true')
+      .then((r) => r.json())
+      .then((d) => { setSettledDebts(d.debts ?? []); setSettledLoading(false) })
+  }, [tab])
 
   async function handleCreate() {
     if (!formPerson || !formAmount) return
@@ -117,72 +129,99 @@ export default function DebtsPage() {
 
         {/* Tabs */}
         <div className="flex relative mb-4">
-          {(['owe', 'lent'] as TabType[]).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className="flex-1 py-2 text-sm font-medium relative"
-              style={{ color: tab === t ? 'var(--accent)' : 'var(--text-muted)' }}
-            >
-              {t === 'owe' ? 'Hutang Aku' : 'Piutang Aku'}
+          {(['owe', 'lent', 'settled'] as TabType[]).map((t) => (
+            <button key={t} onClick={() => setTab(t)} className="relative flex-1 py-2 text-xs font-semibold transition-colors"
+              style={{ color: tab === t ? 'var(--accent-light)' : 'var(--text-muted)' }}>
+              {TAB_LABELS[t]}
               {tab === t && (
-                <motion.div
-                  layoutId="tab-underline"
-                  className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full"
-                  style={{ background: 'var(--accent)' }}
-                />
+                <motion.div layoutId="debt-tab-pill" className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full"
+                  style={{ background: 'var(--accent)' }} transition={{ type: 'spring', stiffness: 400, damping: 30 }} />
               )}
             </button>
           ))}
         </div>
 
-        {loading ? (
-          <div className="space-y-3">{[1, 2].map((i) => <SkeletonLoader key={i} variant="card" />)}</div>
-        ) : filtered.length === 0 ? (
-          <EmptyState
-            title={tab === 'owe' ? 'Tidak ada hutang' : 'Tidak ada piutang'}
-            description={tab === 'owe' ? 'Yeay, kamu bebas hutang! 🎉' : 'Belum ada yang pinjem ke kamu'}
-            icon={tab === 'owe' ? '✨' : '💰'}
-          />
-        ) : (
-          <motion.div variants={containerVariants} initial="initial" animate="animate" className="space-y-3">
-            <AnimatePresence>
-              {filtered.map((d) => (
+        {tab !== 'settled' && (
+          loading ? (
+            <div className="space-y-3">{[1, 2].map((i) => <SkeletonLoader key={i} variant="card" />)}</div>
+          ) : filtered.length === 0 ? (
+            <EmptyState
+              title={tab === 'owe' ? 'Tidak ada hutang' : 'Tidak ada piutang'}
+              description={tab === 'owe' ? 'Yeay, kamu bebas hutang! 🎉' : 'Belum ada yang pinjem ke kamu'}
+              icon={tab === 'owe' ? '✨' : '💰'}
+            />
+          ) : (
+            <motion.div variants={containerVariants} initial="initial" animate="animate" className="space-y-3">
+              <AnimatePresence>
+                {filtered.map((d) => (
+                  <motion.div key={d.id} variants={itemVariants}
+                    exit={{ x: -100, opacity: 0, height: 0 }}
+                    className="rounded-2xl p-4"
+                    style={{
+                      background: 'var(--bg-surface)',
+                      border: `1px solid var(--border)`,
+                      borderLeft: `3px solid ${d.type === 'owe' ? 'var(--danger)' : 'var(--success)'}`,
+                    }}>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+                          style={{ background: d.type === 'owe' ? 'rgba(239,68,68,0.12)' : 'rgba(34,197,94,0.12)' }}>
+                          <User size={16} style={{ color: d.type === 'owe' ? 'var(--danger)' : 'var(--success)' }} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{d.person}</p>
+                          {d.note && <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{d.note}</p>}
+                          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{formatRelative(d.created_at)}</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        <p className="text-sm font-bold" style={{ color: d.type === 'owe' ? 'var(--danger)' : 'var(--success)' }}>
+                          {formatIDR(d.amount)}
+                        </p>
+                        <motion.button whileTap={{ scale: 0.9 }} onClick={() => handleSettle(d.id)}
+                          className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg font-medium"
+                          style={{ background: 'rgba(34,197,94,0.12)', color: 'var(--success)' }}>
+                          <CheckCircle size={12} /> Lunas
+                        </motion.button>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
+          )
+        )}
+
+        {tab === 'settled' && (
+          settledLoading ? (
+            <div className="space-y-3">{[1, 2].map((i) => <SkeletonLoader key={i} variant="card" />)}</div>
+          ) : settledDebts.length === 0 ? (
+            <EmptyState icon="✓" title="Belum ada yang lunas" description="Hutang dan piutang yang sudah diselesaikan akan muncul di sini" />
+          ) : (
+            <motion.div variants={containerVariants} initial="initial" animate="animate" className="space-y-2">
+              {settledDebts.map((d) => (
                 <motion.div key={d.id} variants={itemVariants}
-                  exit={{ x: -100, opacity: 0, height: 0 }}
-                  className="rounded-2xl p-4"
-                  style={{
-                    background: 'var(--bg-surface)',
-                    border: `1px solid var(--border)`,
-                    borderLeft: `3px solid ${d.type === 'owe' ? 'var(--danger)' : 'var(--success)'}`,
-                  }}>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-                        style={{ background: d.type === 'owe' ? 'rgba(239,68,68,0.12)' : 'rgba(34,197,94,0.12)' }}>
-                        <User size={16} style={{ color: d.type === 'owe' ? 'var(--danger)' : 'var(--success)' }} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{d.person}</p>
-                        {d.note && <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{d.note}</p>}
-                        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{formatRelative(d.created_at)}</p>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <p className="text-sm font-bold" style={{ color: d.type === 'owe' ? 'var(--danger)' : 'var(--success)' }}>
-                        {formatIDR(d.amount)}
-                      </p>
-                      <motion.button whileTap={{ scale: 0.9 }} onClick={() => handleSettle(d.id)}
-                        className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg font-medium"
-                        style={{ background: 'rgba(34,197,94,0.12)', color: 'var(--success)' }}>
-                        <CheckCircle size={12} /> Lunas
-                      </motion.button>
-                    </div>
+                  className="flex items-center gap-3 rounded-xl p-3"
+                  style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', opacity: 0.7 }}>
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                    style={{ background: 'rgba(107,114,128,0.12)' }}>
+                    <CheckCircle size={13} style={{ color: 'var(--text-muted)' }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold" style={{ color: 'var(--text-secondary)', textDecoration: 'line-through' }}>{d.person}</p>
+                    <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                      {d.type === 'owe' ? 'Hutang' : 'Piutang'}{d.note ? ` · ${d.note}` : ''}
+                    </p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-xs font-bold" style={{ color: 'var(--text-muted)', textDecoration: 'line-through' }}>{formatIDR(d.amount)}</p>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold"
+                      style={{ background: 'rgba(34,197,94,0.1)', color: 'var(--success)' }}>Lunas</span>
                   </div>
                 </motion.div>
               ))}
-            </AnimatePresence>
-          </motion.div>
+            </motion.div>
+          )
         )}
       </div>
 
@@ -202,7 +241,7 @@ export default function DebtsPage() {
               </div>
 
               <div className="flex gap-2 mb-3">
-                {(['owe', 'lent'] as TabType[]).map((t) => (
+                {(['owe', 'lent'] as ('owe' | 'lent')[]).map((t) => (
                   <button key={t} onClick={() => setFormType(t)}
                     className="flex-1 py-2 rounded-xl text-xs font-medium transition-all"
                     style={formType === t ? { background: 'var(--accent)', color: 'white' } : { background: 'var(--bg-elevated)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}>
