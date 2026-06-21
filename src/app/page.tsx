@@ -844,10 +844,12 @@ export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    function onScroll() { setScrolled(window.scrollY > 20) }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
+    function onScroll() {
+      setScrolled(window.scrollY > 20);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
     <div
@@ -900,11 +902,14 @@ export default function LandingPage() {
         transition={{ duration: 0.5 }}
         className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-5 py-4 sm:px-8 lg:px-16"
         style={{
-          background: scrolled ? 'var(--land-surface)' : 'transparent',
-          borderBottom: scrolled ? '1px solid var(--land-separator)' : '1px solid transparent',
-          backdropFilter: scrolled ? 'blur(16px)' : 'none',
-          WebkitBackdropFilter: scrolled ? 'blur(16px)' : 'none',
-          transition: 'background 0.3s ease, border-color 0.3s ease, backdrop-filter 0.3s ease',
+          background: scrolled ? "var(--land-surface)" : "transparent",
+          borderBottom: scrolled
+            ? "1px solid var(--land-separator)"
+            : "1px solid transparent",
+          backdropFilter: scrolled ? "blur(16px)" : "none",
+          WebkitBackdropFilter: scrolled ? "blur(16px)" : "none",
+          transition:
+            "background 0.3s ease, border-color 0.3s ease, backdrop-filter 0.3s ease",
         }}
       >
         <div className="flex items-center gap-2.5">
@@ -1011,7 +1016,7 @@ export default function LandingPage() {
             className="px-4 py-2 rounded-xl text-sm font-semibold text-black"
             style={{ background: "linear-gradient(135deg,#FBB724,#F97316)" }}
           >
-            Daftar gratis
+            Daftar
           </motion.button>
         </div>
       </motion.nav>
@@ -1087,13 +1092,13 @@ export default function LandingPage() {
                   background: "linear-gradient(135deg,#FBB724 0%,#F97316 100%)",
                 }}
               >
-                Mulai gratis sekarang
+                Mulai chat dengan Finara
                 <ArrowRight size={15} />
               </motion.button>
               <motion.button
                 whileTap={{ scale: 0.97 }}
-                onClick={() => router.push("/login")}
-                className="flex items-center justify-center px-6 py-3.5 rounded-2xl text-sm font-medium"
+                onClick={() => router.push("/features")}
+                className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-medium"
                 style={{
                   background: "var(--land-tile-btn)",
                   color: "var(--text-secondary)",
@@ -1108,7 +1113,7 @@ export default function LandingPage() {
                   (e.currentTarget.style.background = "var(--land-tile-btn)")
                 }
               >
-                Sudah punya akun
+                Lihat fitur-fiturnya
               </motion.button>
             </motion.div>
 
