@@ -299,6 +299,193 @@ function DashboardTile() {
   )
 }
 
+// ── Tile: Aset ────────────────────────────────────────────────────────────────
+function AsetTile() {
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: true, margin: '-40px' })
+  const [count, setCount] = useState(0)
+
+  useEffect(() => {
+    if (!inView) return
+    const target = 87500000
+    const duration = 1400
+    const start = performance.now()
+    function step(now: number) {
+      const t = Math.min((now - start) / duration, 1)
+      const ease = 1 - Math.pow(1 - t, 3)
+      setCount(Math.round(target * ease))
+      if (t < 1) requestAnimationFrame(step)
+    }
+    const raf = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(raf)
+  }, [inView])
+
+  const asetBars = [
+    { label: 'Rekening', pct: 57, color: 'var(--accent)' },
+    { label: 'Investasi', pct: 34, color: 'var(--success)' },
+    { label: 'Properti', pct: 80, color: '#F59E0B' },
+    { label: 'Kendaraan', pct: 22, color: 'var(--text-secondary)' },
+  ]
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 20 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.5, delay: 0.07, ease: [0.22, 1, 0.36, 1] }}
+      className="sm:col-span-2 lg:col-span-2 rounded-2xl p-5 flex flex-col gap-4"
+      style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)', boxShadow: 'var(--land-card-shadow)' }}
+    >
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ background: 'rgba(34,197,94,0.12)' }}>
+          <Landmark size={16} style={{ color: 'var(--success)' }} />
+        </div>
+        <div>
+          <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Manajemen Aset</p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Pantau total kekayaan bersih dari rekening hingga investasi.</p>
+        </div>
+      </div>
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex-shrink-0">
+          <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>Total Aset</p>
+          <p className="text-xl font-bold" style={{ color: 'var(--success)', letterSpacing: '-0.03em' }}>
+            Rp {count.toLocaleString('id-ID')}
+          </p>
+        </div>
+        <div className="flex-1 flex flex-col gap-2">
+          {asetBars.map((bar, i) => (
+            <div key={bar.label}>
+              <div className="flex items-center justify-between mb-0.5">
+                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{bar.label}</span>
+                <span className="text-xs font-semibold" style={{ color: bar.color }}>{bar.pct}%</span>
+              </div>
+              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--land-separator)' }}>
+                <motion.div className="h-full rounded-full" style={{ background: bar.color }}
+                  initial={{ width: 0 }}
+                  animate={inView ? { width: `${bar.pct}%` } : { width: 0 }}
+                  transition={{ duration: 0.7, delay: 0.3 + i * 0.1, ease: [0.22, 1, 0.36, 1] }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+// ── Tile: Scan Struk ──────────────────────────────────────────────────────────
+function ScanTile() {
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: true, margin: '-40px' })
+  const [phase, setPhase] = useState<'idle' | 'scanning' | 'done'>('idle')
+  const startedRef = useRef(false)
+
+  useEffect(() => {
+    if (!inView || startedRef.current) return
+    startedRef.current = true
+    let cancelled = false
+
+    async function play() {
+      await delay(400)
+      if (cancelled) return
+      setPhase('scanning')
+      await delay(2200)
+      if (cancelled) return
+      setPhase('done')
+      await delay(2500)
+      if (cancelled) return
+      setPhase('idle')
+      await delay(300)
+      if (!cancelled) play()
+    }
+
+    play()
+    return () => { cancelled = true }
+  }, [inView])
+
+  const fields = [
+    { label: 'Merchant', value: 'Indomaret' },
+    { label: 'Total', value: 'Rp 87.500' },
+    { label: 'Tanggal', value: '21 Jun 2026' },
+  ]
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 20 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.5, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
+      className="sm:col-span-2 lg:col-span-2 rounded-2xl p-5 flex flex-col gap-4"
+      style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)', boxShadow: 'var(--land-card-shadow)' }}
+    >
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ background: 'rgba(59,130,246,0.12)' }}>
+          <ScanLine size={16} style={{ color: '#3B82F6' }} />
+        </div>
+        <div>
+          <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Scan Struk</p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Foto struk — Finara ekstrak detail transaksi otomatis.</p>
+        </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-4 items-start">
+        {/* Fake receipt */}
+        <div className="relative rounded-xl overflow-hidden flex-shrink-0 w-28 sm:w-32"
+          style={{ background: 'var(--land-surface)', border: '1px solid var(--land-glass-border)', height: 100 }}>
+          {/* Fake text lines */}
+          {[20, 35, 50, 65, 80].map((top) => (
+            <div key={top} className="absolute h-1 rounded-full" style={{ top, left: 10, right: 10, background: 'var(--land-separator)', opacity: 0.6 }} />
+          ))}
+          {/* Scan line */}
+          {phase === 'scanning' && (
+            <motion.div
+              className="absolute left-0 right-0 h-0.5"
+              style={{ background: 'rgba(59,130,246,0.8)', boxShadow: '0 0 8px rgba(59,130,246,0.6)' }}
+              initial={{ top: 0 }}
+              animate={{ top: 100 }}
+              transition={{ duration: 2, ease: 'linear' }}
+            />
+          )}
+          {phase === 'done' && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="absolute inset-0 flex items-center justify-center rounded-xl"
+              style={{ background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.3)' }}
+            >
+              <span className="text-xs font-semibold" style={{ color: '#3B82F6' }}>✓ Terbaca</span>
+            </motion.div>
+          )}
+        </div>
+
+        {/* Extracted fields */}
+        <div className="flex-1 flex flex-col gap-2">
+          {phase === 'idle' && (
+            <p className="text-xs" style={{ color: 'var(--text-muted)', opacity: 0.5 }}>Arahkan kamera ke struk...</p>
+          )}
+          <AnimatePresence>
+            {phase === 'done' && fields.map((f, i) => (
+              <motion.div
+                key={f.label}
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.18, type: 'spring', stiffness: 320, damping: 24 }}
+                className="flex items-center justify-between px-3 py-1.5 rounded-xl"
+                style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)' }}
+              >
+                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{f.label}</span>
+                <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{f.value}</span>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
 // ── Tile: Anggaran & Goals ────────────────────────────────────────────────────
 function AnggrangTile() {
   const ref = useRef<HTMLDivElement>(null)
@@ -696,13 +883,9 @@ export default function FeaturesPage() {
           {/* Tile 4: Hutang & Piutang */}
           <HutangTile />
 
-          {/* Tile 5: Aset — placeholder, filled in Task 5 */}
-          <div className="sm:col-span-2 lg:col-span-2 rounded-2xl min-h-[160px]"
-            style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)', boxShadow: 'var(--land-card-shadow)' }} />
+          <AsetTile />
 
-          {/* Tile 6: Scan Struk — placeholder, filled in Task 5 */}
-          <div className="sm:col-span-2 lg:col-span-2 rounded-2xl min-h-[160px]"
-            style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)', boxShadow: 'var(--land-card-shadow)' }} />
+          <ScanTile />
 
           {/* Tile 7: Privasi */}
           <PrivasiTile />
