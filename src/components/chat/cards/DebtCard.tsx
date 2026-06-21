@@ -22,71 +22,64 @@ function SingleDebt({ item, index = 0 }: { item: DebtItem; index?: number }) {
   const isOwe = item.type === 'owe'
   const settled = item.settled === true
 
+  const accentColor = settled ? 'var(--text-muted)' : isOwe ? 'var(--danger)' : 'var(--success)'
+  const borderColor = settled
+    ? 'rgba(107,114,128,0.2)'
+    : isOwe
+    ? 'rgba(239,68,68,0.3)'
+    : 'rgba(34,197,94,0.3)'
+  const iconBg = settled
+    ? 'rgba(107,114,128,0.12)'
+    : isOwe
+    ? 'rgba(239,68,68,0.12)'
+    : 'rgba(34,197,94,0.12)'
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ y: 10, opacity: 0, scale: 0.97 }}
+      animate={{ y: 0, opacity: 1, scale: 1 }}
       transition={{ type: 'spring', stiffness: 320, damping: 24, delay: index * 0.07 }}
-      className="flex items-center gap-3 rounded-xl overflow-hidden"
+      className="mt-2 px-3 py-2.5 rounded-2xl flex items-center gap-3"
       style={{
-        background: settled
-          ? 'rgba(107,114,128,0.06)'
-          : isOwe
-          ? 'rgba(239,68,68,0.06)'
-          : 'rgba(34,197,94,0.06)',
-        border: `1px solid ${
-          settled
-            ? 'rgba(107,114,128,0.15)'
-            : isOwe
-            ? 'rgba(239,68,68,0.2)'
-            : 'rgba(34,197,94,0.2)'
-        }`,
-        opacity: settled ? 0.6 : 1,
+        background: 'var(--bg-elevated)',
+        border: `1px solid ${borderColor}`,
+        borderLeft: `3px solid ${accentColor}`,
+        opacity: settled ? 0.65 : 1,
       }}
     >
-      {/* Accent left bar */}
       <div
-        className="w-1 self-stretch flex-shrink-0"
-        style={{ background: settled ? 'var(--text-muted)' : isOwe ? 'var(--danger)' : 'var(--success)' }}
-      />
-
-      {/* Icon */}
-      <div
-        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ml-4 mr-3 my-3"
-        style={{
-          background: settled
-            ? 'rgba(107,114,128,0.1)'
-            : isOwe
-            ? 'rgba(239,68,68,0.15)'
-            : 'rgba(34,197,94,0.15)',
-        }}
+        className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+        style={{ background: iconBg }}
       >
         {settled ? (
-          <Check size={15} style={{ color: 'var(--text-muted)' }} />
+          <Check size={13} style={{ color: 'var(--text-muted)' }} />
         ) : (
-          <User size={15} style={{ color: isOwe ? 'var(--danger)' : 'var(--success)' }} />
+          <User size={13} style={{ color: accentColor }} />
         )}
       </div>
 
-      {/* Name + note */}
-      <div className="flex-1 min-w-0 py-3">
-        <p className="text-sm font-semibold leading-tight truncate" style={{ color: 'var(--text-primary)', textDecoration: settled ? 'line-through' : 'none' }}>
-          {item.person}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <p className="text-xs font-semibold leading-tight" style={{ color: 'var(--text-primary)', textDecoration: settled ? 'line-through' : 'none' }}>
+            {item.person}
+          </p>
+          {item.settled && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold flex items-center gap-0.5"
+              style={{ background: 'rgba(34,197,94,0.12)', color: 'var(--success)' }}>
+              <Check size={8} />
+              Lunas
+            </span>
+          )}
+        </div>
+        <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
+          {item.note || (isOwe ? 'Kamu berhutang' : 'Kamu meminjamkan')}
         </p>
-        {item.note && (
-          <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--text-muted)' }}>{item.note}</p>
-        )}
       </div>
 
-      {/* Amount + label */}
-      <div className="text-right flex-shrink-0 py-3 pr-4">
-        <p className="text-sm font-bold leading-tight" style={{ color: settled ? 'var(--text-muted)' : isOwe ? 'var(--danger)' : 'var(--success)' }}>
-          {formatIDR(item.amount)}
-        </p>
-        <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-          {settled ? 'Lunas' : isOwe ? 'Kamu berhutang' : 'Kamu meminjamkan'}
-        </p>
-      </div>
+      <p className="text-xs font-bold flex-shrink-0"
+        style={{ color: accentColor, textDecoration: settled ? 'line-through' : 'none' }}>
+        {formatIDR(item.amount)}
+      </p>
     </motion.div>
   )
 }
@@ -105,8 +98,7 @@ export default function DebtCard({ data }: { data: DebtCardData }) {
       initial={{ y: 20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-      className="rounded-2xl mt-2 overflow-hidden"
-      style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
+      className="mt-2"
     >
       {showSummary && (
         <div className="px-4 pt-3 pb-2 flex items-center justify-between">
