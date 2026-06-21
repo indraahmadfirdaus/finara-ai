@@ -13,7 +13,8 @@ create table if not exists transactions (
   category text not null,
   note text,
   date date not null default current_date,
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  deleted_at timestamptz
 );
 alter table transactions enable row level security;
 create policy "users own transactions" on transactions
@@ -27,6 +28,7 @@ create table if not exists budgets (
   limit_amount bigint not null,
   month text not null,
   created_at timestamptz default now(),
+  deleted_at timestamptz,
   unique(user_id, category, month)
 );
 alter table budgets enable row level security;
@@ -41,7 +43,8 @@ create table if not exists goals (
   target_amount bigint not null,
   current_amount bigint default 0,
   deadline date,
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  deleted_at timestamptz
 );
 alter table goals enable row level security;
 create policy "users own goals" on goals
@@ -70,7 +73,8 @@ create table if not exists chat_history (
   session_id uuid not null default gen_random_uuid(),
   role text check (role in ('user', 'assistant')) not null,
   content text not null,
-  created_at timestamptz default now()
+  created_at timestamptz default now(),
+  deleted_at timestamptz
 );
 alter table chat_history enable row level security;
 create policy "users own chat_history" on chat_history
@@ -91,7 +95,8 @@ create table if not exists assets (
   value       bigint not null default 0,
   note        text,
   created_at  timestamptz default now(),
-  updated_at  timestamptz default now()
+  updated_at  timestamptz default now(),
+  deleted_at  timestamptz
 );
 alter table assets enable row level security;
 create policy "users own assets" on assets
@@ -134,3 +139,9 @@ create index if not exists idx_chat_history_user on chat_history(user_id, create
 create index if not exists idx_chat_history_session on chat_history(user_id, session_id, created_at asc);
 create index if not exists idx_assets_user on assets(user_id, type, name);
 create index if not exists idx_asset_logs_asset on asset_value_logs(asset_id, created_at desc);
+
+-- Soft-delete partial indexes (migration 002)
+create index if not exists idx_transactions_not_deleted on transactions(user_id, deleted_at) where deleted_at is null;
+create index if not exists idx_goals_not_deleted        on goals(user_id, deleted_at)        where deleted_at is null;
+create index if not exists idx_assets_not_deleted       on assets(user_id, deleted_at)       where deleted_at is null;
+create index if not exists idx_chat_not_deleted         on chat_history(user_id, deleted_at) where deleted_at is null;
