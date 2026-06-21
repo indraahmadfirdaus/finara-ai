@@ -103,7 +103,7 @@ function ChatTile() {
       initial={{ opacity: 0, y: 20 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5, delay: 0.0, ease: [0.22, 1, 0.36, 1] }}
-      className="sm:col-span-1 lg:col-span-1 lg:row-span-2 rounded-2xl p-5 flex flex-col gap-3"
+      className="sm:col-span-1 lg:col-span-2 lg:row-span-2 rounded-2xl p-5 flex flex-col gap-3"
       style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)', boxShadow: 'var(--land-card-shadow)', minHeight: 320 }}
     >
       <div className="flex items-center gap-3 flex-shrink-0">
@@ -231,7 +231,7 @@ function DashboardTile() {
       initial={{ opacity: 0, y: 20 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5, delay: 0.07, ease: [0.22, 1, 0.36, 1] }}
-      className="sm:col-span-1 lg:col-span-1 lg:row-span-2 rounded-2xl p-5 flex flex-col gap-3"
+      className="sm:col-span-1 lg:col-span-2 lg:row-span-2 rounded-2xl p-5 flex flex-col gap-3"
       style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)', boxShadow: 'var(--land-card-shadow)', minHeight: 320 }}
     >
       <div className="flex items-center gap-3 flex-shrink-0">
@@ -334,7 +334,7 @@ function AsetTile() {
       initial={{ opacity: 0, y: 20 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5, delay: 0.07, ease: [0.22, 1, 0.36, 1] }}
-      className="sm:col-span-2 lg:col-span-1 rounded-2xl p-5 flex flex-col gap-4"
+      className="sm:col-span-2 lg:col-span-3 rounded-2xl p-5 flex flex-col gap-4"
       style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)', boxShadow: 'var(--land-card-shadow)' }}
     >
       <div className="flex items-center gap-3">
@@ -417,7 +417,7 @@ function ScanTile() {
       initial={{ opacity: 0, y: 20 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
-      className="sm:col-span-2 lg:col-span-1 rounded-2xl p-5 flex flex-col gap-4"
+      className="sm:col-span-2 lg:col-span-3 rounded-2xl p-5 flex flex-col gap-4"
       style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)', boxShadow: 'var(--land-card-shadow)' }}
     >
       <div className="flex items-center gap-3">
@@ -504,7 +504,7 @@ function AnggrangTile() {
       initial={{ opacity: 0, y: 20 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5, delay: 0.14, ease: [0.22, 1, 0.36, 1] }}
-      className="rounded-2xl p-5 flex flex-col gap-4"
+      className="lg:col-span-2 rounded-2xl p-5 flex flex-col gap-4"
       style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)', boxShadow: 'var(--land-card-shadow)' }}
     >
       <div className="flex items-center gap-3">
@@ -558,7 +558,7 @@ function HutangTile() {
       initial={{ opacity: 0, y: 20 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5, delay: 0.21, ease: [0.22, 1, 0.36, 1] }}
-      className="rounded-2xl p-5 flex flex-col gap-4"
+      className="lg:col-span-2 rounded-2xl p-5 flex flex-col gap-4"
       style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)', boxShadow: 'var(--land-card-shadow)' }}
     >
       <div className="flex items-center gap-3">
@@ -684,7 +684,7 @@ function AITile() {
       initial={{ opacity: 0, y: 20 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5, delay: 0.0, ease: [0.22, 1, 0.36, 1] }}
-      className="sm:col-span-1 lg:col-span-1 rounded-2xl p-5 flex flex-col gap-4"
+      className="sm:col-span-1 lg:col-span-4 rounded-2xl p-5 flex flex-col gap-4"
       style={{ background: 'var(--land-glass)', border: '1px solid var(--land-glass-border)', boxShadow: 'var(--land-card-shadow)' }}
     >
       <div className="flex items-center gap-3">
@@ -892,7 +892,7 @@ export default function FeaturesPage() {
 
       {/* Bento Grid */}
       <section className="relative z-10 px-5 sm:px-8 lg:px-16 pb-8 max-w-6xl mx-auto w-full">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 auto-rows-auto">
 
           <ChatTile />
           <DashboardTile />
