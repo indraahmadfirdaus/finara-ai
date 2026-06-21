@@ -37,6 +37,7 @@ export async function GET(request: NextRequest) {
     .from('transactions')
     .select('*')
     .eq('user_id', user.id)
+    .is('deleted_at', null)
     .order('date', { ascending: false })
     .order('created_at', { ascending: false })
     .limit(limit)
@@ -111,11 +112,15 @@ export async function DELETE(request: NextRequest) {
   const id = searchParams.get('id')
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
+  const uuidParsed = z.string().uuid().safeParse(id)
+  if (!uuidParsed.success) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
+
   const { error } = await supabase
     .from('transactions')
-    .delete()
+    .update({ deleted_at: new Date().toISOString() })
     .eq('id', id)
     .eq('user_id', user.id)
+    .is('deleted_at', null)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ success: true })
