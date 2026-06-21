@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Check, Landmark, TrendingUp, Home, Car, Package } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { formatIDR } from '@/lib/utils/currency'
 
 type AssetType = 'bank' | 'investment' | 'property' | 'vehicle' | 'other'
@@ -23,17 +23,16 @@ interface AssetCardData {
   _action?: 'created' | 'updated' | 'deleted'
 }
 
-const TYPE_META: Record<AssetType, { label: string; icon: typeof Landmark; accent: string; iconBg: string; iconColor: string }> = {
-  bank:       { label: 'Rekening',  icon: Landmark,   accent: 'var(--accent)',         iconBg: 'var(--accent-dim)',         iconColor: 'var(--accent-light)' },
-  investment: { label: 'Investasi', icon: TrendingUp,  accent: 'var(--success)',        iconBg: 'rgba(34,197,94,0.12)',      iconColor: 'var(--success)' },
-  property:   { label: 'Properti',  icon: Home,        accent: '#F59E0B',               iconBg: 'rgba(245,158,11,0.12)',     iconColor: '#F59E0B' },
-  vehicle:    { label: 'Kendaraan', icon: Car,         accent: 'var(--text-secondary)', iconBg: 'var(--bg-elevated)',        iconColor: 'var(--text-secondary)' },
-  other:      { label: 'Lainnya',   icon: Package,     accent: 'var(--text-muted)',     iconBg: 'var(--bg-elevated)',        iconColor: 'var(--text-muted)' },
+const TYPE_META: Record<AssetType, { label: string; accent: string }> = {
+  bank:       { label: 'Rekening',  accent: 'var(--accent)'         },
+  investment: { label: 'Investasi', accent: 'var(--success)'        },
+  property:   { label: 'Properti',  accent: '#F59E0B'               },
+  vehicle:    { label: 'Kendaraan', accent: 'var(--text-secondary)' },
+  other:      { label: 'Lainnya',   accent: 'var(--text-muted)'     },
 }
 
 function SingleAssetCard({ item, action }: { item: AssetItem; action?: 'created' | 'updated' | 'deleted' }) {
   const meta = TYPE_META[item.type ?? 'other']
-  const Icon = meta.icon
 
   return (
     <motion.div
@@ -47,12 +46,6 @@ function SingleAssetCard({ item, action }: { item: AssetItem; action?: 'created'
         <div className="w-1 flex-shrink-0 rounded-l-xl" style={{ background: meta.accent }} />
         <div className="flex-1 p-3 pl-4">
           <div className="flex items-center gap-3">
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: meta.iconBg }}
-            >
-              <Icon size={15} style={{ color: meta.iconColor }} />
-            </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>

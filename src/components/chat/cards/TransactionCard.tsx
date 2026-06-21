@@ -4,7 +4,6 @@ import { motion } from 'framer-motion'
 import { Check } from 'lucide-react'
 import { formatIDR } from '@/lib/utils/currency'
 import { formatDateShort } from '@/lib/utils/date'
-import { getCategoryMeta } from '@/lib/utils/categoryIcon'
 
 interface TransactionCardData {
   id?: string
@@ -18,7 +17,6 @@ interface TransactionCardData {
 
 export default function TransactionCard({ data }: { data: TransactionCardData }) {
   const isIncome = data.type === 'income'
-  const { icon: Icon, color } = getCategoryMeta(data.category, data.type)
   const accentColor = isIncome ? 'var(--success)' : 'var(--danger)'
   const borderColor = isIncome ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)'
 
@@ -34,14 +32,6 @@ export default function TransactionCard({ data }: { data: TransactionCardData })
         borderLeft: `3px solid ${accentColor}`,
       }}
     >
-      {/* Category icon */}
-      <div
-        className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-        style={{ background: isIncome ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)' }}
-      >
-        <Icon size={13} style={{ color }} />
-      </div>
-
       {/* Label + note */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap">

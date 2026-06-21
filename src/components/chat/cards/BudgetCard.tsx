@@ -21,7 +21,7 @@ export default function BudgetCard({ data }: { data: BudgetCardData }) {
   const percent = data.percent ?? (limit > 0 ? (used / limit) * 100 : 0)
   const remaining = limit - used
   const isOver = remaining < 0
-  const { icon: Icon, bg, color } = getCategoryMeta(data.category, 'expense')
+  const { color } = getCategoryMeta(data.category, 'expense')
 
   const barColor = isOver ? 'var(--danger)' : percent >= 80 ? '#FBBF24' : color
   const accentColor = isOver ? 'var(--danger)' : color
@@ -41,12 +41,6 @@ export default function BudgetCard({ data }: { data: BudgetCardData }) {
         <div className="flex-1 p-3 pl-4">
           {/* Header row */}
           <div className="flex items-center gap-3 mb-3">
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: bg }}
-            >
-              <Icon size={16} style={{ color }} />
-            </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <p className="text-sm font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>

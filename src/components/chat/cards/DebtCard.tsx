@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { formatIDR } from '@/lib/utils/currency'
-import { User, Check } from 'lucide-react'
+import { Check } from 'lucide-react'
 
 interface DebtItem {
   person: string
@@ -28,11 +28,6 @@ function SingleDebt({ item, index = 0 }: { item: DebtItem; index?: number }) {
     : isOwe
     ? 'rgba(239,68,68,0.3)'
     : 'rgba(34,197,94,0.3)'
-  const iconBg = settled
-    ? 'rgba(107,114,128,0.12)'
-    : isOwe
-    ? 'rgba(239,68,68,0.12)'
-    : 'rgba(34,197,94,0.12)'
 
   return (
     <motion.div
@@ -47,17 +42,6 @@ function SingleDebt({ item, index = 0 }: { item: DebtItem; index?: number }) {
         opacity: settled ? 0.65 : 1,
       }}
     >
-      <div
-        className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-        style={{ background: iconBg }}
-      >
-        {settled ? (
-          <Check size={13} style={{ color: 'var(--text-muted)' }} />
-        ) : (
-          <User size={13} style={{ color: accentColor }} />
-        )}
-      </div>
-
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap">
           <p className="text-xs font-semibold leading-tight" style={{ color: 'var(--text-primary)', textDecoration: settled ? 'line-through' : 'none' }}>

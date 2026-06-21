@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Check, Target } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { formatIDR } from '@/lib/utils/currency'
 import ProgressBar from '@/components/shared/ProgressBar'
 
@@ -37,12 +37,6 @@ export default function GoalCard({ data }: { data: GoalCardData }) {
         <div className="flex-1 p-3 pl-4">
           {/* Header row */}
           <div className="flex items-center gap-3 mb-2">
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: 'var(--accent-dim)' }}
-            >
-              <Target size={15} style={{ color: 'var(--accent-light)' }} />
-            </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <p className="text-sm font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>
