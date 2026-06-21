@@ -79,6 +79,7 @@ export default function HistoryDrawer({ open, onClose, onRestore }: HistoryDrawe
     supabase
       .from('chat_history')
       .select('id, role, content, created_at, session_id')
+      .is('deleted_at', null)
       .order('created_at', { ascending: true })
       .limit(400)
       .then(({ data }) => {
