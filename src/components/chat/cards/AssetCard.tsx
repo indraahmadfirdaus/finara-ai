@@ -1,7 +1,6 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Check } from 'lucide-react'
 import { formatIDR } from '@/lib/utils/currency'
 
 type AssetType = 'bank' | 'investment' | 'property' | 'vehicle' | 'other'
@@ -31,7 +30,7 @@ const TYPE_META: Record<AssetType, { label: string; accent: string }> = {
   other:      { label: 'Lainnya',   accent: 'var(--text-muted)'     },
 }
 
-function SingleAssetCard({ item, action }: { item: AssetItem; action?: 'created' | 'updated' | 'deleted' }) {
+function SingleAssetCard({ item }: { item: AssetItem }) {
   const meta = TYPE_META[item.type ?? 'other']
 
   return (
@@ -47,23 +46,9 @@ function SingleAssetCard({ item, action }: { item: AssetItem; action?: 'created'
         <div className="flex-1 p-3 pl-4">
           <div className="flex items-center gap-3">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                  {item.name}
-                </p>
-                {action && (
-                  <span
-                    className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold flex items-center gap-1"
-                    style={{
-                      background: action === 'deleted' ? 'rgba(239,68,68,0.12)' : 'rgba(34,197,94,0.12)',
-                      color: action === 'deleted' ? 'var(--danger)' : 'var(--success)',
-                    }}
-                  >
-                    <Check size={9} />
-                    {action === 'created' ? 'Dibuat' : action === 'updated' ? 'Diperbarui' : 'Dihapus'}
-                  </span>
-                )}
-              </div>
+              <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                {item.name}
+              </p>
               <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
                 {item.institution ? `${meta.label} · ${item.institution}` : meta.label}
               </p>
@@ -106,7 +91,6 @@ export default function AssetCard({ data }: { data: AssetCardData }) {
   return (
     <SingleAssetCard
       item={{ name: data.name, type: data.type ?? 'other', institution: data.institution, value: data.value }}
-      action={data._action}
     />
   )
 }

@@ -1,7 +1,6 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Check } from 'lucide-react'
 import { formatIDR } from '@/lib/utils/currency'
 import ProgressBar from '@/components/shared/ProgressBar'
 import { getCategoryMeta } from '@/lib/utils/categoryIcon'
@@ -42,23 +41,9 @@ export default function BudgetCard({ data }: { data: BudgetCardData }) {
           {/* Header row */}
           <div className="flex items-center gap-3 mb-3">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <p className="text-sm font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>
-                  {data.category}
-                </p>
-                {data._action && (
-                  <span
-                    className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold flex items-center gap-1"
-                    style={{
-                      background: data._action === 'deleted' ? 'rgba(239,68,68,0.12)' : 'rgba(34,197,94,0.12)',
-                      color: data._action === 'deleted' ? 'var(--danger)' : 'var(--success)',
-                    }}
-                  >
-                    <Check size={9} />
-                    {data._action === 'created' ? 'Dibuat' : data._action === 'updated' ? 'Diperbarui' : 'Dihapus'}
-                  </span>
-                )}
-              </div>
+              <p className="text-sm font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>
+                {data.category}
+              </p>
               <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
                 Limit {formatIDR(limit)}
               </p>

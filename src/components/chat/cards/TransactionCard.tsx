@@ -1,7 +1,6 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Check } from 'lucide-react'
 import { formatIDR } from '@/lib/utils/currency'
 import { formatDateShort } from '@/lib/utils/date'
 
@@ -34,23 +33,9 @@ export default function TransactionCard({ data }: { data: TransactionCardData })
     >
       {/* Label + note */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <p className="text-xs font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>
-            {data.note || data.category}
-          </p>
-          {data._action && (
-            <span
-              className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold flex items-center gap-0.5"
-              style={{
-                background: data._action === 'deleted' ? 'rgba(239,68,68,0.12)' : 'rgba(34,197,94,0.12)',
-                color: data._action === 'deleted' ? 'var(--danger)' : 'var(--success)',
-              }}
-            >
-              <Check size={8} />
-              {data._action === 'created' ? 'Dicatat' : data._action === 'updated' ? 'Diperbarui' : 'Dihapus'}
-            </span>
-          )}
-        </div>
+        <p className="text-xs font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>
+          {data.note || data.category}
+        </p>
         <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
           {data.category}{data.date ? ` · ${formatDateShort(data.date)}` : ''}
         </p>
@@ -59,10 +44,7 @@ export default function TransactionCard({ data }: { data: TransactionCardData })
       {/* Amount */}
       <p
         className="text-xs font-bold flex-shrink-0"
-        style={{
-          color: data._action === 'deleted' ? 'var(--text-muted)' : accentColor,
-          textDecoration: data._action === 'deleted' ? 'line-through' : 'none',
-        }}
+        style={{ color: accentColor }}
       >
         {isIncome ? '+' : '-'}{formatIDR(data.amount)}
       </p>
