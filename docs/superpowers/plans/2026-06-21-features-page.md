@@ -342,7 +342,7 @@ export default function FeaturesPage() {
             className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-bold text-black"
             style={{ background: 'linear-gradient(135deg,#FBB724 0%,#F97316 100%)' }}
           >
-            Daftar Gratis
+            `Daftar Gratis`
             <ArrowRight size={15} />
           </motion.button>
           <motion.button
