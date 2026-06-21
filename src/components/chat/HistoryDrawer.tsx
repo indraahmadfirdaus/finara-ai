@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, MessageSquare, Clock } from 'lucide-react'
+import { X, MessageSquare, Clock, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 interface HistoryRow {
@@ -87,6 +87,12 @@ export default function HistoryDrawer({ open, onClose, onRestore }: HistoryDrawe
       })
   }, [open])
 
+  async function handleDeleteSession(sessionId: string, e: React.MouseEvent) {
+    e.stopPropagation()
+    setSessions((prev) => prev.filter((s) => s.session_id !== sessionId))
+    await fetch(`/api/chat?session_id=${sessionId}`, { method: 'DELETE' })
+  }
+
   return (
     <AnimatePresence>
       {open && (
@@ -142,30 +148,42 @@ export default function HistoryDrawer({ open, onClose, onRestore }: HistoryDrawe
                 </div>
               )}
               {sessions.map((s) => (
-                <button
+                <div
                   key={s.session_id}
-                  onClick={() => {
-                    onRestore(
-                      s.messages.map((m, i) => ({ id: String(i), role: m.role, content: m.content })),
-                      s.session_id
-                    )
-                    onClose()
-                  }}
-                  className="w-full text-left px-5 py-3.5 transition-colors"
+                  className="relative group flex items-center"
                   style={{ borderBottom: '1px solid var(--border-light)' }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-elevated)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                 >
-                  <p className="text-xs font-semibold mb-0.5" style={{ color: 'var(--accent-light)' }}>
-                    {s.label}
-                  </p>
-                  <p
-                    className="text-sm leading-snug line-clamp-2"
-                    style={{ color: 'var(--text-secondary)' }}
+                  <button
+                    onClick={() => {
+                      onRestore(
+                        s.messages.map((m, i) => ({ id: String(i), role: m.role, content: m.content })),
+                        s.session_id
+                      )
+                      onClose()
+                    }}
+                    className="flex-1 text-left px-5 py-3.5 transition-colors"
+                    onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-elevated)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                   >
-                    {s.preview || '(kosong)'}
-                  </p>
-                </button>
+                    <p className="text-xs font-semibold mb-0.5" style={{ color: 'var(--accent-light)' }}>
+                      {s.label}
+                    </p>
+                    <p
+                      className="text-sm leading-snug line-clamp-2"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
+                      {s.preview || '(kosong)'}
+                    </p>
+                  </button>
+                  <button
+                    onClick={(e) => handleDeleteSession(s.session_id, e)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-2 mr-2 rounded-lg flex-shrink-0"
+                    style={{ color: 'var(--text-muted)' }}
+                    title="Hapus sesi"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
               ))}
             </div>
 
