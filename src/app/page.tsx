@@ -12,6 +12,7 @@ import {
   Moon,
 } from "lucide-react";
 import { useTheme } from "@/lib/theme";
+import MascotOrb, { type MascotState } from "@/components/landing/MascotOrb";
 
 const DEMO = [
   { role: "user", text: "beli makan siang 28rb" },
@@ -842,6 +843,16 @@ export default function LandingPage() {
   const router = useRouter();
   const { theme, toggle } = useTheme();
   const [scrolled, setScrolled] = useState(false);
+  const [mascotState, setMascotState] = useState<MascotState>('idle')
+  const [showBubble, setShowBubble] = useState(false)
+  const bubbleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function triggerMascot(state: MascotState) {
+    setMascotState(state)
+    setShowBubble(true)
+    if (bubbleTimerRef.current) clearTimeout(bubbleTimerRef.current)
+    bubbleTimerRef.current = setTimeout(() => setShowBubble(false), 4000)
+  }
 
   useEffect(() => {
     function onScroll() {
@@ -850,6 +861,36 @@ export default function LandingPage() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    const sections: Array<{ id: string; handler: () => void }> = [
+      { id: 'section-hero',     handler: () => triggerMascot('wave') },
+      { id: 'section-care',     handler: () => {
+          triggerMascot('worried')
+          setTimeout(() => triggerMascot('angry'), 1500)
+      }},
+      { id: 'section-platform', handler: () => triggerMascot('excited') },
+      { id: 'section-cta',      handler: () => triggerMascot('happy') },
+    ]
+
+    const observers: IntersectionObserver[] = []
+
+    sections.forEach(({ id, handler }) => {
+      const el = document.getElementById(id)
+      if (!el) return
+      const obs = new IntersectionObserver(
+        ([entry]) => { if (entry.isIntersecting) handler() },
+        { threshold: 0.4 }
+      )
+      obs.observe(el)
+      observers.push(obs)
+    })
+
+    return () => {
+      observers.forEach((obs) => obs.disconnect())
+      if (bubbleTimerRef.current) clearTimeout(bubbleTimerRef.current)
+    }
+  }, [])
 
   return (
     <div
@@ -1022,7 +1063,7 @@ export default function LandingPage() {
       </motion.nav>
 
       {/* Hero — top padding accounts for fixed nav height */}
-      <section className="relative z-10 px-5 sm:px-8 lg:px-16 pt-28 pb-16 lg:pt-32 lg:pb-24">
+      <section id="section-hero" className="relative z-10 px-5 sm:px-8 lg:px-16 pt-28 pb-16 lg:pt-32 lg:pb-24">
         <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-10 lg:gap-14">
           {/* Left copy — narrower on desktop so demo has room */}
           <div className="w-full lg:w-[46%] text-center lg:text-left">
@@ -1141,7 +1182,9 @@ export default function LandingPage() {
       </section>
 
       {/* Dashboard Preview */}
-      <DashboardPreview />
+      <div id="section-care">
+        <DashboardPreview />
+      </div>
 
       {/* Divider */}
       <div className="relative z-10 flex items-center gap-4 px-5 sm:px-8 lg:px-16 mb-8 max-w-6xl mx-auto">
@@ -1162,7 +1205,7 @@ export default function LandingPage() {
       </div>
 
       {/* Features */}
-      <section className="relative z-10 px-5 sm:px-8 lg:px-16 pb-20">
+      <section id="section-platform" className="relative z-10 px-5 sm:px-8 lg:px-16 pb-20">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row gap-4">
           {FEATURES.map((f, i) => (
             <FeatureTile key={f.title} {...f} delay={i * 0.1} />
@@ -1170,8 +1213,11 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <MascotOrb state={mascotState} showBubble={showBubble} />
+
       {/* Footer */}
       <footer
+        id="section-cta"
         className="relative z-10 px-5 sm:px-8 lg:px-16 py-6 flex flex-col sm:flex-row items-center justify-between gap-4"
         style={{ borderTop: "1px solid var(--land-separator)" }}
       >
