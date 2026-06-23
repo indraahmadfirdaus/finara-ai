@@ -80,6 +80,94 @@ export default function MascotOrb({ state, showBubble }: MascotOrbProps) {
 }
 
 function OrbFace({ state }: { state: MascotState }) {
-  // placeholder — diisi Task 2
+  // Layar: rounded rect di tengah-bawah orb
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        bottom: 12,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: 36,
+        height: 20,
+        borderRadius: 6,
+        background: 'rgba(0,0,0,0.35)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+      }}
+    >
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={state}
+          initial={{ opacity: 0, scale: 0.7 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.7 }}
+          transition={{ duration: 0.2 }}
+          style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+        >
+          <Eyes state={state} />
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  )
+}
+
+function Eyes({ state }: { state: MascotState }) {
+  // idle & wave: dot berkedip / arc happy
+  if (state === 'idle') {
+    return (
+      <>
+        <BlinkDot />
+        <BlinkDot delay={0.3} />
+      </>
+    )
+  }
+  if (state === 'wave' || state === 'happy') {
+    // ^ ^ arc
+    return (
+      <svg width="22" height="8" viewBox="0 0 22 8" fill="none">
+        <path d="M1 7 Q4 1 7 7" stroke="white" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+        <path d="M15 7 Q18 1 21 7" stroke="white" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+      </svg>
+    )
+  }
+  if (state === 'worried' || state === 'angry') {
+    // > < nervous / angry
+    return (
+      <svg width="22" height="10" viewBox="0 0 22 10" fill="none">
+        {/* Brow turun untuk angry */}
+        {state === 'angry' && (
+          <>
+            <line x1="1" y1="1" x2="7" y2="3" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+            <line x1="21" y1="1" x2="15" y2="3" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+          </>
+        )}
+        {/* Mata oval kecil */}
+        <ellipse cx="5" cy="7" rx="2.5" ry="2" fill="white" />
+        <ellipse cx="17" cy="7" rx="2.5" ry="2" fill="white" />
+      </svg>
+    )
+  }
+  if (state === 'excited') {
+    // ★ ★
+    return (
+      <svg width="22" height="10" viewBox="0 0 22 10" fill="none">
+        <text x="1" y="9" fontSize="8" fill="white">★</text>
+        <text x="13" y="9" fontSize="8" fill="white">★</text>
+      </svg>
+    )
+  }
   return null
+}
+
+function BlinkDot({ delay = 0 }: { delay?: number }) {
+  return (
+    <motion.div
+      style={{ width: 5, height: 5, borderRadius: '50%', background: 'white' }}
+      animate={{ scaleY: [1, 0.1, 1] }}
+      transition={{ duration: 0.15, repeat: Infinity, repeatDelay: 3.5 + delay, delay }}
+    />
+  )
 }
