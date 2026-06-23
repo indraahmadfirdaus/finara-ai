@@ -1122,9 +1122,49 @@ export default function LandingPage() {
 
       <InsightSection onInsightChange={(s) => triggerMascot(s)} />
 
+      {/* CTA section */}
+      <section id="section-cta" className="relative z-10 px-5 sm:px-8 lg:px-16 py-16 text-center">
+        <motion.p
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-40px' }}
+          transition={{ duration: 0.5 }}
+          className="text-xl font-bold mb-2"
+          style={{ color: 'var(--text-primary)', letterSpacing: '-0.02em' }}
+        >
+          Siap punya asisten keuangan yang beneran perhatian?
+        </motion.p>
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="text-sm mb-8"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          Gratis. Mulai sekarang.
+        </motion.p>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-40px' }}
+          transition={{ duration: 0.5, delay: 0.15 }}
+        >
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => router.push('/register')}
+            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-bold text-black"
+            style={{ background: 'linear-gradient(135deg,#FBB724 0%,#F97316 100%)' }}
+          >
+            Mulai gratis sekarang
+            <ArrowRight size={15} />
+          </motion.button>
+        </motion.div>
+      </section>
+
       {/* Footer */}
       <footer
-        id="section-cta"
         className="relative z-10 px-5 sm:px-8 lg:px-16 py-6 flex flex-col sm:flex-row items-center justify-between gap-4"
         style={{ borderTop: "1px solid var(--land-separator)" }}
       >

@@ -48,7 +48,7 @@ export default function MascotOrb({ state, showBubble }: MascotOrbProps) {
               background: 'var(--bg-surface)',
               border: '1px solid var(--border)',
               color: 'var(--text-primary)',
-              maxWidth: 200,
+              maxWidth: 'min(200px, 45vw)',
               borderBottomRightRadius: 4,
             }}
           >
@@ -61,9 +61,8 @@ export default function MascotOrb({ state, showBubble }: MascotOrbProps) {
       <motion.div
         animate={{ y: [0, -8, 0] }}
         transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+        className="w-12 h-12 lg:w-16 lg:h-16"
         style={{
-          width: 64,
-          height: 64,
           borderRadius: '50%',
           background: 'linear-gradient(135deg, #A78BFA 0%, #7C5CFC 100%)',
           boxShadow: `0 0 24px 4px ${GLOW[state]}, inset 0 1px 0 rgba(255,255,255,0.15)`,
