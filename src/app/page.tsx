@@ -9,7 +9,7 @@ import {
   Moon,
 } from "lucide-react";
 import { useTheme } from "@/lib/theme";
-import MascotOrb, { type MascotState, type OrbPosition } from "@/components/landing/MascotOrb";
+import MascotOrb, { type MascotState, type OrbAnchor } from "@/components/landing/MascotOrb";
 
 const DEMO = [
   { role: "user", text: "beli makan siang 28rb" },
@@ -772,52 +772,98 @@ function PlatformSection() {
   )
 }
 
+// Maps anchor ID → which section to read + where on it the orb should sit
+const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
+
+// Maps anchor ID → which section + where the orb center sits (viewport coords)
+const ANCHOR_CONFIG: Record<string, {
+  sectionId: string
+  xFn: (r: DOMRect) => number
+  yFn: (r: DOMRect) => number
+  dir: 'left' | 'right'
+}> = {
+  // Hero: right edge of section, near top-right of text block — clamped so orb stays on screen
+  'orb-anchor-hero':     { sectionId: 'section-hero',     xFn: r => clamp(r.right - 48, 80, window.innerWidth - 80),  yFn: r => r.top + 200,                  dir: 'left' },
+  // Care: left side, near the section headline
+  'orb-anchor-care':     { sectionId: 'section-care',     xFn: r => clamp(r.left + 32, 80, window.innerWidth - 80),   yFn: r => r.top + 80,                   dir: 'right' },
+  // Platform: right side
+  'orb-anchor-platform': { sectionId: 'section-platform', xFn: r => clamp(r.right - 48, 80, window.innerWidth - 80),  yFn: r => r.top + 100,                  dir: 'left' },
+  // Insight: left side
+  'orb-anchor-insight':  { sectionId: 'section-insight',  xFn: r => clamp(r.left + 32, 80, window.innerWidth - 80),   yFn: r => r.top + 130,                  dir: 'right' },
+  // CTA: centered above the button
+  'orb-anchor-cta':      { sectionId: 'section-cta',      xFn: r => r.left + r.width * 0.5, yFn: r => r.top + 48,    dir: 'left' },
+}
+
 export default function LandingPage() {
   const router = useRouter();
   const { theme, toggle } = useTheme();
   const [scrolled, setScrolled] = useState(false);
   const [mascotState, setMascotState] = useState<MascotState>('idle')
   const [showBubble, setShowBubble] = useState(false)
-  const [orbPosition, setOrbPosition] = useState<OrbPosition>('bottom-right')
+  const [orbAnchor, setOrbAnchor] = useState<OrbAnchor>({ x: -120, y: -120 }) // off-screen initially
+  const [bubbleDir, setBubbleDir] = useState<'left' | 'right'>('left')
   const bubbleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const careAngerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const currentAnchorIdRef = useRef<string>('')
 
-  const triggerMascot = useCallback((state: MascotState, pos?: OrbPosition) => {
+  const snapToAnchorRef = useRef((anchorId: string, setAnchor: (a: OrbAnchor) => void, setDir: (d: 'left' | 'right') => void) => {
+    const cfg = ANCHOR_CONFIG[anchorId]
+    if (!cfg) return
+    const el = document.getElementById(cfg.sectionId)
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    setAnchor({ x: cfg.xFn(rect), y: cfg.yFn(rect) })
+    setDir(cfg.dir)
+  })
+
+  const triggerMascot = useCallback((state: MascotState, anchorId?: string) => {
     setMascotState(state)
     setShowBubble(true)
-    if (pos) setOrbPosition(pos)
+    if (anchorId) {
+      currentAnchorIdRef.current = anchorId
+      snapToAnchorRef.current(anchorId, setOrbAnchor, setBubbleDir)
+    }
     if (bubbleTimerRef.current) clearTimeout(bubbleTimerRef.current)
     bubbleTimerRef.current = setTimeout(() => setShowBubble(false), 4000)
   }, [])
 
+  // Re-snap orb on scroll so it stays attached to its anchor element
   useEffect(() => {
     function onScroll() {
-      setScrolled(window.scrollY > 20);
+      setScrolled(window.scrollY > 20)
+      if (currentAnchorIdRef.current) {
+        snapToAnchorRef.current(currentAnchorIdRef.current, setOrbAnchor, setBubbleDir)
+      }
     }
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
-    const sections: Array<{ id: string; handler: () => void }> = [
-      { id: 'section-hero',     handler: () => triggerMascot('wave', 'bottom-right') },
-      { id: 'section-care',     handler: () => {
-          triggerMascot('worried', 'top-right')
-          if (careAngerTimerRef.current) clearTimeout(careAngerTimerRef.current)
-          careAngerTimerRef.current = setTimeout(() => triggerMascot('angry', 'top-right'), 1500)
-      }},
-      { id: 'section-platform', handler: () => triggerMascot('excited', 'mid-right') },
-      { id: 'section-cta',      handler: () => triggerMascot('happy', 'bottom-right') },
+    const sections: Array<{ id: string; anchorId: string; state: MascotState }> = [
+      { id: 'section-hero',     anchorId: 'orb-anchor-hero',     state: 'wave' },
+      { id: 'section-care',     anchorId: 'orb-anchor-care',     state: 'worried' },
+      { id: 'section-platform', anchorId: 'orb-anchor-platform', state: 'excited' },
+      { id: 'section-cta',      anchorId: 'orb-anchor-cta',      state: 'happy' },
     ]
 
     const observers: IntersectionObserver[] = []
 
-    sections.forEach(({ id, handler }) => {
+    sections.forEach(({ id, anchorId, state }) => {
       const el = document.getElementById(id)
       if (!el) return
       const obs = new IntersectionObserver(
-        ([entry]) => { if (entry.isIntersecting) handler() },
-        { threshold: 0.4 }
+        ([entry]) => {
+          if (!entry.isIntersecting) return
+          if (state === 'worried') {
+            triggerMascot('worried', anchorId)
+            if (careAngerTimerRef.current) clearTimeout(careAngerTimerRef.current)
+            careAngerTimerRef.current = setTimeout(() => triggerMascot('angry', anchorId), 1500)
+          } else {
+            triggerMascot(state, anchorId)
+          }
+        },
+        { threshold: 0.35 }
       )
       obs.observe(el)
       observers.push(obs)
@@ -1044,6 +1090,7 @@ export default function LandingPage() {
               </span>
             </motion.h1>
 
+
             <motion.p
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1118,13 +1165,18 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <MascotOrb state={mascotState} showBubble={showBubble} orbPosition={orbPosition} />
+      <MascotOrb
+        state={mascotState}
+        showBubble={showBubble}
+        anchor={orbAnchor}
+        bubbleDirection={bubbleDir}
+      />
 
       <CareSection />
 
       <PlatformSection />
 
-      <InsightSection onInsightChange={(s) => triggerMascot(s, 'mid-right')} />
+      <InsightSection onInsightChange={(s) => triggerMascot(s, 'orb-anchor-insight')} />
 
       {/* CTA section */}
       <section id="section-cta" className="relative z-10 px-5 sm:px-8 lg:px-16 py-16 text-center">
