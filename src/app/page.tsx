@@ -418,6 +418,139 @@ function ChatDemo() {
 }
 
 
+const INSIGHTS: Array<{ text: string; mascot: MascotState }> = [
+  {
+    text: 'Wah, pengeluaran kamu minggu ini naik 23% dari biasanya. Terbanyak di Makanan. Hati-hati ya! 👀',
+    mascot: 'worried',
+  },
+  {
+    text: 'Goal Liburan Bali kamu udah 60%! Tinggal Rp 2 juta lagi. Semangat! 🎯',
+    mascot: 'excited',
+  },
+  {
+    text: 'Budget Transportasi masih aman, sisa 58%. Kamu lagi hemat nih! ✅',
+    mascot: 'happy',
+  },
+]
+
+function InsightSection({ onInsightChange }: { onInsightChange: (state: MascotState) => void }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: true, margin: '-60px' })
+  const [activeIdx, setActiveIdx] = useState(0)
+  const startedRef = useRef(false)
+
+  useEffect(() => {
+    if (!inView || startedRef.current) return
+    startedRef.current = true
+    onInsightChange(INSIGHTS[0].mascot)
+
+    const interval = setInterval(() => {
+      setActiveIdx((prev) => {
+        const next = (prev + 1) % INSIGHTS.length
+        onInsightChange(INSIGHTS[next].mascot)
+        return next
+      })
+    }, 3000)
+
+    return () => clearInterval(interval)
+  }, [inView, onInsightChange])
+
+  return (
+    <section
+      id="section-insight"
+      ref={ref}
+      className="relative z-10 px-5 sm:px-8 lg:px-16 py-16"
+    >
+      <div className="max-w-6xl mx-auto text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.4 }}
+          className="mb-10"
+        >
+          <p
+            className="text-2xl sm:text-3xl font-bold mb-3"
+            style={{ color: 'var(--text-primary)', letterSpacing: '-0.02em' }}
+          >
+            Finara langsung kasih tau yang penting.
+          </p>
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+            Ga perlu buka-buka grafik. Finara yang analisis, kamu yang mutusin.
+          </p>
+        </motion.div>
+
+        <div
+          className="mx-auto rounded-2xl p-6"
+          style={{
+            maxWidth: 520,
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+          }}
+        >
+          {/* Header: mini orb + label */}
+          <div className="flex items-center gap-2 mb-4">
+            <div
+              style={{
+                width: 28, height: 28, borderRadius: '50%',
+                background: 'linear-gradient(135deg,#A78BFA,#7C5CFC)',
+                flexShrink: 0,
+              }}
+            />
+            <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
+              Finara berkata...
+            </span>
+          </div>
+
+          {/* Bubble rotate */}
+          <div style={{ minHeight: 72 }}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeIdx}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+                className="text-sm leading-relaxed text-left px-4 py-3 rounded-xl"
+                style={{
+                  background: 'var(--bg-elevated)',
+                  color: 'var(--text-primary)',
+                  borderBottomLeftRadius: 4,
+                }}
+              >
+                {INSIGHTS[activeIdx].text}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Dot indicator */}
+          <div className="flex items-center justify-center gap-2 mt-4">
+            {INSIGHTS.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => {
+                  setActiveIdx(i)
+                  onInsightChange(INSIGHTS[i].mascot)
+                }}
+                style={{
+                  width: i === activeIdx ? 20 : 6,
+                  height: 6,
+                  borderRadius: 3,
+                  background: i === activeIdx ? 'var(--accent)' : 'var(--border)',
+                  transition: 'width 0.3s ease, background 0.3s ease',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 0,
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function MiniOrb({ state }: { state: 'angry' | 'happy' }) {
   const isAngry = state === 'angry'
   return (
@@ -986,6 +1119,8 @@ export default function LandingPage() {
       <CareSection />
 
       <PlatformSection />
+
+      <InsightSection onInsightChange={(s) => triggerMascot(s)} />
 
       {/* Footer */}
       <footer
