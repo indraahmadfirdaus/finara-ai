@@ -535,6 +535,110 @@ function CareSection() {
   )
 }
 
+function SoonBadge() {
+  return (
+    <span
+      className="flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full"
+      style={{ background: 'var(--bg-elevated)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+    >
+      <motion.span
+        animate={{ opacity: [0.3, 1, 0.3] }}
+        transition={{ duration: 1.2, repeat: Infinity }}
+      >
+        ···
+      </motion.span>
+      SOON
+    </span>
+  )
+}
+
+function PlatformSection() {
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: true, margin: '-60px' })
+
+  const platforms = [
+    {
+      name: 'Telegram',
+      color: '#229ED9',
+      bg: 'rgba(34,158,217,0.08)',
+      border: 'rgba(34,158,217,0.3)',
+      soon: true,
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z"
+            stroke="#229ED9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      ),
+    },
+    {
+      name: 'WhatsApp',
+      color: '#25D366',
+      bg: 'rgba(37,211,102,0.06)',
+      border: 'rgba(37,211,102,0.2)',
+      soon: true,
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.96 9.96 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z"
+            stroke="#25D366" strokeWidth="1.8" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+  ]
+
+  return (
+    <section
+      id="section-platform"
+      ref={ref}
+      className="relative z-10 px-5 sm:px-8 lg:px-16 py-16"
+    >
+      <div className="max-w-6xl mx-auto text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.4 }}
+          className="mb-10"
+        >
+          <p
+            className="text-2xl sm:text-3xl font-bold mb-3"
+            style={{ color: 'var(--text-primary)', letterSpacing: '-0.02em' }}
+          >
+            Ga cuma di sini.
+          </p>
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+            Finara bakal hadir di platform chat favoritmu. Coming soon.
+          </p>
+        </motion.div>
+
+        <div className="flex flex-col gap-3 max-w-sm mx-auto">
+          {platforms.map((p, i) => (
+            <motion.div
+              key={p.name}
+              initial={{ opacity: 0, y: 20 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.4, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+              className="flex items-center justify-between px-5 py-4 rounded-2xl"
+              style={{
+                background: p.bg,
+                border: `1px solid ${p.border}`,
+                opacity: 0.65,
+                cursor: 'not-allowed',
+              }}
+            >
+              <div className="flex items-center gap-3">
+                {p.icon}
+                <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                  {p.name}
+                </span>
+              </div>
+              <SoonBadge />
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export default function LandingPage() {
   const router = useRouter();
   const { theme, toggle } = useTheme();
@@ -880,6 +984,8 @@ export default function LandingPage() {
       <MascotOrb state={mascotState} showBubble={showBubble} />
 
       <CareSection />
+
+      <PlatformSection />
 
       {/* Footer */}
       <footer
