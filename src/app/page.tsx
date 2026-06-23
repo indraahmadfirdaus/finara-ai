@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import {
@@ -780,14 +780,15 @@ export default function LandingPage() {
   const [showBubble, setShowBubble] = useState(false)
   const [orbPosition, setOrbPosition] = useState<OrbPosition>('bottom-right')
   const bubbleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const careAngerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  function triggerMascot(state: MascotState, pos?: OrbPosition) {
+  const triggerMascot = useCallback((state: MascotState, pos?: OrbPosition) => {
     setMascotState(state)
     setShowBubble(true)
     if (pos) setOrbPosition(pos)
     if (bubbleTimerRef.current) clearTimeout(bubbleTimerRef.current)
     bubbleTimerRef.current = setTimeout(() => setShowBubble(false), 4000)
-  }
+  }, [])
 
   useEffect(() => {
     function onScroll() {
@@ -802,7 +803,8 @@ export default function LandingPage() {
       { id: 'section-hero',     handler: () => triggerMascot('wave', 'bottom-right') },
       { id: 'section-care',     handler: () => {
           triggerMascot('worried', 'top-right')
-          setTimeout(() => triggerMascot('angry', 'top-right'), 1500)
+          if (careAngerTimerRef.current) clearTimeout(careAngerTimerRef.current)
+          careAngerTimerRef.current = setTimeout(() => triggerMascot('angry', 'top-right'), 1500)
       }},
       { id: 'section-platform', handler: () => triggerMascot('excited', 'mid-right') },
       { id: 'section-cta',      handler: () => triggerMascot('happy', 'bottom-right') },
@@ -824,8 +826,9 @@ export default function LandingPage() {
     return () => {
       observers.forEach((obs) => obs.disconnect())
       if (bubbleTimerRef.current) clearTimeout(bubbleTimerRef.current)
+      if (careAngerTimerRef.current) clearTimeout(careAngerTimerRef.current)
     }
-  }, [])
+  }, [triggerMascot])
 
   return (
     <div
@@ -1099,8 +1102,7 @@ export default function LandingPage() {
               className="mt-4 text-xs"
               style={{ color: "var(--text-muted)", opacity: 0.6 }}
             >
-              Gratis selamanya · Tidak perlu kartu kredit · Data aman &
-              terenkripsi
+              Gratis selamanya · Data aman & terenkripsi
             </motion.p>
           </div>
 
