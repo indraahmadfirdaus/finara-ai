@@ -9,7 +9,7 @@ import {
   Moon,
 } from "lucide-react";
 import { useTheme } from "@/lib/theme";
-import MascotOrb, { type MascotState } from "@/components/landing/MascotOrb";
+import MascotOrb, { type MascotState, type OrbPosition } from "@/components/landing/MascotOrb";
 
 const DEMO = [
   { role: "user", text: "beli makan siang 28rb" },
@@ -778,11 +778,13 @@ export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
   const [mascotState, setMascotState] = useState<MascotState>('idle')
   const [showBubble, setShowBubble] = useState(false)
+  const [orbPosition, setOrbPosition] = useState<OrbPosition>('bottom-right')
   const bubbleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  function triggerMascot(state: MascotState) {
+  function triggerMascot(state: MascotState, pos?: OrbPosition) {
     setMascotState(state)
     setShowBubble(true)
+    if (pos) setOrbPosition(pos)
     if (bubbleTimerRef.current) clearTimeout(bubbleTimerRef.current)
     bubbleTimerRef.current = setTimeout(() => setShowBubble(false), 4000)
   }
@@ -797,13 +799,13 @@ export default function LandingPage() {
 
   useEffect(() => {
     const sections: Array<{ id: string; handler: () => void }> = [
-      { id: 'section-hero',     handler: () => triggerMascot('wave') },
+      { id: 'section-hero',     handler: () => triggerMascot('wave', 'bottom-right') },
       { id: 'section-care',     handler: () => {
-          triggerMascot('worried')
-          setTimeout(() => triggerMascot('angry'), 1500)
+          triggerMascot('worried', 'top-right')
+          setTimeout(() => triggerMascot('angry', 'top-right'), 1500)
       }},
-      { id: 'section-platform', handler: () => triggerMascot('excited') },
-      { id: 'section-cta',      handler: () => triggerMascot('happy') },
+      { id: 'section-platform', handler: () => triggerMascot('excited', 'mid-right') },
+      { id: 'section-cta',      handler: () => triggerMascot('happy', 'bottom-right') },
     ]
 
     const observers: IntersectionObserver[] = []
@@ -1114,13 +1116,13 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <MascotOrb state={mascotState} showBubble={showBubble} />
+      <MascotOrb state={mascotState} showBubble={showBubble} orbPosition={orbPosition} />
 
       <CareSection />
 
       <PlatformSection />
 
-      <InsightSection onInsightChange={(s) => triggerMascot(s)} />
+      <InsightSection onInsightChange={(s) => triggerMascot(s, 'mid-right')} />
 
       {/* CTA section */}
       <section id="section-cta" className="relative z-10 px-5 sm:px-8 lg:px-16 py-16 text-center">

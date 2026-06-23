@@ -4,10 +4,18 @@ import { useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export type MascotState = 'idle' | 'wave' | 'worried' | 'angry' | 'excited' | 'happy'
+export type OrbPosition = 'bottom-right' | 'top-right' | 'mid-right'
 
 export interface MascotOrbProps {
   state: MascotState
   showBubble: boolean
+  orbPosition?: OrbPosition
+}
+
+const POSITION_STYLE: Record<OrbPosition, { top: number | string; bottom: number | string }> = {
+  'bottom-right': { bottom: 24,    top: 'auto' },
+  'top-right':    { top: 96,       bottom: 'auto' },
+  'mid-right':    { top: '45%',    bottom: 'auto' },
 }
 
 const GLOW: Record<MascotState, string> = {
@@ -28,11 +36,15 @@ const BUBBLE: Record<MascotState, string | null> = {
   happy:   'Ayo! Gue udah nunggu nih 🎉',
 }
 
-export default function MascotOrb({ state, showBubble }: MascotOrbProps) {
+export default function MascotOrb({ state, showBubble, orbPosition = 'bottom-right' }: MascotOrbProps) {
+  const posStyle = POSITION_STYLE[orbPosition]
+
   return (
-    <div
+    <motion.div
       className="fixed z-40 flex items-center gap-2"
-      style={{ right: 24, top: '50%', transform: 'translateY(-50%)' }}
+      style={{ right: 24 }}
+      animate={posStyle}
+      transition={{ type: 'spring', stiffness: 120, damping: 20 }}
     >
       {/* Bubble — kiri dari orb */}
       <AnimatePresence>
@@ -74,7 +86,7 @@ export default function MascotOrb({ state, showBubble }: MascotOrbProps) {
         {/* Layar ekspresi */}
         <OrbFace state={state} />
       </motion.div>
-    </div>
+    </motion.div>
   )
 }
 
