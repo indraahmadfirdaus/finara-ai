@@ -876,6 +876,13 @@ export default function LandingPage() {
     }
   }, [triggerMascot])
 
+  // Initial snap — hero is already in view on load, observer won't fire for it
+  useEffect(() => {
+    const timer = setTimeout(() => triggerMascot('wave', 'orb-anchor-hero'), 800)
+    return () => clearTimeout(timer)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   return (
     <div
       className="min-h-screen relative overflow-x-hidden"
