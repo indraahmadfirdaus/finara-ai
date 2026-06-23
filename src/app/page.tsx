@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useInView } from "framer-motion";
 import {
   ArrowRight,
   Sun,
@@ -418,6 +418,123 @@ function ChatDemo() {
 }
 
 
+function MiniOrb({ state }: { state: 'angry' | 'happy' }) {
+  const isAngry = state === 'angry'
+  return (
+    <div
+      style={{
+        width: 32,
+        height: 32,
+        borderRadius: '50%',
+        background: 'linear-gradient(135deg, #A78BFA 0%, #7C5CFC 100%)',
+        boxShadow: `0 0 12px 2px ${isAngry ? 'rgba(239,68,68,0.5)' : 'rgba(34,197,94,0.5)'}`,
+        position: 'relative',
+        flexShrink: 0,
+      }}
+    >
+      {/* Layar mini */}
+      <div style={{
+        position: 'absolute', bottom: 6, left: '50%', transform: 'translateX(-50%)',
+        width: 18, height: 10, borderRadius: 3, background: 'rgba(0,0,0,0.35)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        {isAngry ? (
+          <svg width="14" height="8" viewBox="0 0 14 8" fill="none">
+            <line x1="1" y1="1" x2="5" y2="3" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+            <line x1="13" y1="1" x2="9" y2="3" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
+            <ellipse cx="4" cy="6" rx="2" ry="1.5" fill="white" />
+            <ellipse cx="10" cy="6" rx="2" ry="1.5" fill="white" />
+          </svg>
+        ) : (
+          <svg width="14" height="6" viewBox="0 0 14 6" fill="none">
+            <path d="M1 5 Q3.5 1 6 5" stroke="white" strokeWidth="1.2" strokeLinecap="round" fill="none" />
+            <path d="M8 5 Q10.5 1 13 5" stroke="white" strokeWidth="1.2" strokeLinecap="round" fill="none" />
+          </svg>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function CareSection() {
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: true, margin: '-60px' })
+
+  const cards = [
+    {
+      state: 'angry' as const,
+      bg: 'rgba(239,68,68,0.05)',
+      border: 'var(--danger)',
+      shadow: 'rgba(239,68,68,0.15)',
+      quote: '"Ini beneran ga diatur?? Udah 3x makan di restoran mahal minggu ini."',
+      delay: 0,
+    },
+    {
+      state: 'happy' as const,
+      bg: 'rgba(34,197,94,0.05)',
+      border: 'var(--success)',
+      shadow: 'rgba(34,197,94,0.15)',
+      quote: '"Wah, tabungan kamu naik bulan ini! Proud of you 🎉"',
+      delay: 0.12,
+    },
+  ]
+
+  return (
+    <section
+      id="section-care"
+      ref={ref}
+      className="relative z-10 px-5 sm:px-8 lg:px-16 py-16"
+    >
+      <div className="max-w-6xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.4 }}
+          className="text-center mb-10"
+        >
+          <p
+            className="text-2xl sm:text-3xl font-bold mb-3"
+            style={{ color: 'var(--text-primary)', letterSpacing: '-0.02em' }}
+          >
+            Finara tuh... perhatian banget.
+          </p>
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+            Seneng kalau kamu nabung. Khawatir kalau boros. Bahkan bisa marah.
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-2xl mx-auto">
+          {cards.map((card) => (
+            <motion.div
+              key={card.state}
+              initial={{ opacity: 0, y: 24 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ type: 'spring', stiffness: 280, damping: 22, delay: card.delay }}
+              className="rounded-2xl p-5 relative"
+              style={{
+                background: card.bg,
+                border: `1px solid ${card.border}`,
+                boxShadow: `0 0 20px ${card.shadow}`,
+              }}
+            >
+              {/* Mini orb pojok kanan atas */}
+              <div className="absolute top-4 right-4">
+                <MiniOrb state={card.state} />
+              </div>
+              <p
+                className="text-sm leading-relaxed italic pr-10 mt-1"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                {card.quote}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export default function LandingPage() {
   const router = useRouter();
   const { theme, toggle } = useTheme();
@@ -761,6 +878,8 @@ export default function LandingPage() {
       </section>
 
       <MascotOrb state={mascotState} showBubble={showBubble} />
+
+      <CareSection />
 
       {/* Footer */}
       <footer
