@@ -11,7 +11,7 @@ async function getDashboardData() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const userId = user?.id ?? (process.env.NEXT_PUBLIC_DEV_BYPASS === 'true' ? process.env.DEV_USER_ID : null)
+  const userId = user?.id
   if (!userId) return null
 
   const range = getPeriodRange('month')

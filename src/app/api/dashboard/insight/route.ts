@@ -93,7 +93,7 @@ export async function GET() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }))
 
-  const userId = user?.id ?? (process.env.NEXT_PUBLIC_DEV_BYPASS === 'true' ? process.env.DEV_USER_ID : null)
+  const userId = user?.id
   if (!userId) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }

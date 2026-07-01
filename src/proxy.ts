@@ -32,9 +32,6 @@ export async function proxy(request: NextRequest) {
 
   if (isApiRoute || isAuthCallback) return supabaseResponse
 
-  // Dev bypass — skip auth check entirely when NEXT_PUBLIC_DEV_BYPASS=true
-  if (process.env.NEXT_PUBLIC_DEV_BYPASS === 'true') return supabaseResponse
-
   const {
     data: { user },
   } = await supabase.auth.getUser()
