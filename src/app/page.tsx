@@ -9,7 +9,7 @@ import {
   Moon,
 } from "lucide-react";
 import { useTheme } from "@/lib/theme";
-import MascotOrb, { type MascotState, type OrbAnchor } from "@/components/landing/MascotOrb";
+import MascotOrb, { type MascotState } from "@/components/landing/MascotOrb";
 
 const DEMO = [
   { role: "user", text: "beli makan siang 28rb" },
@@ -418,42 +418,155 @@ function ChatDemo() {
 }
 
 
-const INSIGHTS: Array<{ text: string; mascot: MascotState }> = [
+const INSIGHTS: Array<{ text: string; mascot: MascotState; chartType: 'bar' | 'line' | 'donut' }> = [
   {
     text: 'Wah, pengeluaran kamu minggu ini naik 23% dari biasanya. Terbanyak di Makanan. Hati-hati ya! 👀',
     mascot: 'worried',
+    chartType: 'bar',
   },
   {
     text: 'Goal Liburan Bali kamu udah 60%! Tinggal Rp 2 juta lagi. Semangat! 🎯',
     mascot: 'excited',
+    chartType: 'donut',
   },
   {
     text: 'Budget Transportasi masih aman, sisa 58%. Kamu lagi hemat nih! ✅',
     mascot: 'happy',
+    chartType: 'line',
   },
 ]
+
+function InsightChart({ type, inView }: { type: 'bar' | 'line' | 'donut'; inView: boolean }) {
+  if (type === 'bar') {
+    const bars = [40, 52, 45, 50, 55, 62, 90]
+    return (
+      <div className="flex items-end gap-1.5" style={{ height: 52 }}>
+        {bars.map((h, i) => (
+          <motion.div
+            key={i}
+            initial={{ scaleY: 0 }}
+            animate={{ scaleY: 1 }}
+            transition={{ delay: 0.04 * i, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              flex: 1,
+              height: `${h}%`,
+              borderRadius: 4,
+              background: i === 6 ? 'var(--danger)' : 'var(--bg-elevated)',
+              border: `1px solid ${i === 6 ? 'rgba(239,68,68,0.4)' : 'var(--border-light)'}`,
+              transformOrigin: 'bottom',
+            }}
+          />
+        ))}
+      </div>
+    )
+  }
+
+  if (type === 'line') {
+    // Points going down = hemat makin lama
+    const pts = [[0,40],[1,35],[2,42],[3,30],[4,25],[5,18],[6,12]]
+    const W = 240, H = 52
+    const sx = (x: number) => (x / 6) * W
+    const sy = (y: number) => (y / 100) * H
+    const d = pts.map(([x,y], i) => `${i===0?'M':'L'}${sx(x)},${sy(y)}`).join(' ')
+    const fill = `${d} L${sx(6)},${H} L${sx(0)},${H} Z`
+    return (
+      <div style={{ height: 52 }}>
+        <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="linegrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--success)" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="var(--success)" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <motion.path
+            d={fill}
+            fill="url(#linegrad)"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          />
+          <motion.path
+            d={d}
+            fill="none"
+            stroke="var(--success)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.8, ease: 'easeInOut' }}
+          />
+          {pts.map(([x,y], i) => (
+            <motion.circle
+              key={i}
+              cx={sx(x)} cy={sy(y)} r={3}
+              fill="var(--success)"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.08 * i + 0.4, duration: 0.2 }}
+            />
+          ))}
+        </svg>
+      </div>
+    )
+  }
+
+  // donut — 60% progress
+  const pct = 0.6
+  const R = 20, cx = 26, cy = 26
+  const circ = 2 * Math.PI * R
+  return (
+    <div className="flex items-center gap-4" style={{ height: 52 }}>
+      <svg width={52} height={52}>
+        <circle cx={cx} cy={cy} r={R} fill="none" stroke="var(--bg-elevated)" strokeWidth={6} />
+        <motion.circle
+          cx={cx} cy={cy} r={R}
+          fill="none"
+          stroke="var(--accent)"
+          strokeWidth={6}
+          strokeLinecap="round"
+          strokeDasharray={circ}
+          initial={{ strokeDashoffset: circ }}
+          animate={{ strokeDashoffset: circ * (1 - pct) }}
+          transition={{ duration: 0.8, ease: 'easeInOut' }}
+          style={{ transform: 'rotate(-90deg)', transformOrigin: `${cx}px ${cy}px` }}
+        />
+        <text x={cx} y={cy + 4} textAnchor="middle" fontSize={9} fill="var(--accent)" fontWeight={700}>60%</text>
+      </svg>
+      <div className="flex flex-col gap-1.5 flex-1">
+        {[
+          { label: 'Terkumpul', val: 'Rp 3jt', color: 'var(--accent)' },
+          { label: 'Sisa', val: 'Rp 2jt', color: 'var(--text-muted)' },
+        ].map(({ label, val, color }) => (
+          <div key={label} className="flex items-center justify-between">
+            <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{label}</span>
+            <span style={{ fontSize: 10, fontWeight: 700, color }}>{val}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 function InsightSection({ onInsightChange }: { onInsightChange: (state: MascotState) => void }) {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-60px' })
   const [activeIdx, setActiveIdx] = useState(0)
-  const startedRef = useRef(false)
+  const onInsightChangeRef = useRef(onInsightChange)
+  onInsightChangeRef.current = onInsightChange
 
   useEffect(() => {
-    if (!inView || startedRef.current) return
-    startedRef.current = true
-    onInsightChange(INSIGHTS[0].mascot)
-
+    if (!inView) return
+    onInsightChangeRef.current(INSIGHTS[0].mascot)
     const interval = setInterval(() => {
       setActiveIdx((prev) => {
         const next = (prev + 1) % INSIGHTS.length
-        onInsightChange(INSIGHTS[next].mascot)
+        onInsightChangeRef.current(INSIGHTS[next].mascot)
         return next
       })
     }, 3000)
-
     return () => clearInterval(interval)
-  }, [inView, onInsightChange])
+  }, [inView])
 
   return (
     <section
@@ -488,37 +601,58 @@ function InsightSection({ onInsightChange }: { onInsightChange: (state: MascotSt
             boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
           }}
         >
-          {/* Header: mini orb + label */}
-          <div className="flex items-center gap-2 mb-4">
-            <div
-              style={{
-                width: 28, height: 28, borderRadius: '50%',
+          {/* Header: orb with face + label */}
+          <div className="flex items-center gap-2.5 mb-5">
+            <div style={{ position: 'relative', width: 32, height: 32, flexShrink: 0 }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: '50%',
                 background: 'linear-gradient(135deg,#A78BFA,#7C5CFC)',
-                flexShrink: 0,
-              }}
-            />
-            <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>
-              Finara berkata...
-            </span>
+                boxShadow: '0 0 10px 2px rgba(124,92,252,0.4)',
+              }} />
+              <div style={{
+                position: 'absolute', bottom: 6, left: '50%', transform: 'translateX(-50%)',
+                width: 18, height: 10, borderRadius: 3, background: 'rgba(0,0,0,0.32)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <svg width="14" height="6" viewBox="0 0 14 6" fill="none">
+                  <path d="M1 5 Q3.5 1 6 5" stroke="white" strokeWidth="1.2" strokeLinecap="round" fill="none" />
+                  <path d="M8 5 Q10.5 1 13 5" stroke="white" strokeWidth="1.2" strokeLinecap="round" fill="none" />
+                </svg>
+              </div>
+            </div>
+            <div className="text-left">
+              <p className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>Finara Insight</p>
+              <p style={{ fontSize: 10, color: 'var(--text-muted)' }}>analisis otomatis dari data kamu</p>
+            </div>
           </div>
 
-          {/* Bubble rotate */}
-          <div style={{ minHeight: 72 }}>
-            <AnimatePresence mode="wait">
+          {/* Carousel slides */}
+          <div style={{ overflow: 'hidden' }}>
+            <AnimatePresence mode="wait" initial={false}>
               <motion.div
                 key={activeIdx}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-                className="text-sm leading-relaxed text-left px-4 py-3 rounded-xl"
-                style={{
-                  background: 'var(--bg-elevated)',
-                  color: 'var(--text-primary)',
-                  borderBottomLeftRadius: 4,
-                }}
+                initial={{ x: 40, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -40, opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 340, damping: 30 }}
               >
-                {INSIGHTS[activeIdx].text}
+                {/* Chart for this slide */}
+                <div className="mb-4">
+                  <InsightChart type={INSIGHTS[activeIdx].chartType} inView={inView} />
+                </div>
+
+                {/* Insight text */}
+                <div
+                  className="text-sm leading-relaxed text-left px-4 py-3 rounded-xl"
+                  style={{
+                    background: 'var(--bg-elevated)',
+                    color: 'var(--text-primary)',
+                    borderBottomLeftRadius: 4,
+                    minHeight: 72,
+                  }}
+                >
+                  {INSIGHTS[activeIdx].text}
+                </div>
               </motion.div>
             </AnimatePresence>
           </div>
@@ -772,95 +906,52 @@ function PlatformSection() {
   )
 }
 
-// Maps anchor ID → which section to read + where on it the orb should sit
-const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
-
-// Maps anchor ID → which section + where the orb center sits (viewport coords)
-const ANCHOR_CONFIG: Record<string, {
-  sectionId: string
-  xFn: (r: DOMRect) => number
-  yFn: (r: DOMRect) => number
-  dir: 'left' | 'right'
-}> = {
-  // Hero: right edge of section, near top-right of text block — clamped so orb stays on screen
-  'orb-anchor-hero':     { sectionId: 'section-hero',     xFn: r => clamp(r.right - 48, 80, window.innerWidth - 80),  yFn: r => r.top + 200,                  dir: 'left' },
-  // Care: left side, near the section headline
-  'orb-anchor-care':     { sectionId: 'section-care',     xFn: r => clamp(r.left + 32, 80, window.innerWidth - 80),   yFn: r => r.top + 80,                   dir: 'right' },
-  // Platform: right side
-  'orb-anchor-platform': { sectionId: 'section-platform', xFn: r => clamp(r.right - 48, 80, window.innerWidth - 80),  yFn: r => r.top + 100,                  dir: 'left' },
-  // Insight: left side
-  'orb-anchor-insight':  { sectionId: 'section-insight',  xFn: r => clamp(r.left + 32, 80, window.innerWidth - 80),   yFn: r => r.top + 130,                  dir: 'right' },
-  // CTA: centered above the button
-  'orb-anchor-cta':      { sectionId: 'section-cta',      xFn: r => r.left + r.width * 0.5, yFn: r => r.top + 48,    dir: 'left' },
-}
-
 export default function LandingPage() {
   const router = useRouter();
   const { theme, toggle } = useTheme();
   const [scrolled, setScrolled] = useState(false);
   const [mascotState, setMascotState] = useState<MascotState>('idle')
   const [showBubble, setShowBubble] = useState(false)
-  const [orbAnchor, setOrbAnchor] = useState<OrbAnchor>({ x: -120, y: -120 }) // off-screen initially
-  const [bubbleDir, setBubbleDir] = useState<'left' | 'right'>('left')
   const bubbleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const careAngerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const currentAnchorIdRef = useRef<string>('')
 
-  const snapToAnchorRef = useRef((anchorId: string, setAnchor: (a: OrbAnchor) => void, setDir: (d: 'left' | 'right') => void) => {
-    const cfg = ANCHOR_CONFIG[anchorId]
-    if (!cfg) return
-    const el = document.getElementById(cfg.sectionId)
-    if (!el) return
-    const rect = el.getBoundingClientRect()
-    setAnchor({ x: cfg.xFn(rect), y: cfg.yFn(rect) })
-    setDir(cfg.dir)
-  })
-
-  const triggerMascot = useCallback((state: MascotState, anchorId?: string) => {
+  const triggerMascot = useCallback((state: MascotState) => {
     setMascotState(state)
     setShowBubble(true)
-    if (anchorId) {
-      currentAnchorIdRef.current = anchorId
-      snapToAnchorRef.current(anchorId, setOrbAnchor, setBubbleDir)
-    }
     if (bubbleTimerRef.current) clearTimeout(bubbleTimerRef.current)
     bubbleTimerRef.current = setTimeout(() => setShowBubble(false), 4000)
   }, [])
 
-  // Re-snap orb on scroll so it stays attached to its anchor element
   useEffect(() => {
     function onScroll() {
       setScrolled(window.scrollY > 20)
-      if (currentAnchorIdRef.current) {
-        snapToAnchorRef.current(currentAnchorIdRef.current, setOrbAnchor, setBubbleDir)
-      }
     }
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
-    const sections: Array<{ id: string; anchorId: string; state: MascotState }> = [
-      { id: 'section-hero',     anchorId: 'orb-anchor-hero',     state: 'wave' },
-      { id: 'section-care',     anchorId: 'orb-anchor-care',     state: 'worried' },
-      { id: 'section-platform', anchorId: 'orb-anchor-platform', state: 'excited' },
-      { id: 'section-cta',      anchorId: 'orb-anchor-cta',      state: 'happy' },
+    const sections: Array<{ id: string; state: MascotState }> = [
+      { id: 'section-hero',     state: 'wave' },
+      { id: 'section-care',     state: 'worried' },
+      { id: 'section-platform', state: 'excited' },
+      { id: 'section-cta',      state: 'happy' },
     ]
 
     const observers: IntersectionObserver[] = []
 
-    sections.forEach(({ id, anchorId, state }) => {
+    sections.forEach(({ id, state }) => {
       const el = document.getElementById(id)
       if (!el) return
       const obs = new IntersectionObserver(
         ([entry]) => {
           if (!entry.isIntersecting) return
           if (state === 'worried') {
-            triggerMascot('worried', anchorId)
+            triggerMascot('worried')
             if (careAngerTimerRef.current) clearTimeout(careAngerTimerRef.current)
-            careAngerTimerRef.current = setTimeout(() => triggerMascot('angry', anchorId), 1500)
+            careAngerTimerRef.current = setTimeout(() => triggerMascot('angry'), 1500)
           } else {
-            triggerMascot(state, anchorId)
+            triggerMascot(state)
           }
         },
         { threshold: 0.35 }
@@ -876,9 +967,8 @@ export default function LandingPage() {
     }
   }, [triggerMascot])
 
-  // Initial snap — hero is already in view on load, observer won't fire for it
   useEffect(() => {
-    const timer = setTimeout(() => triggerMascot('wave', 'orb-anchor-hero'), 800)
+    const timer = setTimeout(() => triggerMascot('wave'), 800)
     return () => clearTimeout(timer)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -1044,7 +1134,7 @@ export default function LandingPage() {
           </button>
           <motion.button
             whileTap={{ scale: 0.95 }}
-            onClick={() => router.push("/register")}
+            onClick={() => router.push("/login")}
             className="px-4 py-2 rounded-xl text-sm font-semibold text-black"
             style={{ background: "linear-gradient(135deg,#FBB724,#F97316)" }}
           >
@@ -1117,7 +1207,7 @@ export default function LandingPage() {
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
-                onClick={() => router.push("/register")}
+                onClick={() => router.push("/login")}
                 className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-bold text-black"
                 style={{
                   background: "linear-gradient(135deg,#FBB724 0%,#F97316 100%)",
@@ -1175,15 +1265,13 @@ export default function LandingPage() {
       <MascotOrb
         state={mascotState}
         showBubble={showBubble}
-        anchor={orbAnchor}
-        bubbleDirection={bubbleDir}
       />
 
       <CareSection />
 
       <PlatformSection />
 
-      <InsightSection onInsightChange={(s) => triggerMascot(s, 'orb-anchor-insight')} />
+      <InsightSection onInsightChange={(s) => triggerMascot(s)} />
 
       {/* CTA section */}
       <section id="section-cta" className="relative z-10 px-5 sm:px-8 lg:px-16 py-16 text-center">
@@ -1216,7 +1304,7 @@ export default function LandingPage() {
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
-            onClick={() => router.push('/register')}
+            onClick={() => router.push('/login')}
             className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-bold text-black"
             style={{ background: 'linear-gradient(135deg,#FBB724 0%,#F97316 100%)' }}
           >

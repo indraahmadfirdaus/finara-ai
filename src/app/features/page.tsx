@@ -811,7 +811,7 @@ export default function FeaturesPage() {
           </button>
           <motion.button
             whileTap={{ scale: 0.95 }}
-            onClick={() => router.push('/register')}
+            onClick={() => router.push('/login')}
             className="px-4 py-2 rounded-xl text-sm font-semibold text-black"
             style={{ background: 'linear-gradient(135deg,#FBB724,#F97316)' }}
           >
@@ -867,7 +867,7 @@ export default function FeaturesPage() {
           transition={{ delay: 0.36, duration: 0.5 }}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.97 }}
-          onClick={() => router.push('/register')}
+          onClick={() => router.push('/login')}
           className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-bold text-black"
           style={{ background: 'linear-gradient(135deg,#FBB724 0%,#F97316 100%)' }}
         >
@@ -938,7 +938,7 @@ export default function FeaturesPage() {
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
-            onClick={() => router.push('/register')}
+            onClick={() => router.push('/login')}
             className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-bold text-black"
             style={{ background: 'linear-gradient(135deg,#FBB724 0%,#F97316 100%)' }}
           >
