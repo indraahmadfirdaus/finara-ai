@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
   Sun, Moon, LogOut, ChevronRight,
-  TrendingUp, TrendingDown, KeyRound, Info, Coffee,
+  TrendingUp, TrendingDown, Info, Coffee,
 } from 'lucide-react'
 import PageTransition from '@/components/layout/PageTransition'
 import { createClient } from '@/lib/supabase/client'
@@ -81,6 +81,8 @@ export default function ProfilePage() {
   const router = useRouter()
   const { theme, toggle } = useTheme()
   const [email, setEmail] = useState('')
+  const [fullName, setFullName] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState('')
   const [stats, setStats] = useState<Stats>({ income: 0, expense: 0 })
   const [statsLoaded, setStatsLoaded] = useState(false)
 
@@ -88,6 +90,8 @@ export default function ProfilePage() {
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user?.email) setEmail(user.email)
+      if (user?.user_metadata?.full_name) setFullName(user.user_metadata.full_name)
+      if (user?.user_metadata?.avatar_url) setAvatarUrl(user.user_metadata.avatar_url)
     })
     fetch('/api/transactions?period=month&limit=200')
       .then((r) => r.json())
@@ -108,7 +112,7 @@ export default function ProfilePage() {
   }
 
   const initial = email ? email[0].toUpperCase() : '?'
-  const username = email ? email.split('@')[0] : ''
+  const displayName = fullName || (email ? email.split('@')[0] : '')
 
   return (
     <PageTransition>
@@ -124,10 +128,14 @@ export default function ProfilePage() {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: 'spring', stiffness: 320, damping: 24 }}
-            className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold text-white mb-4"
-            style={{ background: 'rgba(255,255,255,0.18)', outline: '4px solid rgba(255,255,255,0.28)' }}
+            className="w-20 h-20 rounded-full mb-4 overflow-hidden flex items-center justify-center text-3xl font-bold text-white flex-shrink-0"
+            style={{ outline: '4px solid rgba(255,255,255,0.28)', background: 'rgba(255,255,255,0.18)' }}
           >
-            {initial}
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            ) : (
+              initial
+            )}
           </motion.div>
 
           <motion.p
@@ -136,7 +144,7 @@ export default function ProfilePage() {
             transition={{ delay: 0.1 }}
             className="text-lg font-bold text-white"
           >
-            {username || '—'}
+            {displayName || '—'}
           </motion.p>
           <motion.p
             initial={{ opacity: 0, y: 6 }}
@@ -199,21 +207,7 @@ export default function ProfilePage() {
             />
           </div>
 
-          {/* Lainnya */}
-          <SectionLabel label="Akun" delay={0.3} />
-          <div
-            className="mx-4 rounded-2xl overflow-hidden"
-            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
-          >
-            <Row
-              icon={<KeyRound size={17} />}
-              label="Ganti Password"
-              delay={0.32}
-              onClick={() => router.push('/profile/change-password')}
-            />
-          </div>
-
-          <SectionLabel label="Lainnya" delay={0.34} />
+          <SectionLabel label="Lainnya" delay={0.3} />
           <div
             className="mx-4 rounded-2xl overflow-hidden"
             style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
