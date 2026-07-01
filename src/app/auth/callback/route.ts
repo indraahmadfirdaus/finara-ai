@@ -7,11 +7,7 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/'
 
-  console.log('[auth/callback] GET hit — url:', request.url)
-  console.log('[auth/callback] params — code:', code ? `${code.slice(0, 12)}...` : 'MISSING', '| next:', next, '| origin:', origin)
-
   if (!code) {
-    console.error('[auth/callback] No code in URL — redirecting to login with error')
     return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`)
   }
 
@@ -33,21 +29,11 @@ export async function GET(request: NextRequest) {
     }
   )
 
-  console.log('[auth/callback] calling exchangeCodeForSession ...')
-  const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-  console.log('[auth/callback] exchangeCodeForSession result:', {
-    userId: data?.user?.id,
-    userEmail: data?.user?.email,
-    error: error?.message,
-    errorStatus: error?.status,
-  })
+  const { error } = await supabase.auth.exchangeCodeForSession(code)
 
   if (!error) {
-    const dest = `${origin}${next}`
-    console.log('[auth/callback] success — redirecting to:', dest)
-    return NextResponse.redirect(dest)
+    return NextResponse.redirect(`${origin}${next}`)
   }
 
-  console.error('[auth/callback] error — redirecting to login with error')
   return NextResponse.redirect(`${origin}/login?error=auth_callback_failed`)
 }

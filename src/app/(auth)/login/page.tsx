@@ -9,19 +9,24 @@ import { Loader2 } from "lucide-react";
 
 function LoginContent() {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const searchParams = useSearchParams();
   const hasError = searchParams.get("error") !== null;
 
   async function handleGoogleLogin() {
     setLoading(true);
-    const supabase = createClient();
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
-      },
-    });
-    // browser navigates away — no need to setLoading(false)
+    try {
+      const supabase = createClient();
+      await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=/chat`,
+        },
+      });
+    } catch {
+      setLoading(false);
+      setError("Gagal terhubung. Coba lagi.");
+    }
   }
 
   return (
@@ -119,15 +124,16 @@ function LoginContent() {
           </p>
 
           <AnimatePresence>
-            {hasError && (
+            {(hasError || error) && (
               <motion.p
+                key="error"
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
                 className="text-xs px-1 mb-4"
                 style={{ color: "var(--danger)" }}
               >
-                Login gagal. Coba lagi atau hubungi support.
+                {error || "Login gagal. Coba lagi atau hubungi support."}
               </motion.p>
             )}
           </AnimatePresence>
@@ -163,7 +169,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense>
+    <Suspense fallback={null}>
       <LoginContent />
     </Suspense>
   );
