@@ -89,7 +89,7 @@ function buildSummary(
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }))
 
@@ -98,8 +98,31 @@ export async function GET() {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const range = getPeriodRange('month')
   const month = getMonthKey()
+  const { searchParams } = new URL(req.url)
+  const forceRefresh = searchParams.get('refresh') === '1'
+
+  // Read from DB first unless force-refresh requested
+  if (!forceRefresh) {
+    const { data: cached } = await supabase
+      .from('dashboard_insights')
+      .select('insights, generated_at')
+      .eq('user_id', userId)
+      .eq('month', month)
+      .order('generated_at', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (cached) {
+      const response: InsightResponse = {
+        insights: cached.insights as InsightCard[],
+        generated_at: cached.generated_at as string,
+      }
+      return Response.json(response)
+    }
+  }
+
+  const range = getPeriodRange('month')
   const period = new Date().toLocaleString('id-ID', { month: 'long', year: 'numeric' })
 
   const [txResult, budgetResult, goalResult, debtResult] = await Promise.all([
@@ -165,11 +188,18 @@ export async function GET() {
     const raw = completion.choices[0]?.message?.content?.trim() ?? '[]'
     const cleaned = raw.replace(/^```json?\n?/, '').replace(/\n?```$/, '')
     const parsed: InsightCard[] = JSON.parse(cleaned)
+    const insights = parsed.slice(0, 5)
+    const generated_at = new Date().toISOString()
 
-    const response: InsightResponse = {
-      insights: parsed.slice(0, 5),
-      generated_at: new Date().toISOString(),
-    }
+    // Persist to DB (upsert by inserting new row; latest is always fetched by order)
+    await supabase.from('dashboard_insights').insert({
+      user_id: userId,
+      month,
+      insights,
+      generated_at,
+    })
+
+    const response: InsightResponse = { insights, generated_at }
     return Response.json(response)
   } catch {
     return Response.json({

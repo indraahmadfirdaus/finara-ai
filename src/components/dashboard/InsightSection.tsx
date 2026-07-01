@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import InsightCard from './InsightCard'
 import MascotOrb from '@/components/landing/MascotOrb'
@@ -8,67 +8,20 @@ import type { InsightCard as InsightCardType } from '@/lib/dashboard/insightType
 
 type State = 'idle' | 'loading' | 'loaded' | 'error'
 
-const CACHE_KEY = 'finara_insight_cache'
-const CACHE_TTL_MS = 10 * 60 * 1000
-
-interface Cache {
-  insights: InsightCardType[]
-  generated_at: string
-  cached_at: number
-}
-
-function loadCache(): Cache | null {
-  try {
-    const raw = sessionStorage.getItem(CACHE_KEY)
-    if (!raw) return null
-    const cache: Cache = JSON.parse(raw)
-    if (Date.now() - cache.cached_at > CACHE_TTL_MS) return null
-    return cache
-  } catch {
-    return null
-  }
-}
-
-function saveCache(insights: InsightCardType[], generated_at: string) {
-  try {
-    const cache: Cache = { insights, generated_at, cached_at: Date.now() }
-    sessionStorage.setItem(CACHE_KEY, JSON.stringify(cache))
-  } catch {}
-}
-
 export default function InsightSection() {
   const [uiState, setUiState] = useState<State>('idle')
   const [insights, setInsights] = useState<InsightCardType[]>([])
   const [generatedAt, setGeneratedAt] = useState<string>('')
 
-  useEffect(() => {
-    const cache = loadCache()
-    if (cache) {
-      setInsights(cache.insights)
-      setGeneratedAt(cache.generated_at)
-      setUiState('loaded')
-    }
-  }, [])
-
-  const fetchInsights = useCallback(async (bypassCache = false) => {
-    if (!bypassCache) {
-      const cache = loadCache()
-      if (cache) {
-        setInsights(cache.insights)
-        setGeneratedAt(cache.generated_at)
-        setUiState('loaded')
-        return
-      }
-    }
-
+  const fetchInsights = useCallback(async (forceRefresh = false) => {
     setUiState('loading')
     try {
-      const res = await fetch('/api/dashboard/insight')
+      const url = forceRefresh ? '/api/dashboard/insight?refresh=1' : '/api/dashboard/insight'
+      const res = await fetch(url)
       const data = await res.json()
       if (data.insights?.length > 0) {
         setInsights(data.insights)
         setGeneratedAt(data.generated_at)
-        saveCache(data.insights, data.generated_at)
         setUiState('loaded')
       } else {
         setUiState('error')

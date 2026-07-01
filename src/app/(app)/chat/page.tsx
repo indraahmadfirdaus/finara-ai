@@ -74,7 +74,6 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
-  const [userEmail, setUserEmail] = useState('')
   const [historyOpen, setHistoryOpen] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
   const moreMenuRef = useRef<HTMLDivElement>(null)
@@ -129,9 +128,6 @@ export default function ChatPage() {
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user?.email) setUserEmail(user.email)
-    })
 
     const existing = sessionStorage.getItem(SESSION_KEY)
     if (existing) {
@@ -267,8 +263,6 @@ export default function ChatPage() {
     setMessages([])
     setInput('')
   }
-
-  const userInitial = userEmail ? userEmail[0].toUpperCase() : 'K'
 
   return (
     <>
@@ -420,7 +414,7 @@ export default function ChatPage() {
           >
             <AnimatePresence initial={false}>
               {messages.map((msg) => (
-                <ChatBubble key={msg.id} message={msg} userInitial={userInitial} />
+                <ChatBubble key={msg.id} message={msg} />
               ))}
             </AnimatePresence>
             <div ref={bottomRef} />

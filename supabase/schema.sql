@@ -116,6 +116,19 @@ alter table asset_value_logs enable row level security;
 create policy "users own asset_value_logs" on asset_value_logs
   for all using (auth.uid() = user_id);
 
+-- dashboard_insights
+create table if not exists dashboard_insights (
+  id           uuid primary key default gen_random_uuid(),
+  user_id      uuid references auth.users not null,
+  month        text not null,
+  insights     jsonb not null,
+  generated_at timestamptz not null default now(),
+  created_at   timestamptz not null default now()
+);
+alter table dashboard_insights enable row level security;
+create policy "users own dashboard_insights" on dashboard_insights
+  for all using (auth.uid() = user_id);
+
 -- Trigger: auto-update assets.updated_at
 create or replace function update_updated_at_column()
 returns trigger as $$
@@ -139,6 +152,7 @@ create index if not exists idx_chat_history_user on chat_history(user_id, create
 create index if not exists idx_chat_history_session on chat_history(user_id, session_id, created_at asc);
 create index if not exists idx_assets_user on assets(user_id, type, name);
 create index if not exists idx_asset_logs_asset on asset_value_logs(asset_id, created_at desc);
+create index if not exists idx_dashboard_insights_user_month on dashboard_insights(user_id, month, generated_at desc);
 
 -- Soft-delete partial indexes (migration 002)
 create index if not exists idx_transactions_not_deleted on transactions(user_id, deleted_at) where deleted_at is null;

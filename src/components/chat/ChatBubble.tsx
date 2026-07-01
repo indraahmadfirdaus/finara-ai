@@ -5,7 +5,6 @@ import { motion } from 'framer-motion'
 import { FileImage } from 'lucide-react'
 import StreamingText, { parseContent } from './StreamingText'
 import TypingIndicator from './TypingIndicator'
-import MascotOrb from '@/components/landing/MascotOrb'
 
 export interface Message {
   id: string
@@ -27,7 +26,7 @@ interface ChatBubbleProps {
   userInitial?: string
 }
 
-export default function ChatBubble({ message, userInitial = 'K' }: ChatBubbleProps) {
+export default function ChatBubble({ message }: ChatBubbleProps) {
   const isUser = message.role === 'user'
 
   // Determine if this assistant message has any card/table segments (rendered full-width outside bubble)
@@ -35,17 +34,6 @@ export default function ChatBubble({ message, userInitial = 'K' }: ChatBubblePro
     if (isUser || message.isTyping) return false
     return parseContent(message.content).some((s) => s.type !== 'text')
   }, [isUser, message.isTyping, message.content])
-
-  const avatar = !isUser && (
-    <div className="flex-shrink-0 mb-0.5">
-      <MascotOrb
-        state={message.isStreaming ? 'excited' : message.isTyping ? 'wave' : 'happy'}
-        showBubble={false}
-        inline
-        size={32}
-      />
-    </div>
-  )
 
   // User bubble — simple, no rich content
   if (isUser) {
@@ -57,10 +45,9 @@ export default function ChatBubble({ message, userInitial = 'K' }: ChatBubblePro
         initial={{ x: 20, opacity: 0, y: 8 }}
         animate={{ x: 0, opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 340, damping: 28 }}
-        className="flex items-end gap-2.5 flex-row-reverse"
+        className="flex items-end flex-row-reverse"
       >
         {scanFileName ? (
-          // Image attachment pill
           <div
             className="flex items-center gap-2.5 px-3.5 py-2.5 max-w-[78%]"
             style={{
@@ -91,12 +78,6 @@ export default function ChatBubble({ message, userInitial = 'K' }: ChatBubblePro
             <p className="text-sm whitespace-pre-wrap leading-relaxed font-medium">{displayText}</p>
           </div>
         )}
-        <div
-          className="w-8 h-8 rounded-2xl flex items-center justify-center text-xs font-bold flex-shrink-0 mb-0.5"
-          style={{ background: 'var(--accent-dim)', color: 'var(--accent-light)', border: '1px solid rgba(124,92,252,0.3)' }}
-        >
-          {userInitial}
-        </div>
       </motion.div>
     )
   }
@@ -108,9 +89,8 @@ export default function ChatBubble({ message, userInitial = 'K' }: ChatBubblePro
         initial={{ x: -20, opacity: 0, y: 8 }}
         animate={{ x: 0, opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 340, damping: 28 }}
-        className="flex items-end gap-2.5 flex-row"
+        className="flex items-end"
       >
-        {avatar}
         <div
           className="max-w-[78%] px-4 py-3"
           style={{ background: 'var(--bubble-ai)', border: '1px solid var(--bubble-ai-border)', borderRadius: '20px 20px 20px 4px' }}
@@ -122,17 +102,14 @@ export default function ChatBubble({ message, userInitial = 'K' }: ChatBubblePro
   }
 
   // Assistant message with potential rich content (cards/tables)
-  // Cards and tables render full-width outside the bubble max-width constraint
   if (hasRichContent) {
     return (
       <motion.div
         initial={{ x: -20, opacity: 0, y: 8 }}
         animate={{ x: 0, opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 340, damping: 28 }}
-        className="flex items-start gap-2.5 flex-row"
+        className="flex items-start"
       >
-        {avatar}
-        {/* Full-width column so cards are not capped at 78% */}
         <div className="flex-1 min-w-0">
           <StreamingText content={message.content} isStreaming={message.isStreaming} />
         </div>
@@ -146,9 +123,8 @@ export default function ChatBubble({ message, userInitial = 'K' }: ChatBubblePro
       initial={{ x: -20, opacity: 0, y: 8 }}
       animate={{ x: 0, opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 340, damping: 28 }}
-      className="flex items-end gap-2.5 flex-row"
+      className="flex items-end"
     >
-      {avatar}
       <div
         className="max-w-[78%] px-4 py-3"
         style={{ background: 'var(--bubble-ai)', border: '1px solid var(--bubble-ai-border)', borderRadius: '20px 20px 20px 4px' }}
