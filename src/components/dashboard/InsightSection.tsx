@@ -1,17 +1,213 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import InsightCard from './InsightCard'
 import MascotOrb from '@/components/landing/MascotOrb'
 import type { InsightCard as InsightCardType } from '@/lib/dashboard/insightTypes'
+import type { AnalyticsResponse, DailyBarItem, BudgetLinePoint } from '@/app/api/dashboard/analytics/route'
 
 type State = 'idle' | 'loading' | 'loaded' | 'error'
+
+// ── Analytics charts (port from landing page) ────────────────────────────────
+
+function SpendingBarChart({ items }: { items: DailyBarItem[] }) {
+  return (
+    <div>
+      <div className="flex items-end gap-1.5" style={{ height: 44 }}>
+        {items.map((item, i) => (
+          <motion.div
+            key={i}
+            initial={{ scaleY: 0 }}
+            animate={{ scaleY: 1 }}
+            transition={{ delay: 0.04 * i, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              flex: 1,
+              height: `${Math.max(item.percent, 4)}%`,
+              borderRadius: '3px 3px 2px 2px',
+              background: item.isMax ? 'var(--danger)' : 'var(--bg-base)',
+              border: `1px solid ${item.isMax ? 'rgba(239,68,68,0.35)' : 'var(--border-light)'}`,
+              transformOrigin: 'bottom',
+            }}
+          />
+        ))}
+      </div>
+      <div className="flex gap-1.5 mt-1">
+        {items.map((item, i) => (
+          <div
+            key={i}
+            style={{
+              flex: 1,
+              textAlign: 'center',
+              fontSize: 9,
+              color: item.isMax ? 'var(--danger)' : 'var(--text-muted)',
+              fontWeight: item.isMax ? 700 : 400,
+            }}
+          >
+            {item.label}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function BudgetLineChart({ points }: { points: BudgetLinePoint[] }) {
+  const W = 220
+  const H = 44
+  const sx = (i: number) => (i / (points.length - 1)) * W
+  const sy = (v: number) => H - (Math.min(v, 100) / 100) * H
+  const vals = points.map(p => p.percent)
+  const linePath = vals.map((v, i) => `${i === 0 ? 'M' : 'L'}${sx(i)},${sy(v)}`).join(' ')
+  const fillPath = `${linePath} L${sx(vals.length - 1)},${H} L${sx(0)},${H} Z`
+
+  // trend: if last week < first week → spending is going down → success color
+  const isImproving = vals[vals.length - 1] <= vals[0]
+  const lineColor = isImproving ? 'var(--success)' : 'var(--warning)'
+  const gradId = 'budgetgrad-dash'
+
+  return (
+    <div>
+      <div style={{ position: 'relative', height: H }}>
+        <svg
+          width="100%"
+          height={H}
+          viewBox={`0 0 ${W} ${H}`}
+          preserveAspectRatio="none"
+          style={{ position: 'absolute', inset: 0 }}
+        >
+          <line x1={0} y1={1} x2={W} y2={1} stroke="var(--border)" strokeWidth={1} strokeDasharray="4 3" />
+        </svg>
+        <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
+          <defs>
+            <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={lineColor} stopOpacity="0.2" />
+              <stop offset="100%" stopColor={lineColor} stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <motion.path d={fillPath} fill={`url(#${gradId})`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} />
+          <motion.path
+            d={linePath}
+            fill="none"
+            stroke={lineColor}
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.8, ease: 'easeInOut' }}
+          />
+          {vals.map((v, i) => (
+            <motion.circle
+              key={i}
+              cx={sx(i)}
+              cy={sy(v)}
+              r={3.5}
+              fill={lineColor}
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.15 * i + 0.5, duration: 0.2 }}
+            />
+          ))}
+        </svg>
+      </div>
+      <div className="flex justify-between mt-1">
+        {points.map((p, i) => (
+          <span
+            key={i}
+            style={{
+              fontSize: 9,
+              color: i === points.length - 1 ? lineColor : 'var(--text-muted)',
+              fontWeight: i === points.length - 1 ? 700 : 400,
+            }}
+          >
+            {p.label}
+          </span>
+        ))}
+        <span style={{ fontSize: 9, color: 'var(--text-muted)', fontStyle: 'italic' }}>limit</span>
+      </div>
+    </div>
+  )
+}
+
+function AnalyticsSection({ data }: { data: AnalyticsResponse }) {
+  const [activeChart, setActiveChart] = useState(0)
+
+  const charts = [
+    {
+      key: 'daily',
+      label: 'Pengeluaran Harian',
+      sublabel: '7 hari terakhir',
+      render: () => <SpendingBarChart items={data.daily_bar} />,
+    },
+    {
+      key: 'budget',
+      label: 'Tren Budget',
+      sublabel: 'Mingguan bulan ini',
+      render: () => <BudgetLineChart points={data.budget_line} />,
+    },
+  ]
+
+  return (
+    <div
+      className="mx-4 mt-4 rounded-2xl overflow-hidden"
+      style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+    >
+      {/* Chart tabs */}
+      <div className="flex" style={{ borderBottom: '1px solid var(--border-light)' }}>
+        {charts.map((c, i) => (
+          <button
+            key={c.key}
+            onClick={() => setActiveChart(i)}
+            className="flex-1 py-2.5 px-3 text-left transition-colors"
+            style={{
+              background: activeChart === i ? 'var(--accent-dim)' : 'transparent',
+              borderRight: i === 0 ? '1px solid var(--border-light)' : 'none',
+            }}
+          >
+            <p
+              className="text-[11px] font-semibold"
+              style={{ color: activeChart === i ? 'var(--accent-light)' : 'var(--text-secondary)' }}
+            >
+              {c.label}
+            </p>
+            <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{c.sublabel}</p>
+          </button>
+        ))}
+      </div>
+
+      {/* Chart area */}
+      <div className="p-4">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={activeChart}
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            transition={{ type: 'spring', stiffness: 340, damping: 30 }}
+          >
+            {!data.has_data ? (
+              <p className="text-[11px] text-center py-4" style={{ color: 'var(--text-muted)' }}>
+                Belum ada data transaksi bulan ini
+              </p>
+            ) : (
+              charts[activeChart].render()
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </div>
+  )
+}
+
+// ── Main InsightSection ───────────────────────────────────────────────────────
 
 export default function InsightSection() {
   const [uiState, setUiState] = useState<State>('idle')
   const [insights, setInsights] = useState<InsightCardType[]>([])
   const [generatedAt, setGeneratedAt] = useState<string>('')
+  const [analytics, setAnalytics] = useState<AnalyticsResponse | null>(null)
+  const hasFetchedOnMount = useRef(false)
 
   const fetchInsights = useCallback(async (forceRefresh = false) => {
     setUiState('loading')
@@ -31,6 +227,23 @@ export default function InsightSection() {
     }
   }, [])
 
+  const fetchAnalytics = useCallback(async () => {
+    try {
+      const res = await fetch('/api/dashboard/analytics')
+      if (res.ok) setAnalytics(await res.json())
+    } catch {
+      // non-critical — charts just won't show
+    }
+  }, [])
+
+  // On mount: restore cached insights from DB (no force-refresh) + load analytics
+  useEffect(() => {
+    if (hasFetchedOnMount.current) return
+    hasFetchedOnMount.current = true
+    fetchInsights(false)
+    fetchAnalytics()
+  }, [fetchInsights, fetchAnalytics])
+
   const relativeTime = (iso: string) => {
     try {
       const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000)
@@ -44,7 +257,10 @@ export default function InsightSection() {
 
   return (
     <div>
-      {/* Idle: large orb */}
+      {/* ── Analytics charts (always visible once loaded) ── */}
+      {analytics && <AnalyticsSection data={analytics} />}
+
+      {/* ── AI Insight section ── */}
       <AnimatePresence>
         {uiState === 'idle' && (
           <motion.div
@@ -55,11 +271,9 @@ export default function InsightSection() {
             className="flex flex-col items-center py-7 gap-4 px-4"
           >
             <MascotOrb state="idle" showBubble={false} inline size={72} />
-
             <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>
               Finara siap menganalisis keuanganmu
             </p>
-
             <motion.button
               whileTap={{ scale: 0.96 }}
               onClick={() => fetchInsights(true)}
@@ -78,7 +292,6 @@ export default function InsightSection() {
         )}
       </AnimatePresence>
 
-      {/* Loading / loaded / error: insight card wrapper */}
       <AnimatePresence>
         {(uiState === 'loading' || uiState === 'loaded' || uiState === 'error') && (
           <motion.div
@@ -171,7 +384,6 @@ export default function InsightSection() {
           </motion.div>
         )}
       </AnimatePresence>
-
     </div>
   )
 }
