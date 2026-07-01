@@ -1,49 +1,27 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
-export default function LoginPage() {
-  const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+function LoginContent() {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [shake, setShake] = useState(false);
+  const searchParams = useSearchParams();
+  const hasError = searchParams.get("error") !== null;
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleGoogleLogin() {
     setLoading(true);
-    setError("");
     const supabase = createClient();
-    const { data, error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+      },
     });
-    if (authError) {
-      setError("Email atau password salah.");
-      setLoading(false);
-      setShake(true);
-      setTimeout(() => setShake(false), 600);
-      return;
-    }
-    if (!data.user?.email_confirmed_at) {
-      await supabase.auth.signOut();
-      setError(
-        "Akun belum diverifikasi. Cek emailmu dan klik link konfirmasi terlebih dahulu.",
-      );
-      setLoading(false);
-      setShake(true);
-      setTimeout(() => setShake(false), 600);
-      return;
-    }
-    router.push("/chat");
-    router.refresh();
+    // browser navigates away — no need to setLoading(false)
   }
 
   return (
@@ -76,13 +54,7 @@ export default function LoginPage() {
               fill="none"
               className="mx-auto mb-3 transition-opacity group-hover:opacity-80"
             >
-              <circle
-                cx="36"
-                cy="36"
-                r="34"
-                stroke="url(#lg1)"
-                strokeWidth="2.5"
-              />
+              <circle cx="36" cy="36" r="34" stroke="url(#lg1)" strokeWidth="2.5" />
               <path
                 d="M20 38 Q27 28 36 36 Q45 44 52 34"
                 stroke="url(#lg1)"
@@ -100,25 +72,11 @@ export default function LoginPage() {
               />
               <circle cx="36" cy="36" r="3.5" fill="url(#lg1)" />
               <defs>
-                <linearGradient
-                  id="lg1"
-                  x1="16"
-                  y1="16"
-                  x2="56"
-                  y2="56"
-                  gradientUnits="userSpaceOnUse"
-                >
+                <linearGradient id="lg1" x1="16" y1="16" x2="56" y2="56" gradientUnits="userSpaceOnUse">
                   <stop offset="0%" stopColor="#A78BFA" />
                   <stop offset="100%" stopColor="#7C5CFC" />
                 </linearGradient>
-                <linearGradient
-                  id="lg2"
-                  x1="20"
-                  y1="36"
-                  x2="52"
-                  y2="36"
-                  gradientUnits="userSpaceOnUse"
-                >
+                <linearGradient id="lg2" x1="20" y1="36" x2="52" y2="36" gradientUnits="userSpaceOnUse">
                   <stop offset="0%" stopColor="#FBB724" />
                   <stop offset="100%" stopColor="#F97316" />
                 </linearGradient>
@@ -141,9 +99,9 @@ export default function LoginPage() {
 
         {/* Card */}
         <motion.div
-          animate={shake ? { x: [-8, 8, -8, 8, 0] } : { opacity: 1, y: 0 }}
-          transition={shake ? { duration: 0.4 } : { duration: 0.65, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
           initial={{ opacity: 0, y: 32 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.65, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
           className="rounded-3xl p-6"
           style={{
             background: "var(--bg-surface)",
@@ -151,104 +109,62 @@ export default function LoginPage() {
           }}
         >
           <h2
-            className="text-lg font-semibold mb-5"
+            className="text-lg font-semibold mb-2"
             style={{ color: "var(--text-primary)" }}
           >
-            Masuk
+            Masuk ke Finara
           </h2>
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="Email kamu"
-              className="w-full px-4 py-3.5 rounded-2xl text-sm outline-none transition-all placeholder:opacity-40"
-              style={{
-                background: "var(--input-bg)",
-                color: "var(--text-primary)",
-                border: "1px solid var(--input-border)",
-              }}
-              onFocus={(e) =>
-                (e.target.style.borderColor = "rgba(124,92,252,0.6)")
-              }
-              onBlur={(e) =>
-                (e.target.style.borderColor = "var(--input-border)")
-              }
-            />
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                placeholder="Password"
-                className="w-full px-4 py-3.5 pr-12 rounded-2xl text-sm outline-none transition-all placeholder:opacity-40"
-                style={{
-                  background: "var(--input-bg)",
-                  color: "var(--text-primary)",
-                  border: "1px solid var(--input-border)",
-                }}
-                onFocus={(e) =>
-                  (e.target.style.borderColor = "rgba(124,92,252,0.6)")
-                }
-                onBlur={(e) =>
-                  (e.target.style.borderColor = "var(--input-border)")
-                }
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5"
-                style={{ color: "var(--text-muted)" }}
+          <p className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>
+            Gunakan akun Google kamu untuk masuk.
+          </p>
+
+          <AnimatePresence>
+            {hasError && (
+              <motion.p
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="text-xs px-1 mb-4"
+                style={{ color: "var(--danger)" }}
               >
-                {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-              </button>
-            </div>
+                Login gagal. Coba lagi atau hubungi support.
+              </motion.p>
+            )}
+          </AnimatePresence>
 
-            <AnimatePresence>
-              {error && (
-                <motion.p
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="text-xs px-1"
-                  style={{ color: "var(--danger)" }}
-                >
-                  {error}
-                </motion.p>
-              )}
-            </AnimatePresence>
-
-            <motion.button
-              type="submit"
-              disabled={loading}
-              whileTap={{ scale: 0.97 }}
-              className="w-full py-4 rounded-2xl text-sm font-bold text-black transition-opacity disabled:opacity-60 flex items-center justify-center gap-2 mt-2"
-              style={{
-                background: "linear-gradient(135deg, #FBB724 0%, #F97316 100%)",
-              }}
-            >
-              {loading ? <Loader2 size={16} className="animate-spin" /> : null}
-              {loading ? "Masuk..." : "Masuk"}
-            </motion.button>
-          </form>
-        </motion.div>
-
-        <p
-          className="text-center text-sm mt-5"
-          style={{ color: "var(--text-muted)" }}
-        >
-          Belum punya akun?{" "}
-          <Link
-            href="/register"
-            className="font-semibold"
-            style={{ color: "var(--accent-light)" }}
+          <motion.button
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            whileTap={{ scale: 0.97 }}
+            className="w-full py-3.5 rounded-2xl text-sm font-semibold flex items-center justify-center gap-3 transition-opacity disabled:opacity-60"
+            style={{
+              background: "#FFFFFF",
+              color: "#1F1F1F",
+              border: "1px solid #E0E0E0",
+            }}
           >
-            Daftar
-          </Link>
-        </p>
+            {loading ? (
+              <Loader2 size={16} className="animate-spin" style={{ color: "#1F1F1F" }} />
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
+                <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+                <path d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z" fill="#FBBC05"/>
+                <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.961L3.964 7.293C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+              </svg>
+            )}
+            {loading ? "Mengarahkan..." : "Masuk dengan Google"}
+          </motion.button>
+        </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginContent />
+    </Suspense>
   );
 }
