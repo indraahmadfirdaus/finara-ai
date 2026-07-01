@@ -1,6 +1,7 @@
 'use client'
 
 import { motion, AnimatePresence, type Transition, type TargetAndTransition } from 'framer-motion'
+import { useTheme } from '@/lib/theme'
 
 export type MascotState = 'idle' | 'wave' | 'worried' | 'angry' | 'excited' | 'happy'
 
@@ -15,13 +16,22 @@ export interface MascotOrbProps {
 
 const ORB_SIZE = 56  // px, matches w-14 h-14
 
-const GLOW: Record<MascotState, string> = {
-  idle:    'rgba(124,92,252,0.3)',
-  wave:    'rgba(124,92,252,0.6)',
-  worried: 'rgba(245,158,11,0.5)',
-  angry:   'rgba(239,68,68,0.5)',
-  excited: 'rgba(6,182,212,0.5)',
-  happy:   'rgba(34,197,94,0.5)',
+const GLOW_DARK: Record<MascotState, string> = {
+  idle:    'rgba(124,92,252,0.30)',
+  wave:    'rgba(124,92,252,0.55)',
+  worried: 'rgba(245,158,11,0.50)',
+  angry:   'rgba(239,68,68,0.50)',
+  excited: 'rgba(6,182,212,0.50)',
+  happy:   'rgba(34,197,94,0.50)',
+}
+
+const GLOW_LIGHT: Record<MascotState, string> = {
+  idle:    'rgba(124,92,252,0.12)',
+  wave:    'rgba(124,92,252,0.15)',
+  worried: 'rgba(245,158,11,0.15)',
+  angry:   'rgba(239,68,68,0.15)',
+  excited: 'rgba(6,182,212,0.15)',
+  happy:   'rgba(34,197,94,0.15)',
 }
 
 // Per-state body animations
@@ -53,7 +63,10 @@ const BUBBLE: Record<MascotState, string | null> = {
 }
 
 export default function MascotOrb({ state, showBubble, inline = false, size }: MascotOrbProps) {
+  const { theme } = useTheme()
   const orbSize = size ?? ORB_SIZE
+  const glowColor = theme === 'light' ? GLOW_LIGHT[state] : GLOW_DARK[state]
+  const glowSpread = theme === 'light' ? `0 0 10px 3px ${glowColor}` : `0 0 24px 6px ${glowColor}`
   return (
     <div
       className={inline ? 'pointer-events-none' : 'fixed z-40 pointer-events-none'}
@@ -108,28 +121,35 @@ export default function MascotOrb({ state, showBubble, inline = false, size }: M
             : state === 'excited'
             ? 'linear-gradient(135deg, #67E8F9 0%, #06B6D4 50%, #7C5CFC 100%)'
             : 'linear-gradient(135deg, #A78BFA 0%, #7C5CFC 100%)',
-          boxShadow: `0 0 24px 6px ${GLOW[state]}, inset 0 1px 0 rgba(255,255,255,0.18)`,
+          boxShadow: `${glowSpread}, inset 0 1px 0 rgba(255,255,255,0.18)`,
           position: 'relative',
           transition: 'box-shadow 0.5s ease, background 0.4s ease',
         }}
       >
-        <OrbFace state={state} />
+        <OrbFace state={state} orbSize={orbSize} />
       </motion.div>
     </div>
   )
 }
 
-function OrbFace({ state }: { state: MascotState }) {
+function OrbFace({ state, orbSize }: { state: MascotState; orbSize: number }) {
+  const scale = orbSize / ORB_SIZE
+  const faceW = Math.round(34 * scale)
+  const faceH = Math.round(18 * scale)
+  const faceBottom = Math.round(11 * scale)
+  const faceRadius = Math.round(6 * scale)
+  const eyeScale = scale
+
   return (
     <div
       style={{
         position: 'absolute',
-        bottom: 11,
+        bottom: faceBottom,
         left: '50%',
         transform: 'translateX(-50%)',
-        width: 34,
-        height: 18,
-        borderRadius: 6,
+        width: faceW,
+        height: faceH,
+        borderRadius: faceRadius,
         background: 'rgba(0,0,0,0.35)',
         display: 'flex',
         alignItems: 'center',
@@ -144,27 +164,30 @@ function OrbFace({ state }: { state: MascotState }) {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.7 }}
           transition={{ duration: 0.2 }}
-          style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+          style={{ display: 'flex', alignItems: 'center', gap: Math.round(6 * eyeScale) }}
         >
-          <Eyes state={state} />
+          <Eyes state={state} scale={eyeScale} />
         </motion.div>
       </AnimatePresence>
     </div>
   )
 }
 
-function Eyes({ state }: { state: MascotState }) {
+function Eyes({ state, scale = 1 }: { state: MascotState; scale?: number }) {
+  const dotSize = Math.max(3, Math.round(5 * scale))
+  const svgW = Math.round(22 * scale)
+
   if (state === 'idle') {
     return (
       <>
-        <BlinkDot />
-        <BlinkDot delay={0.3} />
+        <BlinkDot size={dotSize} />
+        <BlinkDot size={dotSize} delay={0.3} />
       </>
     )
   }
   if (state === 'wave' || state === 'happy') {
     return (
-      <svg width="22" height="8" viewBox="0 0 22 8" fill="none">
+      <svg width={svgW} height={Math.round(8 * scale)} viewBox="0 0 22 8" fill="none">
         <path d="M1 7 Q4 1 7 7" stroke="white" strokeWidth="1.8" strokeLinecap="round" fill="none" />
         <path d="M15 7 Q18 1 21 7" stroke="white" strokeWidth="1.8" strokeLinecap="round" fill="none" />
       </svg>
@@ -172,7 +195,7 @@ function Eyes({ state }: { state: MascotState }) {
   }
   if (state === 'worried' || state === 'angry') {
     return (
-      <svg width="22" height="10" viewBox="0 0 22 10" fill="none">
+      <svg width={svgW} height={Math.round(10 * scale)} viewBox="0 0 22 10" fill="none">
         {state === 'angry' && (
           <>
             <line x1="1" y1="1" x2="7" y2="3" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
@@ -186,7 +209,7 @@ function Eyes({ state }: { state: MascotState }) {
   }
   if (state === 'excited') {
     return (
-      <svg width="22" height="10" viewBox="0 0 22 10" fill="none">
+      <svg width={svgW} height={Math.round(10 * scale)} viewBox="0 0 22 10" fill="none">
         <text x="1" y="9" fontSize="8" fill="white">★</text>
         <text x="13" y="9" fontSize="8" fill="white">★</text>
       </svg>
@@ -195,10 +218,10 @@ function Eyes({ state }: { state: MascotState }) {
   return null
 }
 
-function BlinkDot({ delay = 0 }: { delay?: number }) {
+function BlinkDot({ size = 5, delay = 0 }: { size?: number; delay?: number }) {
   return (
     <motion.div
-      style={{ width: 5, height: 5, borderRadius: '50%', background: 'white' }}
+      style={{ width: size, height: size, borderRadius: '50%', background: 'white' }}
       animate={{ scaleY: [1, 0.1, 1] }}
       transition={{ duration: 0.15, repeat: Infinity, repeatDelay: 3.5 + delay, delay }}
     />

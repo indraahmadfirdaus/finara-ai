@@ -677,6 +677,13 @@ function InsightSection({ onInsightChange }: { onInsightChange: (state: MascotSt
 
 function MiniOrb({ state }: { state: 'angry' | 'happy' }) {
   const isAngry = state === 'angry'
+  const { theme } = useTheme()
+  const glowDark = isAngry ? 'rgba(239,68,68,0.50)' : 'rgba(34,197,94,0.50)'
+  const glowLight = isAngry ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)'
+  const glow = theme === 'light'
+    ? `0 0 10px 3px ${glowLight}`
+    : `0 0 12px 3px ${glowDark}`
+
   return (
     <motion.div
       animate={
@@ -696,7 +703,7 @@ function MiniOrb({ state }: { state: 'angry' | 'happy' }) {
         background: isAngry
           ? 'linear-gradient(135deg, #F87171 0%, #EF4444 100%)'
           : 'linear-gradient(135deg, #86EFAC 0%, #22C55E 50%, #7C5CFC 100%)',
-        boxShadow: `0 0 12px 2px ${isAngry ? 'rgba(239,68,68,0.5)' : 'rgba(34,197,94,0.5)'}`,
+        boxShadow: glow,
         position: 'relative',
         flexShrink: 0,
       }}
@@ -729,20 +736,21 @@ function CareSection() {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-60px' })
 
+  const { theme } = useTheme()
   const cards = [
     {
       state: 'angry' as const,
-      bg: 'rgba(239,68,68,0.05)',
-      border: 'var(--danger)',
-      shadow: 'rgba(239,68,68,0.15)',
+      bg: theme === 'light' ? 'rgba(239,68,68,0.04)' : 'rgba(239,68,68,0.05)',
+      border: theme === 'light' ? 'rgba(239,68,68,0.35)' : 'var(--danger)',
+      shadow: theme === 'light' ? 'rgba(239,68,68,0.08)' : 'rgba(239,68,68,0.15)',
       quote: '"Ini beneran ga diatur?? Udah 3x makan di restoran mahal minggu ini."',
       delay: 0,
     },
     {
       state: 'happy' as const,
-      bg: 'rgba(34,197,94,0.05)',
-      border: 'var(--success)',
-      shadow: 'rgba(34,197,94,0.15)',
+      bg: theme === 'light' ? 'rgba(34,197,94,0.04)' : 'rgba(34,197,94,0.05)',
+      border: theme === 'light' ? 'rgba(34,197,94,0.35)' : 'var(--success)',
+      shadow: theme === 'light' ? 'rgba(34,197,94,0.08)' : 'rgba(34,197,94,0.15)',
       quote: '"Wah, tabungan kamu naik bulan ini! Proud of you 🎉"',
       delay: 0.12,
     },
