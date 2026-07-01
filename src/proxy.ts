@@ -23,19 +23,21 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
   const { pathname } = request.nextUrl
 
   const isAuthPage = pathname.startsWith('/login')
   const isApiRoute = pathname.startsWith('/api/')
   const isAuthCallback = pathname.startsWith('/auth/')
-  // Public routes — no auth required
   const isPublic = pathname === '/' || pathname === '/support' || pathname === '/features' || isAuthPage || isApiRoute || isAuthCallback
 
   if (isApiRoute || isAuthCallback) return supabaseResponse
+
+  // Dev bypass — skip auth check entirely when NEXT_PUBLIC_DEV_BYPASS=true
+  if (process.env.NEXT_PUBLIC_DEV_BYPASS === 'true') return supabaseResponse
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   if (!user && !isPublic) {
     const url = request.nextUrl.clone()
