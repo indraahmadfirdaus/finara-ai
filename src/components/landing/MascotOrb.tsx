@@ -7,6 +7,10 @@ export type MascotState = 'idle' | 'wave' | 'worried' | 'angry' | 'excited' | 'h
 export interface MascotOrbProps {
   state: MascotState
   showBubble: boolean
+  /** When true, renders inline (relative) instead of fixed bottom-right */
+  inline?: boolean
+  /** Override orb size in px (default 56) */
+  size?: number
 }
 
 const ORB_SIZE = 56  // px, matches w-14 h-14
@@ -48,11 +52,15 @@ const BUBBLE: Record<MascotState, string | null> = {
   happy:   'Ayo! Gue udah nunggu nih 🎉',
 }
 
-export default function MascotOrb({ state, showBubble }: MascotOrbProps) {
+export default function MascotOrb({ state, showBubble, inline = false, size }: MascotOrbProps) {
+  const orbSize = size ?? ORB_SIZE
   return (
     <div
-      className="fixed z-40 pointer-events-none"
-      style={{ bottom: 24, right: 24, width: ORB_SIZE, height: ORB_SIZE }}
+      className={inline ? 'pointer-events-none' : 'fixed z-40 pointer-events-none'}
+      style={inline
+        ? { width: orbSize, height: orbSize, position: 'relative' }
+        : { bottom: 24, right: 24, width: orbSize, height: orbSize, position: 'fixed' }
+      }
     >
       {/* Bubble — appears above the orb */}
       <AnimatePresence mode="wait">
@@ -66,7 +74,7 @@ export default function MascotOrb({ state, showBubble }: MascotOrbProps) {
             className="absolute pointer-events-none"
             style={{
               bottom: 4,
-              right: ORB_SIZE + 10,
+              right: orbSize + 10,
               background: 'var(--bg-surface)',
               border: '1px solid var(--border)',
               borderRadius: 14,
@@ -90,8 +98,8 @@ export default function MascotOrb({ state, showBubble }: MascotOrbProps) {
         animate={BODY_ANIMATE[state]}
         transition={BODY_TRANSITION[state]}
         style={{
-          width: ORB_SIZE,
-          height: ORB_SIZE,
+          width: orbSize,
+          height: orbSize,
           borderRadius: '50%',
           background: state === 'angry'
             ? 'linear-gradient(135deg, #F87171 0%, #EF4444 100%)'

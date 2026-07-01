@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import InsightCard from './InsightCard'
+import MascotOrb from '@/components/landing/MascotOrb'
 import type { InsightCard as InsightCardType } from '@/lib/dashboard/insightTypes'
 
 type State = 'idle' | 'loading' | 'loaded' | 'error'
@@ -100,33 +101,7 @@ export default function InsightSection() {
             exit={{ opacity: 0, scale: 0.92, transition: { duration: 0.3 } }}
             className="flex flex-col items-center py-7 gap-4 px-4"
           >
-            <div className="relative w-[88px] h-[88px] flex items-center justify-center">
-              <div
-                className="absolute inset-0 rounded-full"
-                style={{
-                  background: 'radial-gradient(circle, rgba(124,92,252,0.25) 0%, transparent 70%)',
-                  animation: 'orbPulse 3s ease-in-out infinite',
-                }}
-              />
-              <div
-                className="absolute rounded-full"
-                style={{
-                  inset: -8,
-                  background: 'radial-gradient(circle, rgba(167,139,250,0.12) 0%, transparent 70%)',
-                  animation: 'orbPulse 3s ease-in-out infinite 0.8s',
-                }}
-              />
-              <div
-                className="relative z-10 w-[60px] h-[60px] rounded-full flex items-center justify-center text-xl"
-                style={{
-                  background: 'linear-gradient(135deg, #7C5CFC 0%, #A78BFA 55%, #6B46FC 100%)',
-                  boxShadow: '0 0 0 1px rgba(124,92,252,0.5), 0 10px 40px rgba(124,92,252,0.5), inset 0 1px 0 rgba(255,255,255,0.25)',
-                  animation: 'orbFloat 4s ease-in-out infinite',
-                }}
-              >
-                ✦
-              </div>
-            </div>
+            <MascotOrb state="idle" showBubble={false} inline size={72} />
 
             <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>
               Finara siap menganalisis keuanganmu
@@ -166,23 +141,12 @@ export default function InsightSection() {
               className="flex items-center gap-3 px-4 py-3"
               style={{ borderBottom: '1px solid var(--border-light)' }}
             >
-              <div
-                className="relative w-10 h-10 rounded-full flex items-center justify-center text-base flex-shrink-0"
-                style={{
-                  background: 'linear-gradient(135deg, #7C5CFC, #A78BFA)',
-                  boxShadow: '0 4px 16px rgba(124,92,252,0.4)',
-                }}
-              >
-                ✦
-                <div
-                  className="absolute rounded-full"
-                  style={{
-                    inset: -3,
-                    border: '1px solid rgba(124,92,252,0.35)',
-                    animation: 'ringPulse 2.5s ease-in-out infinite',
-                  }}
-                />
-              </div>
+              <MascotOrb
+                state={uiState === 'loading' ? 'excited' : 'happy'}
+                showBubble={false}
+                inline
+                size={40}
+              />
               <div className="flex-1">
                 <p className="text-[13px]" style={{ color: 'var(--text-primary)', fontWeight: 700 }}>
                   Insight Finara
@@ -255,20 +219,6 @@ export default function InsightSection() {
         )}
       </AnimatePresence>
 
-      <style>{`
-        @keyframes orbPulse {
-          0%, 100% { transform: scale(1); opacity: 0.9; }
-          50% { transform: scale(1.2); opacity: 0.3; }
-        }
-        @keyframes orbFloat {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-5px); }
-        }
-        @keyframes ringPulse {
-          0%, 100% { transform: scale(1); opacity: 0.7; }
-          50% { transform: scale(1.12); opacity: 0.2; }
-        }
-      `}</style>
     </div>
   )
 }

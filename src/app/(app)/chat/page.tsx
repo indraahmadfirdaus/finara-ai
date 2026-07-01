@@ -8,6 +8,7 @@ import ChatBubble, { type Message } from '@/components/chat/ChatBubble'
 import ChatInput from '@/components/chat/ChatInput'
 import HistoryDrawer from '@/components/chat/HistoryDrawer'
 import ImageOCR from '@/components/chat/ImageOCR'
+import MascotOrb from '@/components/landing/MascotOrb'
 import { createClient } from '@/lib/supabase/client'
 import { useSideNav } from '@/lib/sidenavContext'
 
@@ -34,22 +35,9 @@ function WelcomeMessage({ onHint }: { onHint: (h: string) => void }) {
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.1 }}
-        className="mb-5"
+        className="mb-3"
       >
-        <svg width="56" height="56" viewBox="0 0 72 72" fill="none">
-          <circle cx="36" cy="36" r="34" stroke="url(#wg1)" strokeWidth="5" />
-          <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="url(#wg1)" strokeWidth="5.5" strokeLinecap="round" fill="none" />
-          <path d="M20 44 Q27 34 36 42 Q45 50 52 40" stroke="url(#wg2)" strokeWidth="3.5" strokeLinecap="round" fill="none" opacity="0.6" />
-          <circle cx="36" cy="36" r="4.5" fill="url(#wg1)" />
-          <defs>
-            <linearGradient id="wg1" x1="16" y1="16" x2="56" y2="56" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#A78BFA" /><stop offset="100%" stopColor="#7C5CFC" />
-            </linearGradient>
-            <linearGradient id="wg2" x1="20" y1="36" x2="52" y2="36" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#FBB724" /><stop offset="100%" stopColor="#F97316" />
-            </linearGradient>
-          </defs>
-        </svg>
+        <MascotOrb state="wave" showBubble={false} inline size={72} />
       </motion.div>
       <h2 className="text-xl font-bold mb-1" style={{ color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
         Halo! Aku Finara 👋
@@ -302,16 +290,7 @@ export default function ChatPage() {
         >
           {/* Logo — hidden on desktop since sidebar shows it */}
           <div className="flex items-center gap-3 lg:hidden">
-            <svg width="28" height="28" viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="34" stroke="url(#hg1)" strokeWidth="2.5" />
-              <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="url(#hg1)" strokeWidth="3" strokeLinecap="round" fill="none" />
-              <circle cx="36" cy="36" r="3.5" fill="url(#hg1)" />
-              <defs>
-                <linearGradient id="hg1" x1="16" y1="16" x2="56" y2="56" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" stopColor="#A78BFA" /><stop offset="100%" stopColor="#7C5CFC" />
-                </linearGradient>
-              </defs>
-            </svg>
+            <MascotOrb state={loading ? 'excited' : 'idle'} showBubble={false} inline size={32} />
             <div>
               <p className="text-sm font-bold" style={{ color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>finara</p>
               <div className="flex items-center gap-1.5">

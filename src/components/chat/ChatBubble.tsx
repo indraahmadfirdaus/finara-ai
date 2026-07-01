@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { FileImage } from 'lucide-react'
 import StreamingText, { parseContent } from './StreamingText'
 import TypingIndicator from './TypingIndicator'
+import MascotOrb from '@/components/landing/MascotOrb'
 
 export interface Message {
   id: string
@@ -28,7 +29,6 @@ interface ChatBubbleProps {
 
 export default function ChatBubble({ message, userInitial = 'K' }: ChatBubbleProps) {
   const isUser = message.role === 'user'
-  const gid = `ba-${message.id}`
 
   // Determine if this assistant message has any card/table segments (rendered full-width outside bubble)
   const hasRichContent = useMemo(() => {
@@ -37,18 +37,13 @@ export default function ChatBubble({ message, userInitial = 'K' }: ChatBubblePro
   }, [isUser, message.isTyping, message.content])
 
   const avatar = !isUser && (
-    <div className="w-8 h-8 rounded-2xl flex items-center justify-center flex-shrink-0 mb-0.5 overflow-hidden">
-      <svg width="32" height="32" viewBox="0 0 72 72" fill="none">
-        <rect width="72" height="72" rx="16" fill="var(--accent-dim)" />
-        <circle cx="36" cy="36" r="28" stroke={`url(#${gid})`} strokeWidth="5" />
-        <path d="M22 38 Q29 28 36 36 Q43 44 50 34" stroke={`url(#${gid})`} strokeWidth="5.5" strokeLinecap="round" fill="none" />
-        <circle cx="36" cy="36" r="4.5" fill={`url(#${gid})`} />
-        <defs>
-          <linearGradient id={gid} x1="16" y1="16" x2="56" y2="56" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#A78BFA" /><stop offset="100%" stopColor="#7C5CFC" />
-          </linearGradient>
-        </defs>
-      </svg>
+    <div className="flex-shrink-0 mb-0.5">
+      <MascotOrb
+        state={message.isStreaming ? 'excited' : message.isTyping ? 'wave' : 'happy'}
+        showBubble={false}
+        inline
+        size={32}
+      />
     </div>
   )
 
