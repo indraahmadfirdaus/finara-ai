@@ -1,20 +1,12 @@
 'use client'
 
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, type Transition, type TargetAndTransition } from 'framer-motion'
 
 export type MascotState = 'idle' | 'wave' | 'worried' | 'angry' | 'excited' | 'happy'
-
-// Anchor point in viewport coordinates — set by parent via getBoundingClientRect
-export interface OrbAnchor {
-  x: number  // left edge of orb center
-  y: number  // top edge of orb center
-}
 
 export interface MascotOrbProps {
   state: MascotState
   showBubble: boolean
-  anchor: OrbAnchor
-  bubbleDirection?: 'left' | 'right'  // which side bubble appears
 }
 
 const ORB_SIZE = 56  // px, matches w-14 h-14
@@ -28,6 +20,25 @@ const GLOW: Record<MascotState, string> = {
   happy:   'rgba(34,197,94,0.5)',
 }
 
+// Per-state body animations
+const BODY_ANIMATE: Record<MascotState, TargetAndTransition> = {
+  idle:    { y: [0, -6, 0], x: 0, rotate: 0, scale: 1 },
+  wave:    { y: [0, -8, 0], x: 0, rotate: [-3, 3, -3, 0], scale: 1 },
+  worried: { y: [0, -3, 0], x: [-2, 2, -2, 0], rotate: [-2, 2, -2, 0], scale: 1 },
+  angry:   { y: [0, -2, 0, -2, 0], x: [-4, 4, -4, 4, 0], rotate: [-5, 5, -5, 5, 0], scale: [1, 1.04, 1, 1.04, 1] },
+  excited: { y: [0, -10, 0, -6, 0], x: 0, rotate: 0, scale: [1, 1.08, 1, 1.05, 1] },
+  happy:   { y: [0, -9, 0], x: 0, rotate: [0, 4, 0, -4, 0], scale: [1, 1.05, 1] },
+}
+
+const BODY_TRANSITION: Record<MascotState, Transition> = {
+  idle:    { duration: 3,   repeat: Infinity, ease: 'easeInOut' },
+  wave:    { duration: 1.2, repeat: Infinity, ease: 'easeInOut' },
+  worried: { duration: 1.8, repeat: Infinity, ease: 'easeInOut' },
+  angry:   { duration: 0.5, repeat: Infinity, ease: 'easeInOut', repeatType: 'loop' },
+  excited: { duration: 0.7, repeat: Infinity, ease: 'easeOut' },
+  happy:   { duration: 1.0, repeat: Infinity, ease: 'easeInOut' },
+}
+
 const BUBBLE: Record<MascotState, string | null> = {
   idle:    null,
   wave:    'Hei! Gue Finara, asisten keuangan kamu 👋',
@@ -37,41 +48,29 @@ const BUBBLE: Record<MascotState, string | null> = {
   happy:   'Ayo! Gue udah nunggu nih 🎉',
 }
 
-export default function MascotOrb({
-  state,
-  showBubble,
-  anchor,
-  bubbleDirection = 'left',
-}: MascotOrbProps) {
+export default function MascotOrb({ state, showBubble }: MascotOrbProps) {
   return (
-    <motion.div
+    <div
       className="fixed z-40 pointer-events-none"
-      // Anchor x,y is where we want the orb CENTER to be
-      animate={{ x: anchor.x - ORB_SIZE / 2, y: anchor.y - ORB_SIZE / 2 }}
-      transition={{ type: 'spring', stiffness: 80, damping: 18, mass: 1.2 }}
-      style={{ top: 0, left: 0, width: ORB_SIZE, height: ORB_SIZE }}
+      style={{ bottom: 24, right: 24, width: ORB_SIZE, height: ORB_SIZE }}
     >
-      {/* Bubble */}
-      <AnimatePresence>
+      {/* Bubble — appears above the orb */}
+      <AnimatePresence mode="wait">
         {showBubble && BUBBLE[state] && (
           <motion.div
             key={state}
-            initial={{ opacity: 0, scale: 0.85, x: bubbleDirection === 'left' ? 8 : -8 }}
-            animate={{ opacity: 1, scale: 1, x: 0 }}
-            exit={{ opacity: 0, scale: 0.85 }}
-            transition={{ type: 'spring', stiffness: 320, damping: 24 }}
+            initial={{ opacity: 0, y: 6, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.92 }}
+            transition={{ type: 'spring', stiffness: 340, damping: 26 }}
             className="absolute pointer-events-none"
             style={{
-              // Position bubble to the left or right of the orb
-              ...(bubbleDirection === 'left'
-                ? { right: ORB_SIZE + 8, top: '50%', transform: 'translateY(-50%)' }
-                : { left: ORB_SIZE + 8, top: '50%', transform: 'translateY(-50%)' }),
+              bottom: 4,
+              right: ORB_SIZE + 10,
               background: 'var(--bg-surface)',
               border: '1px solid var(--border)',
               borderRadius: 14,
-              ...(bubbleDirection === 'left'
-                ? { borderBottomRightRadius: 4 }
-                : { borderBottomLeftRadius: 4 }),
+              borderBottomRightRadius: 4,
               color: 'var(--text-primary)',
               fontSize: 12,
               lineHeight: 1.5,
@@ -88,21 +87,27 @@ export default function MascotOrb({
 
       {/* Orb body */}
       <motion.div
-        animate={{ y: [0, -6, 0] }}
-        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+        animate={BODY_ANIMATE[state]}
+        transition={BODY_TRANSITION[state]}
         style={{
           width: ORB_SIZE,
           height: ORB_SIZE,
           borderRadius: '50%',
-          background: 'linear-gradient(135deg, #A78BFA 0%, #7C5CFC 100%)',
+          background: state === 'angry'
+            ? 'linear-gradient(135deg, #F87171 0%, #EF4444 100%)'
+            : state === 'happy' || state === 'wave'
+            ? 'linear-gradient(135deg, #86EFAC 0%, #22C55E 50%, #7C5CFC 100%)'
+            : state === 'excited'
+            ? 'linear-gradient(135deg, #67E8F9 0%, #06B6D4 50%, #7C5CFC 100%)'
+            : 'linear-gradient(135deg, #A78BFA 0%, #7C5CFC 100%)',
           boxShadow: `0 0 24px 6px ${GLOW[state]}, inset 0 1px 0 rgba(255,255,255,0.18)`,
           position: 'relative',
-          transition: 'box-shadow 0.5s ease',
+          transition: 'box-shadow 0.5s ease, background 0.4s ease',
         }}
       >
         <OrbFace state={state} />
       </motion.div>
-    </motion.div>
+    </div>
   )
 }
 

@@ -1,9 +1,9 @@
 <svg width="32" height="32" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="72" height="72" rx="16" fill="#13111E"/>
-  <circle cx="36" cy="36" r="28" stroke="url(#fg1)" stroke-width="2.5"/>
-  <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="url(#fg1)" stroke-width="3" stroke-linecap="round" fill="none"/>
-  <path d="M20 44 Q27 34 36 42 Q45 50 52 40" stroke="url(#fg2)" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.55"/>
-  <circle cx="36" cy="36" r="3.5" fill="url(#fg1)"/>
+  <circle cx="36" cy="36" r="28" stroke="url(#fg1)" stroke-width="5"/>
+  <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="url(#fg1)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+  <path d="M20 44 Q27 34 36 42 Q45 50 52 40" stroke="url(#fg2)" stroke-width="3.5" stroke-linecap="round" fill="none" opacity="0.55"/>
+  <circle cx="36" cy="36" r="4.5" fill="url(#fg1)"/>
   <defs>
     <linearGradient id="fg1" x1="16" y1="16" x2="56" y2="56" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#A78BFA"/>

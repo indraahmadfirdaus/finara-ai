@@ -157,24 +157,24 @@ export default function AboutPage() {
               cy="36"
               r="28"
               stroke="url(#abg1)"
-              strokeWidth="2.5"
+              strokeWidth="5"
             />
             <path
               d="M20 38 Q27 28 36 36 Q45 44 52 34"
               stroke="url(#abg1)"
-              strokeWidth="3"
+              strokeWidth="5.5"
               strokeLinecap="round"
               fill="none"
             />
             <path
               d="M20 44 Q27 34 36 42 Q45 50 52 40"
               stroke="url(#abg2)"
-              strokeWidth="2"
+              strokeWidth="3.5"
               strokeLinecap="round"
               fill="none"
               opacity="0.55"
             />
-            <circle cx="36" cy="36" r="3.5" fill="url(#abg1)" />
+            <circle cx="36" cy="36" r="4.5" fill="url(#abg1)" />
             <defs>
               <linearGradient
                 id="abg1"

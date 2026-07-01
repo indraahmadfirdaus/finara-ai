@@ -37,10 +37,10 @@ function WelcomeMessage({ onHint }: { onHint: (h: string) => void }) {
         className="mb-5"
       >
         <svg width="56" height="56" viewBox="0 0 72 72" fill="none">
-          <circle cx="36" cy="36" r="34" stroke="url(#wg1)" strokeWidth="2" />
-          <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="url(#wg1)" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-          <path d="M20 44 Q27 34 36 42 Q45 50 52 40" stroke="url(#wg2)" strokeWidth="1.8" strokeLinecap="round" fill="none" opacity="0.6" />
-          <circle cx="36" cy="36" r="3.5" fill="url(#wg1)" />
+          <circle cx="36" cy="36" r="34" stroke="url(#wg1)" strokeWidth="5" />
+          <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="url(#wg1)" strokeWidth="5.5" strokeLinecap="round" fill="none" />
+          <path d="M20 44 Q27 34 36 42 Q45 50 52 40" stroke="url(#wg2)" strokeWidth="3.5" strokeLinecap="round" fill="none" opacity="0.6" />
+          <circle cx="36" cy="36" r="4.5" fill="url(#wg1)" />
           <defs>
             <linearGradient id="wg1" x1="16" y1="16" x2="56" y2="56" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stopColor="#A78BFA" /><stop offset="100%" stopColor="#7C5CFC" />

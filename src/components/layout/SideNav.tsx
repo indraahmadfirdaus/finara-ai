@@ -107,9 +107,9 @@ export default function SideNav() {
               className="flex items-center gap-3 flex-1 min-w-0 pl-1"
             >
               <svg width="30" height="30" viewBox="0 0 72 72" fill="none" className="flex-shrink-0">
-                <circle cx="36" cy="36" r="34" stroke="url(#sng)" strokeWidth="2.5" />
-                <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="url(#sng)" strokeWidth="3" strokeLinecap="round" fill="none" />
-                <circle cx="36" cy="36" r="3.5" fill="url(#sng)" />
+                <circle cx="36" cy="36" r="34" stroke="url(#sng)" strokeWidth="5" />
+                <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="url(#sng)" strokeWidth="5.5" strokeLinecap="round" fill="none" />
+                <circle cx="36" cy="36" r="4.5" fill="url(#sng)" />
                 <defs>
                   <linearGradient id="sng" x1="16" y1="16" x2="56" y2="56" gradientUnits="userSpaceOnUse">
                     <stop offset="0%" stopColor="#A78BFA" /><stop offset="100%" stopColor="#7C5CFC" />
@@ -131,9 +131,9 @@ export default function SideNav() {
         {collapsed && (
           <div className="flex-1 flex justify-center">
             <svg width="28" height="28" viewBox="0 0 72 72" fill="none">
-              <circle cx="36" cy="36" r="34" stroke="url(#sng2)" strokeWidth="2.5" />
-              <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="url(#sng2)" strokeWidth="3" strokeLinecap="round" fill="none" />
-              <circle cx="36" cy="36" r="3.5" fill="url(#sng2)" />
+              <circle cx="36" cy="36" r="34" stroke="url(#sng2)" strokeWidth="5" />
+              <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="url(#sng2)" strokeWidth="5.5" strokeLinecap="round" fill="none" />
+              <circle cx="36" cy="36" r="4.5" fill="url(#sng2)" />
               <defs>
                 <linearGradient id="sng2" x1="16" y1="16" x2="56" y2="56" gradientUnits="userSpaceOnUse">
                   <stop offset="0%" stopColor="#A78BFA" /><stop offset="100%" stopColor="#7C5CFC" />

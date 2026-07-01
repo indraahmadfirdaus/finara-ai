@@ -773,9 +773,9 @@ export default function FeaturesPage() {
           className="flex items-center gap-2.5"
         >
           <svg width="26" height="26" viewBox="0 0 72 72" fill="none">
-            <circle cx="36" cy="36" r="34" stroke="url(#fn1)" strokeWidth="2.5" />
-            <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="url(#fn1)" strokeWidth="3" strokeLinecap="round" fill="none" />
-            <circle cx="36" cy="36" r="3.5" fill="url(#fn1)" />
+            <circle cx="36" cy="36" r="34" stroke="url(#fn1)" strokeWidth="5" />
+            <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="url(#fn1)" strokeWidth="5.5" strokeLinecap="round" fill="none" />
+            <circle cx="36" cy="36" r="4.5" fill="url(#fn1)" />
             <defs>
               <linearGradient id="fn1" x1="16" y1="16" x2="56" y2="56" gradientUnits="userSpaceOnUse">
                 <stop stopColor="#A78BFA" /><stop offset="1" stopColor="#7C5CFC" />
@@ -971,9 +971,9 @@ export default function FeaturesPage() {
       >
         <div className="flex items-center gap-2">
           <svg width="16" height="16" viewBox="0 0 72 72" fill="none">
-            <circle cx="36" cy="36" r="34" stroke="var(--accent)" strokeWidth="2.5" />
-            <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="var(--accent)" strokeWidth="3" strokeLinecap="round" fill="none" />
-            <circle cx="36" cy="36" r="3.5" fill="var(--accent)" />
+            <circle cx="36" cy="36" r="34" stroke="var(--accent)" strokeWidth="5" />
+            <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="var(--accent)" strokeWidth="5.5" strokeLinecap="round" fill="none" />
+            <circle cx="36" cy="36" r="4.5" fill="var(--accent)" />
           </svg>
           <span className="text-xs font-semibold" style={{ color: 'var(--text-muted)' }}>finara · v1.0 Beta</span>
         </div>

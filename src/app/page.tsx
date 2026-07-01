@@ -216,24 +216,11 @@ function ChatDemo() {
           style={{ background: "var(--accent-dim)" }}
         >
           <svg width="16" height="16" viewBox="0 0 72 72" fill="none">
-            <circle cx="36" cy="36" r="28" stroke="url(#dlg)" strokeWidth="3" />
-            <path
-              d="M22 38 Q29 28 36 36 Q43 44 50 34"
-              stroke="url(#dlg)"
-              strokeWidth="3"
-              strokeLinecap="round"
-              fill="none"
-            />
-            <circle cx="36" cy="36" r="3" fill="url(#dlg)" />
+            <circle cx="36" cy="36" r="28" stroke="url(#dlg)" strokeWidth="5" />
+            <path d="M22 38 Q29 28 36 36 Q43 44 50 34" stroke="url(#dlg)" strokeWidth="5.5" strokeLinecap="round" fill="none" />
+            <circle cx="36" cy="36" r="4.5" fill="url(#dlg)" />
             <defs>
-              <linearGradient
-                id="dlg"
-                x1="16"
-                y1="16"
-                x2="56"
-                y2="56"
-                gradientUnits="userSpaceOnUse"
-              >
+              <linearGradient id="dlg" x1="16" y1="16" x2="56" y2="56" gradientUnits="userSpaceOnUse">
                 <stop stopColor="#A78BFA" />
                 <stop offset="1" stopColor="#7C5CFC" />
               </linearGradient>
@@ -348,21 +335,9 @@ function ChatDemo() {
                 style={{ background: "var(--accent-dim)" }}
               >
                 <svg width="12" height="12" viewBox="0 0 72 72" fill="none">
-                  <circle
-                    cx="36"
-                    cy="36"
-                    r="28"
-                    stroke="#A78BFA"
-                    strokeWidth="4"
-                  />
-                  <path
-                    d="M22 38 Q29 28 36 36 Q43 44 50 34"
-                    stroke="#A78BFA"
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                  <circle cx="36" cy="36" r="4" fill="#A78BFA" />
+                  <circle cx="36" cy="36" r="28" stroke="#A78BFA" strokeWidth="5" />
+                  <path d="M22 38 Q29 28 36 36 Q43 44 50 34" stroke="#A78BFA" strokeWidth="5.5" strokeLinecap="round" fill="none" />
+                  <circle cx="36" cy="36" r="4.5" fill="#A78BFA" />
                 </svg>
               </div>
               <div
@@ -418,30 +393,32 @@ function ChatDemo() {
 }
 
 
-const INSIGHTS: Array<{ text: string; mascot: MascotState; chartType: 'bar' | 'line' | 'donut' }> = [
+const INSIGHTS: Array<{ text: string; mascot: MascotState; chart: 'spending-bar' | 'goal-donut' | 'budget-line' }> = [
   {
     text: 'Wah, pengeluaran kamu minggu ini naik 23% dari biasanya. Terbanyak di Makanan. Hati-hati ya! 👀',
     mascot: 'worried',
-    chartType: 'bar',
+    chart: 'spending-bar',
   },
   {
     text: 'Goal Liburan Bali kamu udah 60%! Tinggal Rp 2 juta lagi. Semangat! 🎯',
     mascot: 'excited',
-    chartType: 'donut',
+    chart: 'goal-donut',
   },
   {
     text: 'Budget Transportasi masih aman, sisa 58%. Kamu lagi hemat nih! ✅',
     mascot: 'happy',
-    chartType: 'line',
+    chart: 'budget-line',
   },
 ]
 
-function InsightChart({ type, inView }: { type: 'bar' | 'line' | 'donut'; inView: boolean }) {
-  if (type === 'bar') {
-    const bars = [40, 52, 45, 50, 55, 62, 90]
-    return (
-      <div className="flex items-end gap-1.5" style={{ height: 52 }}>
-        {bars.map((h, i) => (
+// Slide 1: pengeluaran harian minggu ini — bar Minggu spike merah
+function SpendingBarChart() {
+  const days = ['Sen','Sel','Rab','Kam','Jum','Sab','Min']
+  const vals =  [42,    55,   48,   50,   58,   65,   90 ]
+  return (
+    <div>
+      <div className="flex items-end gap-1.5" style={{ height: 44 }}>
+        {vals.map((h, i) => (
           <motion.div
             key={i}
             initial={{ scaleY: 0 }}
@@ -450,97 +427,18 @@ function InsightChart({ type, inView }: { type: 'bar' | 'line' | 'donut'; inView
             style={{
               flex: 1,
               height: `${h}%`,
-              borderRadius: 4,
+              borderRadius: '3px 3px 2px 2px',
               background: i === 6 ? 'var(--danger)' : 'var(--bg-elevated)',
-              border: `1px solid ${i === 6 ? 'rgba(239,68,68,0.4)' : 'var(--border-light)'}`,
+              border: `1px solid ${i === 6 ? 'rgba(239,68,68,0.35)' : 'var(--border-light)'}`,
               transformOrigin: 'bottom',
             }}
           />
         ))}
       </div>
-    )
-  }
-
-  if (type === 'line') {
-    // Points going down = hemat makin lama
-    const pts = [[0,40],[1,35],[2,42],[3,30],[4,25],[5,18],[6,12]]
-    const W = 240, H = 52
-    const sx = (x: number) => (x / 6) * W
-    const sy = (y: number) => (y / 100) * H
-    const d = pts.map(([x,y], i) => `${i===0?'M':'L'}${sx(x)},${sy(y)}`).join(' ')
-    const fill = `${d} L${sx(6)},${H} L${sx(0)},${H} Z`
-    return (
-      <div style={{ height: 52 }}>
-        <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="linegrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--success)" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="var(--success)" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-          <motion.path
-            d={fill}
-            fill="url(#linegrad)"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-          />
-          <motion.path
-            d={d}
-            fill="none"
-            stroke="var(--success)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 0.8, ease: 'easeInOut' }}
-          />
-          {pts.map(([x,y], i) => (
-            <motion.circle
-              key={i}
-              cx={sx(x)} cy={sy(y)} r={3}
-              fill="var(--success)"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.08 * i + 0.4, duration: 0.2 }}
-            />
-          ))}
-        </svg>
-      </div>
-    )
-  }
-
-  // donut — 60% progress
-  const pct = 0.6
-  const R = 20, cx = 26, cy = 26
-  const circ = 2 * Math.PI * R
-  return (
-    <div className="flex items-center gap-4" style={{ height: 52 }}>
-      <svg width={52} height={52}>
-        <circle cx={cx} cy={cy} r={R} fill="none" stroke="var(--bg-elevated)" strokeWidth={6} />
-        <motion.circle
-          cx={cx} cy={cy} r={R}
-          fill="none"
-          stroke="var(--accent)"
-          strokeWidth={6}
-          strokeLinecap="round"
-          strokeDasharray={circ}
-          initial={{ strokeDashoffset: circ }}
-          animate={{ strokeDashoffset: circ * (1 - pct) }}
-          transition={{ duration: 0.8, ease: 'easeInOut' }}
-          style={{ transform: 'rotate(-90deg)', transformOrigin: `${cx}px ${cy}px` }}
-        />
-        <text x={cx} y={cy + 4} textAnchor="middle" fontSize={9} fill="var(--accent)" fontWeight={700}>60%</text>
-      </svg>
-      <div className="flex flex-col gap-1.5 flex-1">
-        {[
-          { label: 'Terkumpul', val: 'Rp 3jt', color: 'var(--accent)' },
-          { label: 'Sisa', val: 'Rp 2jt', color: 'var(--text-muted)' },
-        ].map(({ label, val, color }) => (
-          <div key={label} className="flex items-center justify-between">
-            <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{label}</span>
-            <span style={{ fontSize: 10, fontWeight: 700, color }}>{val}</span>
+      <div className="flex gap-1.5 mt-1">
+        {days.map((d, i) => (
+          <div key={i} style={{ flex: 1, textAlign: 'center', fontSize: 9, color: i === 6 ? 'var(--danger)' : 'var(--text-muted)', fontWeight: i === 6 ? 700 : 400 }}>
+            {d}
           </div>
         ))}
       </div>
@@ -548,10 +446,104 @@ function InsightChart({ type, inView }: { type: 'bar' | 'line' | 'donut'; inView
   )
 }
 
+// Slide 2: goal progress donut — Liburan Bali 60%
+function GoalDonutChart() {
+  const pct = 0.6
+  const R = 18, CX = 24, CY = 24
+  const circ = 2 * Math.PI * R
+  return (
+    <div className="flex items-center gap-4">
+      <svg width={48} height={48} style={{ flexShrink: 0 }}>
+        <circle cx={CX} cy={CY} r={R} fill="none" stroke="var(--bg-elevated)" strokeWidth={6} />
+        <motion.circle
+          cx={CX} cy={CY} r={R}
+          fill="none" stroke="var(--accent)" strokeWidth={6} strokeLinecap="round"
+          strokeDasharray={circ}
+          initial={{ strokeDashoffset: circ }}
+          animate={{ strokeDashoffset: circ * (1 - pct) }}
+          transition={{ duration: 0.9, ease: 'easeInOut' }}
+          style={{ transform: 'rotate(-90deg)', transformOrigin: `${CX}px ${CY}px` }}
+        />
+        <text x={CX} y={CY + 4} textAnchor="middle" fontSize={8} fill="var(--accent)" fontWeight={700}>60%</text>
+      </svg>
+      <div className="flex flex-col gap-2 flex-1">
+        <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-primary)' }}>Liburan Bali 🏖️</p>
+        <div style={{ height: 4, borderRadius: 2, background: 'var(--bg-elevated)', overflow: 'hidden' }}>
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: '60%' }}
+            transition={{ duration: 0.9, ease: 'easeInOut' }}
+            style={{ height: '100%', background: 'var(--accent)', borderRadius: 2 }}
+          />
+        </div>
+        <div className="flex justify-between">
+          <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>Rp 3jt terkumpul</span>
+          <span style={{ fontSize: 9, color: 'var(--accent)', fontWeight: 700 }}>target Rp 5jt</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Slide 3: budget transportasi tren turun tiap minggu — line chart hijau
+function BudgetLineChart() {
+  const weeks = ['M1', 'M2', 'M3', 'M4']
+  const vals =  [85,   70,   60,   42  ]  // spending turun, budget 100
+  const W = 220, H = 44
+  const sx = (i: number) => (i / (vals.length - 1)) * W
+  const sy = (v: number) => H - (v / 100) * H
+  const linePath = vals.map((v, i) => `${i === 0 ? 'M' : 'L'}${sx(i)},${sy(v)}`).join(' ')
+  const fillPath = `${linePath} L${sx(vals.length - 1)},${H} L${sx(0)},${H} Z`
+  return (
+    <div>
+      <div style={{ position: 'relative', height: H }}>
+        {/* Budget limit dashed */}
+        <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ position: 'absolute', inset: 0 }}>
+          <line x1={0} y1={1} x2={W} y2={1} stroke="var(--border)" strokeWidth={1} strokeDasharray="4 3" />
+        </svg>
+        <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="budgetgrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--success)" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="var(--success)" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <motion.path d={fillPath} fill="url(#budgetgrad)" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} />
+          <motion.path
+            d={linePath} fill="none" stroke="var(--success)" strokeWidth="2.5"
+            strokeLinecap="round" strokeLinejoin="round"
+            initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
+            transition={{ duration: 0.8, ease: 'easeInOut' }}
+          />
+          {vals.map((v, i) => (
+            <motion.circle key={i} cx={sx(i)} cy={sy(v)} r={3.5} fill="var(--success)"
+              initial={{ scale: 0 }} animate={{ scale: 1 }}
+              transition={{ delay: 0.15 * i + 0.5, duration: 0.2 }}
+            />
+          ))}
+        </svg>
+      </div>
+      <div className="flex justify-between mt-1">
+        {weeks.map((w, i) => (
+          <span key={i} style={{ fontSize: 9, color: i === weeks.length - 1 ? 'var(--success)' : 'var(--text-muted)', fontWeight: i === weeks.length - 1 ? 700 : 400 }}>{w}</span>
+        ))}
+        <span style={{ fontSize: 9, color: 'var(--text-muted)', fontStyle: 'italic' }}>limit</span>
+      </div>
+    </div>
+  )
+}
+
+function InsightChart({ chart }: { chart: 'spending-bar' | 'goal-donut' | 'budget-line' }) {
+  if (chart === 'spending-bar') return <SpendingBarChart />
+  if (chart === 'goal-donut') return <GoalDonutChart />
+  return <BudgetLineChart />
+}
+
 function InsightSection({ onInsightChange }: { onInsightChange: (state: MascotState) => void }) {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-60px' })
   const [activeIdx, setActiveIdx] = useState(0)
+  const activeIdxRef = useRef(0)
   const onInsightChangeRef = useRef(onInsightChange)
   onInsightChangeRef.current = onInsightChange
 
@@ -559,11 +551,9 @@ function InsightSection({ onInsightChange }: { onInsightChange: (state: MascotSt
     if (!inView) return
     onInsightChangeRef.current(INSIGHTS[0].mascot)
     const interval = setInterval(() => {
-      setActiveIdx((prev) => {
-        const next = (prev + 1) % INSIGHTS.length
-        onInsightChangeRef.current(INSIGHTS[next].mascot)
-        return next
-      })
+      setActiveIdx((prev) => (prev + 1) % INSIGHTS.length)
+      activeIdxRef.current = (activeIdxRef.current + 1) % INSIGHTS.length
+      onInsightChangeRef.current(INSIGHTS[activeIdxRef.current].mascot)
     }, 3000)
     return () => clearInterval(interval)
   }, [inView])
@@ -638,7 +628,7 @@ function InsightSection({ onInsightChange }: { onInsightChange: (state: MascotSt
               >
                 {/* Chart for this slide */}
                 <div className="mb-4">
-                  <InsightChart type={INSIGHTS[activeIdx].chartType} inView={inView} />
+                  <InsightChart chart={INSIGHTS[activeIdx].chart} />
                 </div>
 
                 {/* Insight text */}
@@ -688,12 +678,24 @@ function InsightSection({ onInsightChange }: { onInsightChange: (state: MascotSt
 function MiniOrb({ state }: { state: 'angry' | 'happy' }) {
   const isAngry = state === 'angry'
   return (
-    <div
+    <motion.div
+      animate={
+        isAngry
+          ? { x: [-3, 3, -3, 3, 0], rotate: [-4, 4, -4, 4, 0], scale: [1, 1.05, 1, 1.05, 1] }
+          : { y: [0, -5, 0], rotate: [0, 3, 0, -3, 0], scale: [1, 1.04, 1] }
+      }
+      transition={
+        isAngry
+          ? { duration: 0.45, repeat: Infinity, ease: 'easeInOut' }
+          : { duration: 1.0, repeat: Infinity, ease: 'easeInOut' }
+      }
       style={{
         width: 32,
         height: 32,
         borderRadius: '50%',
-        background: 'linear-gradient(135deg, #A78BFA 0%, #7C5CFC 100%)',
+        background: isAngry
+          ? 'linear-gradient(135deg, #F87171 0%, #EF4444 100%)'
+          : 'linear-gradient(135deg, #86EFAC 0%, #22C55E 50%, #7C5CFC 100%)',
         boxShadow: `0 0 12px 2px ${isAngry ? 'rgba(239,68,68,0.5)' : 'rgba(34,197,94,0.5)'}`,
         position: 'relative',
         flexShrink: 0,
@@ -719,7 +721,7 @@ function MiniOrb({ state }: { state: 'angry' | 'happy' }) {
           </svg>
         )}
       </div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -1036,30 +1038,11 @@ export default function LandingPage() {
       >
         <div className="flex items-center gap-2.5">
           <svg width="26" height="26" viewBox="0 0 72 72" fill="none">
-            <circle
-              cx="36"
-              cy="36"
-              r="34"
-              stroke="url(#navg)"
-              strokeWidth="2.5"
-            />
-            <path
-              d="M20 38 Q27 28 36 36 Q45 44 52 34"
-              stroke="url(#navg)"
-              strokeWidth="3"
-              strokeLinecap="round"
-              fill="none"
-            />
-            <circle cx="36" cy="36" r="3.5" fill="url(#navg)" />
+            <circle cx="36" cy="36" r="34" stroke="url(#navg)" strokeWidth="5" />
+            <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="url(#navg)" strokeWidth="5.5" strokeLinecap="round" fill="none" />
+            <circle cx="36" cy="36" r="4.5" fill="url(#navg)" />
             <defs>
-              <linearGradient
-                id="navg"
-                x1="16"
-                y1="16"
-                x2="56"
-                y2="56"
-                gradientUnits="userSpaceOnUse"
-              >
+              <linearGradient id="navg" x1="16" y1="16" x2="56" y2="56" gradientUnits="userSpaceOnUse">
                 <stop stopColor="#A78BFA" />
                 <stop offset="1" stopColor="#7C5CFC" />
               </linearGradient>
@@ -1321,21 +1304,9 @@ export default function LandingPage() {
       >
         <div className="flex items-center gap-2">
           <svg width="16" height="16" viewBox="0 0 72 72" fill="none">
-            <circle
-              cx="36"
-              cy="36"
-              r="34"
-              stroke="var(--accent)"
-              strokeWidth="2.5"
-            />
-            <path
-              d="M20 38 Q27 28 36 36 Q45 44 52 34"
-              stroke="var(--accent)"
-              strokeWidth="3"
-              strokeLinecap="round"
-              fill="none"
-            />
-            <circle cx="36" cy="36" r="3.5" fill="var(--accent)" />
+            <circle cx="36" cy="36" r="34" stroke="var(--accent)" strokeWidth="5" />
+            <path d="M20 38 Q27 28 36 36 Q45 44 52 34" stroke="var(--accent)" strokeWidth="5.5" strokeLinecap="round" fill="none" />
+            <circle cx="36" cy="36" r="4.5" fill="var(--accent)" />
           </svg>
           <span
             className="text-xs font-semibold"
