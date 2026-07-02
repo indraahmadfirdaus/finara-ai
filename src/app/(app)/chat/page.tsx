@@ -143,6 +143,7 @@ export default function ChatPage() {
         .from('chat_history')
         .select('id, role, content, created_at')
         .eq('session_id', existing)
+        .in('role', ['user', 'assistant'])
         .order('created_at', { ascending: true })
         .limit(200)
         .then(({ data }) => {

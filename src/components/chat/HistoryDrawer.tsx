@@ -80,6 +80,7 @@ export default function HistoryDrawer({ open, onClose, onRestore }: HistoryDrawe
       .from('chat_history')
       .select('id, role, content, created_at, session_id')
       .is('deleted_at', null)
+      .in('role', ['user', 'assistant'])
       .order('created_at', { ascending: true })
       .limit(400)
       .then(({ data }) => {
@@ -176,14 +177,23 @@ export default function HistoryDrawer({ open, onClose, onRestore }: HistoryDrawe
                       {s.preview || '(kosong)'}
                     </p>
                   </button>
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.88 }}
                     onClick={(e) => handleDeleteSession(s.session_id, e)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity p-2 mr-2 rounded-lg flex-shrink-0"
+                    className="p-2 mr-2 rounded-lg flex-shrink-0 transition-colors"
                     style={{ color: 'var(--text-muted)' }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = 'var(--danger)'
+                      e.currentTarget.style.background = 'rgba(239,68,68,0.10)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = 'var(--text-muted)'
+                      e.currentTarget.style.background = 'transparent'
+                    }}
                     title="Hapus sesi"
                   >
                     <Trash2 size={13} />
-                  </button>
+                  </motion.button>
                 </div>
               ))}
             </div>
