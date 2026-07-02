@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
   const { data, error } = await supabase
     .from('budgets')
     .upsert(
-      { user_id: user.id, category: parsed.data.category, limit_amount: parsed.data.limit_amount, month },
+      { user_id: user.id, category: parsed.data.category, limit_amount: parsed.data.limit_amount, month, source: 'manual' },
       { onConflict: 'user_id,category,month' }
     )
     .select()

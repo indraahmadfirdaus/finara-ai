@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
   const { data, error } = await supabase
     .from('assets')
-    .insert({ ...parsed.data, value: Math.round(parsed.data.value), user_id: user.id })
+    .insert({ ...parsed.data, value: Math.round(parsed.data.value), user_id: user.id, source: 'manual' })
     .select()
     .single()
 

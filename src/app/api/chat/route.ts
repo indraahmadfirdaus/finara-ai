@@ -149,7 +149,7 @@ async function executeTool(
       const { amount, type, category, note, date } = args as AddTransactionArgs
       const { data, error } = await supabase
         .from('transactions')
-        .insert({ user_id: userId, amount, type, category, note, date: date ?? getTodayKey() })
+        .insert({ user_id: userId, amount, type, category, note, date: date ?? getTodayKey(), source: 'chat' })
         .select()
         .single()
       if (error) throw new Error(error.message)
@@ -227,7 +227,7 @@ async function executeTool(
       const { data, error } = await supabase
         .from('budgets')
         .upsert(
-          { user_id: userId, category, limit_amount, month: m },
+          { user_id: userId, category, limit_amount, month: m, source: 'chat' },
           { onConflict: 'user_id,category,month' }
         )
         .select()
@@ -276,7 +276,7 @@ async function executeTool(
       const { name, target_amount, deadline } = args as AddGoalArgs
       const { data, error } = await supabase
         .from('goals')
-        .insert({ user_id: userId, name, target_amount, deadline })
+        .insert({ user_id: userId, name, target_amount, deadline, source: 'chat' })
         .select()
         .single()
       if (error) throw new Error(error.message)
@@ -318,7 +318,7 @@ async function executeTool(
       const { person, amount, type, note } = args as AddDebtArgs
       const { data, error } = await supabase
         .from('debts')
-        .insert({ user_id: userId, person, amount, type, note })
+        .insert({ user_id: userId, person, amount, type, note, source: 'chat' })
         .select()
         .single()
       if (error) throw new Error(error.message)
@@ -380,7 +380,7 @@ async function executeTool(
       const { name, type, value, institution, note } = args as AddAssetArgs
       const { data, error } = await supabase
         .from('assets')
-        .insert({ user_id: userId, name, type, value: Math.round(value), institution, note })
+        .insert({ user_id: userId, name, type, value: Math.round(value), institution, note, source: 'chat' })
         .select()
         .single()
       if (error) throw new Error(error.message)

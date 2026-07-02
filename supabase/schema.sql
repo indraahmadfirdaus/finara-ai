@@ -13,6 +13,7 @@ create table if not exists transactions (
   category text not null,
   note text,
   date date not null default current_date,
+  source text check (source in ('chat', 'manual')),
   created_at timestamptz default now(),
   deleted_at timestamptz
 );
@@ -27,6 +28,7 @@ create table if not exists budgets (
   category text not null,
   limit_amount bigint not null,
   month text not null,
+  source text check (source in ('chat', 'manual')),
   created_at timestamptz default now(),
   deleted_at timestamptz,
   unique(user_id, category, month)
@@ -43,6 +45,7 @@ create table if not exists goals (
   target_amount bigint not null,
   current_amount bigint default 0,
   deadline date,
+  source text check (source in ('chat', 'manual')),
   created_at timestamptz default now(),
   deleted_at timestamptz
 );
@@ -60,6 +63,7 @@ create table if not exists debts (
   note text,
   settled boolean default false,
   settled_at timestamptz,
+  source text check (source in ('chat', 'manual')),
   created_at timestamptz default now()
 );
 alter table debts enable row level security;
@@ -102,6 +106,7 @@ create table if not exists assets (
   institution text,
   value       bigint not null default 0,
   note        text,
+  source      text check (source in ('chat', 'manual')),
   created_at  timestamptz default now(),
   updated_at  timestamptz default now(),
   deleted_at  timestamptz
