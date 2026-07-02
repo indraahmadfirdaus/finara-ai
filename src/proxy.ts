@@ -13,8 +13,9 @@ export async function proxy(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
+          // Must set on both request and supabaseResponse so refreshed tokens
+          // are forwarded to the browser — do NOT create a new NextResponse here.
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           )
@@ -39,13 +40,22 @@ export async function proxy(request: NextRequest) {
   if (!user && !isPublic) {
     const url = request.nextUrl.clone()
     url.pathname = '/'
-    return NextResponse.redirect(url)
+    const redirectResponse = NextResponse.redirect(url)
+    // Copy refreshed session cookies onto the redirect so they aren't lost
+    supabaseResponse.cookies.getAll().forEach(({ name, value, ...options }) =>
+      redirectResponse.cookies.set(name, value, options)
+    )
+    return redirectResponse
   }
 
   if (user && isAuthPage) {
     const url = request.nextUrl.clone()
     url.pathname = '/chat'
-    return NextResponse.redirect(url)
+    const redirectResponse = NextResponse.redirect(url)
+    supabaseResponse.cookies.getAll().forEach(({ name, value, ...options }) =>
+      redirectResponse.cookies.set(name, value, options)
+    )
+    return redirectResponse
   }
 
   return supabaseResponse
