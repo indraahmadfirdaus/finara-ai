@@ -6,6 +6,7 @@ import { formatIDR } from '@/lib/utils/currency'
 import { Plus, X, Loader2, Target, CheckCircle } from 'lucide-react'
 import TopBar from '@/components/layout/TopBar'
 import PageTransition from '@/components/layout/PageTransition'
+import MobileFAB from '@/components/layout/MobileFAB'
 import ProgressBar from '@/components/shared/ProgressBar'
 import SkeletonLoader from '@/components/shared/SkeletonLoader'
 import EmptyState from '@/components/shared/EmptyState'
@@ -79,20 +80,7 @@ export default function GoalsPage() {
 
   return (
     <PageTransition>
-      <TopBar
-        title="Goals"
-        action={
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-white"
-            style={{ background: 'var(--accent)' }}
-          >
-            <Plus size={14} />
-            Tambah
-          </motion.button>
-        }
-      />
+      <TopBar title="Goals" />
 
       {/* Desktop page header */}
       <div className="hidden lg:flex items-center justify-between px-6 py-5" style={{ borderBottom: '1px solid var(--border-light)' }}>
@@ -173,7 +161,7 @@ export default function GoalsPage() {
                       <motion.button
                         whileTap={{ scale: 0.9 }}
                         onClick={() => setDepositGoalId(g.id)}
-                        className="text-xs px-3 py-1.5 rounded-lg font-medium"
+                        className="text-xs px-3 py-2 rounded-lg font-medium"
                         style={{ background: 'var(--accent-dim)', color: 'var(--accent-light)' }}
                       >
                         Setor dana
@@ -187,6 +175,8 @@ export default function GoalsPage() {
         )}
       </div>
 
+      <MobileFAB onClick={() => setShowForm(true)} label="Tambah Goal" />
+
       {/* Modals */}
       <AnimatePresence>
         {showForm && (
@@ -196,10 +186,10 @@ export default function GoalsPage() {
               onClick={() => setShowForm(false)} />
             <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="fixed bottom-20 left-4 right-4 z-50 rounded-2xl p-5"
-              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
+              className="fixed bottom-20 left-4 right-4 z-50 rounded-2xl p-5 max-h-[85dvh] overflow-y-auto"
+              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))' }}>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Tambah Goal</h3>
+                <h3 className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>Tambah Goal</h3>
                 <button onClick={() => setShowForm(false)} style={{ color: 'var(--text-muted)' }}><X size={18} /></button>
               </div>
               <div className="space-y-3">
@@ -230,10 +220,10 @@ export default function GoalsPage() {
               onClick={() => setDepositGoalId(null)} />
             <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="fixed bottom-20 left-4 right-4 z-50 rounded-2xl p-5"
-              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
+              className="fixed bottom-20 left-4 right-4 z-50 rounded-2xl p-5 max-h-[85dvh] overflow-y-auto"
+              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))' }}>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Setor Dana</h3>
+                <h3 className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>Setor Dana</h3>
                 <button onClick={() => setDepositGoalId(null)} style={{ color: 'var(--text-muted)' }}><X size={18} /></button>
               </div>
               <input type="number" value={depositAmount} onChange={(e) => setDepositAmount(e.target.value)} placeholder="Jumlah (Rp)"

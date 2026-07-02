@@ -7,6 +7,7 @@ import { formatDate } from '@/lib/utils/date'
 import { Plus, X, Loader2, Landmark, TrendingUp, Home, Car, Package, Clock, ArrowRight } from 'lucide-react'
 import TopBar from '@/components/layout/TopBar'
 import PageTransition from '@/components/layout/PageTransition'
+import MobileFAB from '@/components/layout/MobileFAB'
 import AnimatedNumber from '@/components/shared/AnimatedNumber'
 import SkeletonLoader from '@/components/shared/SkeletonLoader'
 import EmptyState from '@/components/shared/EmptyState'
@@ -152,20 +153,7 @@ export default function AssetsPage() {
 
   return (
     <PageTransition>
-      <TopBar
-        title="Aset"
-        action={
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-white"
-            style={{ background: 'var(--accent)' }}
-          >
-            <Plus size={14} />
-            Tambah
-          </motion.button>
-        }
-      />
+      <TopBar title="Aset" />
 
       {/* Desktop page header */}
       <div className="hidden lg:flex items-center justify-between px-6 py-5" style={{ borderBottom: '1px solid var(--border-light)' }}>
@@ -283,7 +271,7 @@ export default function AssetsPage() {
                                   <motion.button
                                     whileTap={{ scale: 0.9 }}
                                     onClick={() => { setUpdateAsset(asset); setUpdateValue(String(asset.value)) }}
-                                    className="text-[10px] px-2 py-1 rounded-lg font-medium"
+                                    className="text-xs px-3 py-2 rounded-lg font-medium"
                                     style={{ background: 'var(--accent-dim)', color: 'var(--accent-light)' }}
                                   >
                                     Update
@@ -303,6 +291,8 @@ export default function AssetsPage() {
         )}
       </div>
 
+      <MobileFAB onClick={() => setShowAddModal(true)} label="Tambah Aset" />
+
       {/* Modals */}
       <AnimatePresence>
         {/* Add Asset Modal */}
@@ -313,10 +303,10 @@ export default function AssetsPage() {
               onClick={() => setShowAddModal(false)} />
             <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="fixed bottom-20 left-4 right-4 z-50 rounded-2xl p-5 lg:bottom-8 lg:left-auto lg:right-8 lg:w-96"
-              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
+              className="fixed bottom-20 left-4 right-4 z-50 rounded-2xl p-5 max-h-[85dvh] overflow-y-auto lg:bottom-8 lg:left-auto lg:right-8 lg:w-96"
+              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))' }}>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Tambah Aset</h3>
+                <h3 className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>Tambah Aset</h3>
                 <button onClick={() => setShowAddModal(false)} style={{ color: 'var(--text-muted)' }}><X size={18} /></button>
               </div>
               <div className="space-y-3">
@@ -363,10 +353,10 @@ export default function AssetsPage() {
               onClick={() => setUpdateAsset(null)} />
             <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="fixed bottom-20 left-4 right-4 z-50 rounded-2xl p-5 lg:bottom-8 lg:left-auto lg:right-8 lg:w-96"
-              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
+              className="fixed bottom-20 left-4 right-4 z-50 rounded-2xl p-5 max-h-[85dvh] overflow-y-auto lg:bottom-8 lg:left-auto lg:right-8 lg:w-96"
+              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))' }}>
               <div className="flex items-center justify-between mb-1">
-                <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Update Nilai</h3>
+                <h3 className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>Update Nilai</h3>
                 <button onClick={() => setUpdateAsset(null)} style={{ color: 'var(--text-muted)' }}><X size={18} /></button>
               </div>
               <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>{updateAsset.name}</p>
@@ -403,7 +393,7 @@ export default function AssetsPage() {
               style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Histori Nilai</h3>
+                  <h3 className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>Histori Nilai</h3>
                   <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{logAsset.name}</p>
                 </div>
                 <button onClick={() => setLogAsset(null)} style={{ color: 'var(--text-muted)' }}><X size={18} /></button>

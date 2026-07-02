@@ -8,6 +8,7 @@ import { getCategoryMeta } from '@/lib/utils/categoryIcon'
 import { Trash2, ChevronDown, X, TrendingUp, TrendingDown, ArrowLeftRight, Plus, Loader2 } from 'lucide-react'
 import TopBar from '@/components/layout/TopBar'
 import PageTransition from '@/components/layout/PageTransition'
+import MobileFAB from '@/components/layout/MobileFAB'
 import EmptyState from '@/components/shared/EmptyState'
 import SkeletonLoader from '@/components/shared/SkeletonLoader'
 import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '@/lib/utils/categories'
@@ -171,20 +172,7 @@ export default function TransactionsPage() {
 
   return (
     <PageTransition>
-      <TopBar
-        title="Transaksi"
-        action={
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-white"
-            style={{ background: 'var(--accent)' }}
-          >
-            <Plus size={14} />
-            Tambah
-          </motion.button>
-        }
-      />
+      <TopBar title="Transaksi" />
 
       {/* Desktop page header */}
       <div className="hidden lg:flex items-center justify-between px-6 py-5" style={{ borderBottom: '1px solid var(--border-light)' }}>
@@ -208,7 +196,7 @@ export default function TransactionsPage() {
             <button
               key={p.id}
               onClick={() => { setPeriod(p.id); setCategory('all') }}
-              className="flex-shrink-0 px-4 py-2 rounded-full text-xs font-semibold transition-all"
+              className="flex-shrink-0 px-4 py-2.5 rounded-full text-xs font-semibold transition-all"
               style={
                 period === p.id
                   ? { background: 'var(--accent)', color: 'white' }
@@ -220,7 +208,7 @@ export default function TransactionsPage() {
           ))}
           <button
             onClick={() => { setShowDatePicker(v => !v); setShowCatPicker(false) }}
-            className="flex-shrink-0 flex items-center gap-1 px-4 py-2 rounded-full text-xs font-semibold transition-all"
+            className="flex-shrink-0 flex items-center gap-1 px-4 py-2.5 rounded-full text-xs font-semibold transition-all"
             style={
               period === 'custom'
                 ? { background: 'var(--accent)', color: 'white' }
@@ -299,7 +287,7 @@ export default function TransactionsPage() {
               <button
                 key={id}
                 onClick={() => setTxType(id)}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                className="flex items-center gap-1 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all"
                 style={
                   txType === id
                     ? {
@@ -319,7 +307,7 @@ export default function TransactionsPage() {
           <div className="relative flex-1">
             <button
               onClick={() => { setShowCatPicker(v => !v); setShowDatePicker(false) }}
-              className="w-full flex items-center justify-between gap-1 px-3 py-2 rounded-xl text-xs font-semibold"
+              className="w-full flex items-center justify-between gap-1 px-3 py-2.5 rounded-xl text-xs font-semibold"
               style={
                 category !== 'all'
                   ? { background: 'var(--accent-dim)', color: 'var(--accent-light)', border: '1px solid rgba(124,92,252,0.3)' }
@@ -481,6 +469,8 @@ export default function TransactionsPage() {
         )}
       </div>
 
+      <MobileFAB onClick={() => setShowForm(true)} label="Tambah Transaksi" />
+
       {/* ── Add Transaction Modal ── */}
       <AnimatePresence>
         {showForm && (
@@ -501,12 +491,12 @@ export default function TransactionsPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 50 }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="fixed bottom-20 left-4 right-4 z-50 rounded-2xl p-5 lg:bottom-8 lg:left-1/2 lg:right-auto lg:w-[420px] lg:-translate-x-1/2"
-              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+              className="fixed bottom-20 left-4 right-4 z-50 rounded-2xl p-5 max-h-[85dvh] overflow-y-auto lg:bottom-8 lg:left-1/2 lg:right-auto lg:w-[420px] lg:-translate-x-1/2"
+              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))' }}
             >
               {/* Header */}
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                <h3 className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>
                   Tambah Transaksi
                 </h3>
                 <button onClick={() => setShowForm(false)} style={{ color: 'var(--text-muted)' }}>

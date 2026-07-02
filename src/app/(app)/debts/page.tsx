@@ -7,6 +7,7 @@ import { formatRelative } from '@/lib/utils/date'
 import { Plus, X, Loader2, User, CheckCircle } from 'lucide-react'
 import TopBar from '@/components/layout/TopBar'
 import PageTransition from '@/components/layout/PageTransition'
+import MobileFAB from '@/components/layout/MobileFAB'
 import SkeletonLoader from '@/components/shared/SkeletonLoader'
 import EmptyState from '@/components/shared/EmptyState'
 
@@ -89,16 +90,7 @@ export default function DebtsPage() {
 
   return (
     <PageTransition>
-      <TopBar
-        title="Hutang & Piutang"
-        action={
-          <motion.button whileTap={{ scale: 0.9 }} onClick={() => setShowForm(true)}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-white"
-            style={{ background: 'var(--accent)' }}>
-            <Plus size={14} /> Tambah
-          </motion.button>
-        }
-      />
+      <TopBar title="Hutang & Piutang" />
 
       {/* Desktop page header */}
       <div className="hidden lg:flex items-center justify-between px-6 py-5" style={{ borderBottom: '1px solid var(--border-light)' }}>
@@ -179,7 +171,7 @@ export default function DebtsPage() {
                           {formatIDR(d.amount)}
                         </p>
                         <motion.button whileTap={{ scale: 0.9 }} onClick={() => handleSettle(d.id)}
-                          className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg font-medium"
+                          className="flex items-center gap-1 text-xs px-2.5 py-2 rounded-lg font-medium"
                           style={{ background: 'rgba(34,197,94,0.12)', color: 'var(--success)' }}>
                           <CheckCircle size={12} /> Lunas
                         </motion.button>
@@ -208,14 +200,14 @@ export default function DebtsPage() {
                     <CheckCircle size={13} style={{ color: 'var(--text-muted)' }} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold" style={{ color: 'var(--text-secondary)', textDecoration: 'line-through' }}>{d.person}</p>
-                    <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                    <p className="text-xs font-semibold" style={{ color: 'var(--text-secondary)', textDecoration: 'line-through', opacity: 0.5 }}>{d.person}</p>
+                    <p className="text-xs" style={{ color: 'var(--text-muted)', opacity: 0.5 }}>
                       {d.type === 'owe' ? 'Hutang' : 'Piutang'}{d.note ? ` · ${d.note}` : ''}
                     </p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="text-xs font-bold" style={{ color: 'var(--text-muted)', textDecoration: 'line-through' }}>{formatIDR(d.amount)}</p>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold"
+                    <p className="text-xs font-bold" style={{ color: 'var(--text-muted)', textDecoration: 'line-through', opacity: 0.5 }}>{formatIDR(d.amount)}</p>
+                    <span className="text-xs px-1.5 py-0.5 rounded-full font-semibold"
                       style={{ background: 'rgba(34,197,94,0.1)', color: 'var(--success)' }}>Lunas</span>
                   </div>
                 </motion.div>
@@ -225,6 +217,8 @@ export default function DebtsPage() {
         )}
       </div>
 
+      <MobileFAB onClick={() => setShowForm(true)} label="Tambah Hutang/Piutang" />
+
       <AnimatePresence>
         {showForm && (
           <>
@@ -233,10 +227,10 @@ export default function DebtsPage() {
               onClick={() => setShowForm(false)} />
             <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="fixed bottom-20 left-4 right-4 z-50 rounded-2xl p-5"
-              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
+              className="fixed bottom-20 left-4 right-4 z-50 rounded-2xl p-5 max-h-[85dvh] overflow-y-auto"
+              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom, 0px))' }}>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Tambah Hutang/Piutang</h3>
+                <h3 className="text-base font-bold" style={{ color: 'var(--text-primary)' }}>Tambah Hutang/Piutang</h3>
                 <button onClick={() => setShowForm(false)} style={{ color: 'var(--text-muted)' }}><X size={18} /></button>
               </div>
 

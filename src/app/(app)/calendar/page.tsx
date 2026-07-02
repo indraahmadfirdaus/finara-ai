@@ -8,6 +8,7 @@ import { formatDate, getMonthLabel, getTodayKey } from '@/lib/utils/date'
 import { getCategoryMeta } from '@/lib/utils/categoryIcon'
 import TopBar from '@/components/layout/TopBar'
 import PageTransition from '@/components/layout/PageTransition'
+import MobileFAB from '@/components/layout/MobileFAB'
 
 interface Transaction {
   id: string
@@ -204,17 +205,18 @@ export default function CalendarPage() {
               const summaryText = (() => {
                 if (!dayData) return null
                 const { income, expense } = dayData
-                if (income > 0 && expense > 0) {
-                  return (
-                    <span>
-                      <span style={{ color: 'var(--success)' }}>+{formatCompactIDR(income)}</span>
-                      <span style={{ color: 'var(--text-muted)' }}>/</span>
-                      <span style={{ color: 'var(--danger)' }}>−{formatCompactIDR(expense)}</span>
+                const net = income - expense
+                const dots = []
+                if (income > 0) dots.push(<span key="i" className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: 'var(--success)' }} />)
+                if (expense > 0) dots.push(<span key="e" className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: 'var(--danger)' }} />)
+                return (
+                  <span className="flex items-center gap-0.5">
+                    {dots}
+                    <span className="text-[11px] font-semibold leading-none ml-0.5" style={{ color: net >= 0 ? 'var(--success)' : 'var(--danger)' }}>
+                      {net >= 0 ? '+' : '−'}{formatCompactIDR(Math.abs(net))}
                     </span>
-                  )
-                }
-                if (income > 0) return <span style={{ color: 'var(--success)' }}>+{formatCompactIDR(income)}</span>
-                return <span style={{ color: 'var(--danger)' }}>−{formatCompactIDR(expense)}</span>
+                  </span>
+                )
               })()
 
               return (
@@ -225,7 +227,7 @@ export default function CalendarPage() {
                     if (!cell.isCurrentMonth) return
                     setSelectedDate(cell.key === selectedDate ? null : cell.key)
                   }}
-                  className="flex flex-col items-start justify-between rounded-xl p-1.5 h-14 lg:h-16 relative overflow-hidden"
+                  className="flex flex-col items-start justify-between rounded-xl p-1.5 h-16 lg:h-16 relative overflow-hidden"
                   style={{
                     opacity: cell.isCurrentMonth ? 1 : 0.25,
                     background: isSelected ? 'var(--accent-dim)' : 'transparent',
@@ -240,7 +242,7 @@ export default function CalendarPage() {
                     {cell.date.getDate()}
                   </span>
                   {summaryText && (
-                    <span className="text-[9px] leading-tight w-full text-left font-medium">
+                    <span className="w-full text-left">
                       {summaryText}
                     </span>
                   )}

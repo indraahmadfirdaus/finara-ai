@@ -54,40 +54,42 @@ export default function BottomNav() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.18 }}
-              className="fixed inset-0 z-30 lg:hidden"
-              style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(2px)' }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-40 lg:hidden"
+              style={{ background: 'rgba(0,0,0,0.4)' }}
               onClick={() => setListOpen(false)}
             />
 
-            {/* Popup menu */}
+            {/* Bottom sheet */}
             <motion.div
-              key="menu"
+              key="sheet"
               ref={menuRef}
-              initial={{ opacity: 0, y: 16, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 16, scale: 0.95 }}
-              transition={{ type: 'spring', stiffness: 420, damping: 32 }}
-              className="fixed z-40 lg:hidden rounded-2xl overflow-hidden shadow-2xl"
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', stiffness: 380, damping: 34 }}
+              className="fixed bottom-0 left-0 right-0 z-50 lg:hidden rounded-t-2xl"
               style={{
-                bottom: 'calc(5.5rem + env(safe-area-inset-bottom, 0px))',
-                left: '1rem',
-                right: '1rem',
-                maxWidth: 320,
-                margin: '0 auto',
                 background: 'var(--bg-surface)',
                 border: '1px solid var(--border)',
+                borderBottom: 'none',
+                paddingBottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))',
               }}
             >
-              <div className="px-3 pt-3 pb-1 flex items-center justify-between">
+              {/* Drag handle */}
+              <div className="flex justify-center pt-3 pb-1">
+                <div className="w-10 h-1 rounded-full" style={{ background: 'var(--border)' }} />
+              </div>
+
+              <div className="px-3 pt-2 pb-1 flex items-center justify-between">
                 <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
                   Daftar
                 </p>
-                <button onClick={() => setListOpen(false)} style={{ color: 'var(--text-muted)' }}>
-                  <X size={14} />
+                <button onClick={() => setListOpen(false)} className="p-1" style={{ color: 'var(--text-muted)' }}>
+                  <X size={16} />
                 </button>
               </div>
-              <div className="p-2 flex flex-col gap-1">
+              <div className="p-2 flex flex-col gap-0.5">
                 {LIST_SUBS.map((sub, i) => {
                   const isActive = pathname === sub.href
                   return (
@@ -95,11 +97,11 @@ export default function BottomNav() {
                       key={sub.href}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.055, type: 'spring', stiffness: 400, damping: 28 }}
+                      transition={{ delay: i * 0.04, type: 'spring', stiffness: 400, damping: 28 }}
                     >
                       <button
                         onClick={() => { router.push(sub.href); setListOpen(false) }}
-                        className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left"
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left"
                         style={{
                           background: isActive ? 'var(--accent-dim)' : 'transparent',
                           transition: 'background 0.15s ease',
@@ -164,7 +166,7 @@ export default function BottomNav() {
                       />
                     </motion.div>
                   </div>
-                  <span className="text-[10px] font-medium" style={{ color: isActive ? 'var(--accent-light)' : 'var(--text-muted)' }}>
+                  <span className="text-xs font-medium" style={{ color: isActive ? 'var(--accent-light)' : 'var(--text-muted)' }}>
                     {tab.label}
                   </span>
                 </button>
@@ -199,7 +201,7 @@ export default function BottomNav() {
                     />
                   </motion.div>
                 </div>
-                <span className="text-[10px] font-medium" style={{ color: isActive ? 'var(--accent-light)' : 'var(--text-muted)' }}>
+                <span className="text-xs font-medium" style={{ color: isActive ? 'var(--accent-light)' : 'var(--text-muted)' }}>
                   {tab.label}
                 </span>
               </Link>
