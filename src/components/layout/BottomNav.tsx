@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { MessageCircle, LayoutDashboard, List, Target, User, HandCoins, X, PieChart, Landmark } from 'lucide-react'
+import { MessageCircle, LayoutDashboard, List, Target, User, HandCoins, X, PieChart, Landmark, CalendarDays } from 'lucide-react'
 
 const LIST_SUBS = [
   { href: '/transactions', icon: List, label: 'Transaksi' },
@@ -12,6 +12,7 @@ const LIST_SUBS = [
   { href: '/goals', icon: Target, label: 'Goals' },
   { href: '/assets', icon: Landmark, label: 'Aset' },
   { href: '/debts', icon: HandCoins, label: 'Hutang' },
+  { href: '/calendar', icon: CalendarDays, label: 'Kalender' },
 ]
 
 const MAIN_TABS = [

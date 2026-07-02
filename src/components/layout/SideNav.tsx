@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   MessageCircle, LayoutDashboard, List, Target, User, LogOut,
-  Sun, Moon, HandCoins, ChevronDown, PieChart, Coffee, PanelLeftClose, PanelLeftOpen, Landmark,
+  Sun, Moon, HandCoins, ChevronDown, PieChart, Coffee, PanelLeftClose, PanelLeftOpen, Landmark, CalendarDays,
 } from 'lucide-react'
 import { useTheme } from '@/lib/theme'
 import { createClient } from '@/lib/supabase/client'
@@ -18,6 +18,7 @@ const LIST_SUBS = [
   { href: '/goals', icon: Target, label: 'Goals' },
   { href: '/debts', icon: HandCoins, label: 'Hutang' },
   { href: '/assets', icon: Landmark, label: 'Aset' },
+  { href: '/calendar', icon: CalendarDays, label: 'Kalender' },
 ]
 
 const TOP_TABS = [
