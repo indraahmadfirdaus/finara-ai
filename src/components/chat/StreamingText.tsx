@@ -21,6 +21,17 @@ interface ParsedSegment {
   content: string
 }
 
+function stripStrayJson(content: string): string {
+  return content.replace(/(?:^|\n)\s*(\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}|\[[\s\S]*?\])\s*(?:\n|$)/g, (match, candidate) => {
+    try {
+      JSON.parse(candidate)
+      return '\n'
+    } catch {
+      return match
+    }
+  }).trim()
+}
+
 // Exported so ChatBubble can inspect segments without re-implementing the regex
 export function parseContent(content: string): ParsedSegment[] {
   const segments: ParsedSegment[] = []
@@ -226,7 +237,8 @@ function renderCard(type: CardType, content: string) {
 }
 
 export default function StreamingText({ content, isStreaming = false }: StreamingTextProps) {
-  const segments = useMemo(() => parseContent(content), [content])
+  const sanitizedContent = useMemo(() => stripStrayJson(content), [content])
+  const segments = useMemo(() => parseContent(sanitizedContent), [sanitizedContent])
   const hasRich = segments.some((s) => s.type !== 'text')
 
   if (!hasRich) {

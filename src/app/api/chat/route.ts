@@ -484,6 +484,17 @@ function stripBlocks(content: string, blocks: string[]): string {
   return result
 }
 
+function sanitizeStrayJson(content: string): string {
+  return content.replace(/(?:^|\n)\s*(\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}|\[[\s\S]*?\])\s*(?:\n|$)/g, (match, candidate) => {
+    try {
+      JSON.parse(candidate)
+      return '\n'
+    } catch {
+      return match
+    }
+  }).trim()
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -737,7 +748,7 @@ export async function POST(request: NextRequest) {
           if (withheldBlocks.length > 0 && !retryUsed) {
             retryUsed = true
             const withheldBeforeRetry = withheldBlocks.length
-            const honestContent = stripBlocks(finalAssistantContent, withheldBlocks)
+            const honestContent = sanitizeStrayJson(stripBlocks(finalAssistantContent, withheldBlocks))
             currentMessages.push({ role: 'assistant', content: honestContent || '(kartu ditolak sistem)' })
             currentMessages.push({ role: 'system', content: CORRECTIVE_PROMPT })
             await runCompletion()
@@ -787,7 +798,7 @@ export async function POST(request: NextRequest) {
 
           // Persist: final assistant text response (fake cards stripped so they
           // don't poison the history window next turn)
-          const persistedAssistantContent = stripBlocks(finalAssistantContent, withheldBlocks)
+          const persistedAssistantContent = sanitizeStrayJson(stripBlocks(finalAssistantContent, withheldBlocks))
           await supabase.from('chat_history').insert({
             user_id: userId,
             session_id: currentSessionId,
