@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { formatIDR, formatCompactIDR } from '@/lib/utils/currency'
-import { formatDate, getMonthLabel } from '@/lib/utils/date'
+import { formatDate, getMonthLabel, getTodayKey } from '@/lib/utils/date'
 import { getCategoryMeta } from '@/lib/utils/categoryIcon'
 import TopBar from '@/components/layout/TopBar'
 import PageTransition from '@/components/layout/PageTransition'
@@ -79,12 +79,6 @@ function buildCalendarDays(activeMonth: Date): Array<{ date: Date; isCurrentMont
   return cells
 }
 
-function todayKey(): string {
-  const now = new Date(Date.now() + 7 * 60 * 60 * 1000)
-  const iso = now.toISOString()
-  return iso.split('T')[0]
-}
-
 export default function CalendarPage() {
   const [activeMonth, setActiveMonth] = useState(() => new Date())
   const [txMap, setTxMap] = useState<Map<string, DayData>>(new Map())
@@ -94,11 +88,16 @@ export default function CalendarPage() {
 
   const fetchMonth = useCallback(async (month: Date) => {
     setLoading(true)
-    const { dateFrom, dateTo } = getMonthRange(month)
-    const res = await fetch(`/api/transactions?date_from=${dateFrom}&date_to=${dateTo}&limit=500`)
-    const data = await res.json()
-    setTxMap(buildTxMap(data.transactions ?? []))
-    setLoading(false)
+    try {
+      const { dateFrom, dateTo } = getMonthRange(month)
+      const res = await fetch(`/api/transactions?date_from=${dateFrom}&date_to=${dateTo}&limit=500`)
+      const data = await res.json()
+      setTxMap(buildTxMap(data.transactions ?? []))
+    } catch (err) {
+      console.error('[CalendarPage] fetchMonth failed:', err)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useEffect(() => { fetchMonth(activeMonth) }, [activeMonth, fetchMonth])
@@ -115,7 +114,7 @@ export default function CalendarPage() {
   }
 
   const cells = buildCalendarDays(activeMonth)
-  const today = todayKey()
+  const today = getTodayKey()
 
   const monthLabel = getMonthLabel(
     `${activeMonth.getFullYear()}-${String(activeMonth.getMonth() + 1).padStart(2, '0')}`
