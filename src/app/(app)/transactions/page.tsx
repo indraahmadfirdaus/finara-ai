@@ -5,11 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { formatIDR } from '@/lib/utils/currency'
 import { formatRelative, getMonthKey } from '@/lib/utils/date'
 import { getCategoryMeta } from '@/lib/utils/categoryIcon'
-import { Trash2, ChevronDown, X, TrendingUp, TrendingDown, ArrowLeftRight } from 'lucide-react'
+import { Trash2, ChevronDown, X, TrendingUp, TrendingDown, ArrowLeftRight, Plus, Loader2 } from 'lucide-react'
 import TopBar from '@/components/layout/TopBar'
 import PageTransition from '@/components/layout/PageTransition'
 import EmptyState from '@/components/shared/EmptyState'
 import SkeletonLoader from '@/components/shared/SkeletonLoader'
+import { EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '@/lib/utils/categories'
+import { getTodayKey } from '@/lib/utils/date'
 
 interface Transaction {
   id: string
@@ -72,6 +74,15 @@ export default function TransactionsPage() {
   const [showCatPicker, setShowCatPicker] = useState(false)
   const pickerRef = useRef<HTMLDivElement>(null)
 
+  // Add transaction form state
+  const [showForm, setShowForm] = useState(false)
+  const [formType, setFormType] = useState<'income' | 'expense'>('expense')
+  const [formCategory, setFormCategory] = useState('')
+  const [formAmount, setFormAmount] = useState('')
+  const [formNote, setFormNote] = useState('')
+  const [formDate, setFormDate] = useState(getTodayKey())
+  const [saving, setSaving] = useState(false)
+
   // Build API params from active filters
   const buildParams = useCallback(() => {
     const p = new URLSearchParams()
@@ -112,6 +123,30 @@ export default function TransactionsPage() {
     setAllTxs((prev) => prev.filter((t) => t.id !== id))
   }
 
+  async function handleCreate() {
+    if (!formAmount || !formCategory) return
+    setSaving(true)
+    await fetch('/api/transactions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amount: Math.round(Number(formAmount)),
+        type: formType,
+        category: formCategory,
+        note: formNote || undefined,
+        date: formDate,
+      }),
+    })
+    await fetchTxs()
+    setSaving(false)
+    setShowForm(false)
+    setFormType('expense')
+    setFormCategory('')
+    setFormAmount('')
+    setFormNote('')
+    setFormDate(getTodayKey())
+  }
+
   // Client-side category filter on top of server results
   const filtered = category === 'all'
     ? allTxs
@@ -132,11 +167,33 @@ export default function TransactionsPage() {
 
   return (
     <PageTransition>
-      <TopBar title="Transaksi" />
+      <TopBar
+        title="Transaksi"
+        action={
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-white"
+            style={{ background: 'var(--accent)' }}
+          >
+            <Plus size={14} />
+            Tambah
+          </motion.button>
+        }
+      />
 
       {/* Desktop page header */}
-      <div className="hidden lg:flex items-center px-6 py-5" style={{ borderBottom: '1px solid var(--border-light)' }}>
+      <div className="hidden lg:flex items-center justify-between px-6 py-5" style={{ borderBottom: '1px solid var(--border-light)' }}>
         <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>Transaksi</h1>
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={() => setShowForm(true)}
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-white"
+          style={{ background: 'var(--accent)' }}
+        >
+          <Plus size={15} />
+          Tambah Transaksi
+        </motion.button>
       </div>
 
       <div className="px-4 pt-3 pb-8 space-y-3 lg:max-w-3xl lg:mx-auto lg:px-6">
