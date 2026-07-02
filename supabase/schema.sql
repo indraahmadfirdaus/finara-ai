@@ -71,11 +71,19 @@ create table if not exists chat_history (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users not null,
   session_id uuid not null default gen_random_uuid(),
-  role text check (role in ('user', 'assistant')) not null,
-  content text not null,
+  role text check (role in ('user', 'assistant', 'tool_call', 'tool')) not null,
+  content text not null default '',
+  tool_calls_json jsonb,
+  tool_call_id text,
   created_at timestamptz default now(),
   deleted_at timestamptz
 );
+-- Migration for existing deployments (run in Supabase SQL Editor if table already exists):
+-- ALTER TABLE chat_history ALTER COLUMN content SET DEFAULT '';
+-- ALTER TABLE chat_history DROP CONSTRAINT IF EXISTS chat_history_role_check;
+-- ALTER TABLE chat_history ADD CONSTRAINT chat_history_role_check CHECK (role IN ('user','assistant','tool_call','tool'));
+-- ALTER TABLE chat_history ADD COLUMN IF NOT EXISTS tool_calls_json JSONB;
+-- ALTER TABLE chat_history ADD COLUMN IF NOT EXISTS tool_call_id TEXT;
 alter table chat_history enable row level security;
 create policy "users own chat_history" on chat_history
   for all using (auth.uid() = user_id);

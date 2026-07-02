@@ -29,6 +29,13 @@ Berikan insight proaktif jika ada pola menarik dalam data keuangan user.
 Format angka selalu dalam rupiah: "Rp 15.000", "Rp 2.500.000".
 TANGGAL HARI INI: ${todayKey} (gunakan ini sebagai default untuk field "date" jika user tidak menyebut tanggal spesifik).
 
+ATURAN WAJIB TOOL CALLING — BACA DAN PATUHI SELALU:
+1. WAJIB panggil tool untuk SETIAP operasi tulis (add_transaction, update_transaction, delete_transaction, set_budget, add_goal, deposit_goal, add_debt, settle_debt, add_asset, update_asset_value, delete_asset). TIDAK ADA PENGECUALIAN.
+2. Setiap permintaan baru dari user = tool call baru yang harus dipanggil di turn ini. Riwayat percakapan sebelumnya TIDAK MEMBENARKAN kamu skip tool call.
+3. DILARANG KERAS menjawab "sudah aku catat", "oke, sudah disimpan", atau konfirmasi apapun tanpa tool call yang berhasil di turn ini.
+4. Jika kamu ragu apakah data sudah ada, panggil tool GET terlebih dahulu. Jangan berasumsi dari teks riwayat percakapan.
+5. JANGAN PERNAH mengandalkan memori percakapan untuk operasi tulis — database adalah sumber kebenaran, bukan teks chat.
+
 KATEGORI PENGELUARAN yang valid (gunakan PERSIS salah satu dari ini):
 Makanan & Minuman, Transportasi, Belanja, Hiburan, Kesehatan, Pendidikan, Tagihan & Utilitas, Rumah, Travel, Perawatan Diri, Anak & Keluarga, Hewan Peliharaan, Sosial & Hadiah, Cicilan & Hutang, Lainnya
 
@@ -229,6 +236,13 @@ interface AccumulatedToolCall {
   id: string
   name: string
   arguments: string
+}
+
+// Represents one turn of tool interaction to be persisted
+interface ToolTurnRecord {
+  assistantContent: string | null
+  toolCalls: Array<{ id: string; name: string; arguments: string }>
+  toolResults: Array<{ tool_call_id: string; content: string }>
 }
 
 async function executeTool(
@@ -565,6 +579,37 @@ async function executeTool(
   }
 }
 
+// Reconstruct the full OpenAI message array from persisted chat_history rows,
+// including tool_call and tool result rows so the model has full grounding.
+function reconstructMessages(
+  history: Array<{ role: string; content: string; tool_calls_json?: unknown; tool_call_id?: string | null }>
+): OpenAI.Chat.ChatCompletionMessageParam[] {
+  return history.map((h) => {
+    if (h.role === 'tool_call') {
+      return {
+        role: 'assistant' as const,
+        content: h.content || null,
+        tool_calls: h.tool_calls_json as OpenAI.Chat.ChatCompletionMessageToolCall[],
+      }
+    }
+    if (h.role === 'tool') {
+      return {
+        role: 'tool' as const,
+        tool_call_id: h.tool_call_id ?? '',
+        content: h.content,
+      }
+    }
+    return {
+      role: h.role as 'user' | 'assistant',
+      content: h.content,
+    }
+  })
+}
+
+function stripScanSentinel(content: string): string {
+  return content.replace(/^\[scan:[^\]]+\]\n/, '')
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -587,7 +632,7 @@ export async function POST(request: NextRequest) {
 
     const historyQuery = supabase
       .from('chat_history')
-      .select('role, content')
+      .select('role, content, tool_calls_json, tool_call_id')
       .eq('user_id', user.id)
       .is('deleted_at', null)
       .order('created_at', { ascending: true })
@@ -596,21 +641,21 @@ export async function POST(request: NextRequest) {
       historyQuery.eq('session_id', rawSessionId)
     }
 
-    const { data: history } = await historyQuery.limit(40)
+    // Higher limit to accommodate tool_call + tool rows alongside user/assistant rows
+    const { data: history } = await historyQuery.limit(80)
 
-    function stripScanSentinel(content: string): string {
-      return content.replace(/^\[scan:[^\]]+\]\n/, '')
-    }
+    const historyMessages = reconstructMessages(
+      (history ?? []).map((h) => ({
+        ...h,
+        content: h.role === 'user' ? stripScanSentinel(h.content) : h.content,
+      }))
+    )
 
-    const historyMessages = (history ?? []).map((h) => ({
-      role: h.role as 'user' | 'assistant',
-      content: h.role === 'user' ? stripScanSentinel(h.content) : h.content,
-    }))
-
+    const incomingUserContent = messages[messages.length - 1].content
     const allMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
       { role: 'system', content: buildSystemPrompt(getTodayKey()) },
       ...historyMessages,
-      ...messages.map((m) => ({ role: m.role, content: m.role === 'user' ? stripScanSentinel(m.content) : m.content })),
+      { role: 'user', content: stripScanSentinel(incomingUserContent) },
     ]
 
     const encoder = new TextEncoder()
@@ -620,8 +665,9 @@ export async function POST(request: NextRequest) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          let fullContent = ''
+          let finalAssistantContent = ''
           let currentMessages = [...allMessages]
+          const toolTurnRecords: ToolTurnRecord[] = []
 
           async function runCompletion(): Promise<void> {
             const completion = await getDeepseekClient().chat.completions.create({
@@ -634,19 +680,17 @@ export async function POST(request: NextRequest) {
 
             const accumulatedToolCalls: Record<number, AccumulatedToolCall> = {}
             let hasToolCalls = false
+            let turnAssistantContent = ''
 
             // Buffer for card blocks — held back until closing ``` is received
             let cardBuffer = ''
             let inCardBlock = false
 
             function flushToken(token: string) {
-              // Check if we're entering a card block
               if (!inCardBlock) {
                 const combined = cardBuffer + token
-                // Card blocks start with ```card:
                 const openIdx = combined.indexOf('```card:')
                 if (openIdx !== -1) {
-                  // Flush everything before the card block immediately
                   if (openIdx > 0) {
                     const before = combined.slice(0, openIdx)
                     controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'text', content: before })}\n\n`))
@@ -655,8 +699,6 @@ export async function POST(request: NextRequest) {
                   inCardBlock = true
                   return
                 }
-                // No card block in sight — flush pending safe prefix
-                // Keep last 8 chars buffered in case ``` is split across chunks
                 const safeLen = Math.max(0, combined.length - 8)
                 if (safeLen > 0) {
                   controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'text', content: combined.slice(0, safeLen) })}\n\n`))
@@ -665,21 +707,17 @@ export async function POST(request: NextRequest) {
                   cardBuffer = combined
                 }
               } else {
-                // Inside a card block — accumulate until closing ```
                 cardBuffer += token
-                // Closing ``` must come after the opening line
                 const openEnd = cardBuffer.indexOf('\n')
                 if (openEnd !== -1) {
                   const afterOpen = cardBuffer.slice(openEnd + 1)
                   const closeIdx = afterOpen.indexOf('```')
                   if (closeIdx !== -1) {
-                    // Full card block captured — flush atomically
                     const fullBlock = cardBuffer.slice(0, openEnd + 1 + closeIdx + 3)
                     controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'text', content: fullBlock })}\n\n`))
                     const remaining = cardBuffer.slice(openEnd + 1 + closeIdx + 3)
                     cardBuffer = ''
                     inCardBlock = false
-                    // Process any remaining content after the card block
                     if (remaining) flushToken(remaining)
                   }
                 }
@@ -691,7 +729,8 @@ export async function POST(request: NextRequest) {
               if (!delta) continue
 
               if (delta.content) {
-                fullContent += delta.content
+                turnAssistantContent += delta.content
+                finalAssistantContent += delta.content
                 flushToken(delta.content)
               }
 
@@ -709,7 +748,7 @@ export async function POST(request: NextRequest) {
               }
             }
 
-            // Flush any remaining buffered content (tail of normal text)
+            // Flush any remaining buffered non-card content
             if (cardBuffer && !inCardBlock) {
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'text', content: cardBuffer })}\n\n`))
               cardBuffer = ''
@@ -718,15 +757,16 @@ export async function POST(request: NextRequest) {
             if (hasToolCalls && Object.keys(accumulatedToolCalls).length > 0) {
               const toolCallsList = Object.values(accumulatedToolCalls)
 
-              currentMessages.push({
+              const assistantToolCallMsg: OpenAI.Chat.ChatCompletionMessageParam = {
                 role: 'assistant',
-                content: fullContent || null,
+                content: turnAssistantContent || null,
                 tool_calls: toolCallsList.map((tc) => ({
                   id: tc.id,
                   type: 'function' as const,
                   function: { name: tc.name, arguments: tc.arguments },
                 })),
-              })
+              }
+              currentMessages.push(assistantToolCallMsg)
 
               const DATA_MUTATING_TOOLS = new Set([
                 'add_transaction', 'update_transaction', 'delete_transaction',
@@ -735,6 +775,7 @@ export async function POST(request: NextRequest) {
               ])
 
               let didMutateData = false
+              const toolResults: Array<{ tool_call_id: string; content: string }> = []
 
               for (const tc of toolCallsList) {
                 try {
@@ -757,19 +798,34 @@ export async function POST(request: NextRequest) {
 
                   if (DATA_MUTATING_TOOLS.has(tc.name)) didMutateData = true
 
+                  const resultContent = JSON.stringify(result)
+                  toolResults.push({ tool_call_id: tc.id, content: resultContent })
                   currentMessages.push({
                     role: 'tool',
                     tool_call_id: tc.id,
-                    content: JSON.stringify(result),
+                    content: resultContent,
                   })
                 } catch (err) {
+                  const errorContent = JSON.stringify({
+                    success: false,
+                    error: String(err),
+                    message: 'Gagal menyimpan data. Informasikan ke user bahwa terjadi error dan jangan tampilkan card sukses.',
+                  })
+                  toolResults.push({ tool_call_id: tc.id, content: errorContent })
                   currentMessages.push({
                     role: 'tool',
                     tool_call_id: tc.id,
-                    content: JSON.stringify({ success: false, error: String(err), message: 'Gagal menyimpan data. Informasikan ke user bahwa terjadi error dan jangan tampilkan card sukses.' }),
+                    content: errorContent,
                   })
                 }
               }
+
+              // Record this tool turn for persistence
+              toolTurnRecords.push({
+                assistantContent: turnAssistantContent || null,
+                toolCalls: toolCallsList,
+                toolResults,
+              })
 
               if (didMutateData) {
                 controller.enqueue(
@@ -777,20 +833,52 @@ export async function POST(request: NextRequest) {
                 )
               }
 
-              fullContent = ''
               await runCompletion()
             }
           }
 
           await runCompletion()
 
+          // Persist: user message
           const userMsg = messages[messages.length - 1]
-          await supabase.from('chat_history').insert(
-            { user_id: userId, session_id: currentSessionId, role: 'user', content: userMsg.content }
-          )
-          await supabase.from('chat_history').insert(
-            { user_id: userId, session_id: currentSessionId, role: 'assistant', content: fullContent }
-          )
+          await supabase.from('chat_history').insert({
+            user_id: userId,
+            session_id: currentSessionId,
+            role: 'user',
+            content: userMsg.content,
+          })
+
+          // Persist: tool call/result turns (each tool turn = 1 tool_call row + N tool rows)
+          for (const turn of toolTurnRecords) {
+            await supabase.from('chat_history').insert({
+              user_id: userId,
+              session_id: currentSessionId,
+              role: 'tool_call',
+              content: turn.assistantContent ?? '',
+              tool_calls_json: turn.toolCalls.map((tc) => ({
+                id: tc.id,
+                type: 'function',
+                function: { name: tc.name, arguments: tc.arguments },
+              })),
+            })
+            for (const tr of turn.toolResults) {
+              await supabase.from('chat_history').insert({
+                user_id: userId,
+                session_id: currentSessionId,
+                role: 'tool',
+                content: tr.content,
+                tool_call_id: tr.tool_call_id,
+              })
+            }
+          }
+
+          // Persist: final assistant text response
+          await supabase.from('chat_history').insert({
+            user_id: userId,
+            session_id: currentSessionId,
+            role: 'assistant',
+            content: finalAssistantContent,
+          })
 
           controller.enqueue(
             encoder.encode(`data: ${JSON.stringify({ type: 'done', session_id: currentSessionId })}\n\n`)
