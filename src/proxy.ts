@@ -48,7 +48,7 @@ export async function proxy(request: NextRequest) {
     return redirectResponse
   }
 
-  if (user && isAuthPage) {
+  if (user && (isAuthPage || pathname === '/')) {
     const url = request.nextUrl.clone()
     url.pathname = '/chat'
     const redirectResponse = NextResponse.redirect(url)
