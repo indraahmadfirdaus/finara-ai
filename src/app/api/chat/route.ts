@@ -476,6 +476,14 @@ function stripScanSentinel(content: string): string {
   return content.replace(/^\[scan:[^\]]+\]\n/, '')
 }
 
+function stripBlocks(content: string, blocks: string[]): string {
+  let result = content
+  for (const block of blocks) {
+    result = result.split(block).join('')
+  }
+  return result
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -626,6 +634,15 @@ export async function POST(request: NextRequest) {
             if (cardBuffer && !inCardBlock) {
               controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'text', content: cardBuffer })}\n\n`))
               cardBuffer = ''
+            } else if (cardBuffer && inCardBlock) {
+              // Card block was opened but closing fence never arrived — evaluate and route it.
+              if (evaluateCardBlock(cardBuffer, ledger)) {
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'text', content: cardBuffer })}\n\n`))
+              } else {
+                withheldBlocks.push(cardBuffer)
+              }
+              cardBuffer = ''
+              inCardBlock = false
             }
 
             if (hasToolCalls && Object.keys(accumulatedToolCalls).length > 0) {
@@ -720,8 +737,7 @@ export async function POST(request: NextRequest) {
           if (withheldBlocks.length > 0 && !retryUsed) {
             retryUsed = true
             const withheldBeforeRetry = withheldBlocks.length
-            let honestContent = finalAssistantContent
-            for (const block of withheldBlocks) honestContent = honestContent.replace(block, '')
+            const honestContent = stripBlocks(finalAssistantContent, withheldBlocks)
             currentMessages.push({ role: 'assistant', content: honestContent || '(kartu ditolak sistem)' })
             currentMessages.push({ role: 'system', content: CORRECTIVE_PROMPT })
             await runCompletion()
@@ -771,10 +787,7 @@ export async function POST(request: NextRequest) {
 
           // Persist: final assistant text response (fake cards stripped so they
           // don't poison the history window next turn)
-          let persistedAssistantContent = finalAssistantContent
-          for (const block of withheldBlocks) {
-            persistedAssistantContent = persistedAssistantContent.replace(block, '')
-          }
+          const persistedAssistantContent = stripBlocks(finalAssistantContent, withheldBlocks)
           await supabase.from('chat_history').insert({
             user_id: userId,
             session_id: currentSessionId,
