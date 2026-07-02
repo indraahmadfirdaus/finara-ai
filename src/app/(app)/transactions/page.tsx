@@ -476,6 +476,159 @@ export default function TransactionsPage() {
           </motion.div>
         )}
       </div>
+
+      {/* ── Add Transaction Modal ── */}
+      <AnimatePresence>
+        {showForm && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40"
+              style={{ background: 'rgba(0,0,0,0.6)' }}
+              onClick={() => setShowForm(false)}
+            />
+
+            {/* Sheet */}
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 50 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className="fixed bottom-20 left-4 right-4 z-50 rounded-2xl p-5 lg:bottom-8 lg:left-1/2 lg:right-auto lg:w-[420px] lg:-translate-x-1/2"
+              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                  Tambah Transaksi
+                </h3>
+                <button onClick={() => setShowForm(false)} style={{ color: 'var(--text-muted)' }}>
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {/* Type toggle */}
+                <div
+                  className="flex rounded-xl p-1 gap-1"
+                  style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)' }}
+                >
+                  {(['expense', 'income'] as const).map((t) => (
+                    <button
+                      key={t}
+                      onClick={() => { setFormType(t); setFormCategory('') }}
+                      className="flex-1 py-2 rounded-lg text-xs font-semibold transition-all"
+                      style={
+                        formType === t
+                          ? {
+                              background: t === 'income' ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)',
+                              color: t === 'income' ? 'var(--success)' : 'var(--danger)',
+                            }
+                          : { color: 'var(--text-muted)' }
+                      }
+                    >
+                      {t === 'income' ? 'Pemasukan' : 'Pengeluaran'}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Category picker — scrollable icon grid */}
+                <div>
+                  <p className="text-xs mb-2" style={{ color: 'var(--text-secondary)' }}>Kategori</p>
+                  <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+                    {(formType === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map((cat) => {
+                      const meta = getCategoryMeta(cat, formType)
+                      const Icon = meta.icon
+                      const isSelected = formCategory === cat
+                      return (
+                        <button
+                          key={cat}
+                          onClick={() => setFormCategory(cat)}
+                          className="flex-shrink-0 flex flex-col items-center gap-1 px-2 py-2 rounded-xl transition-all"
+                          style={{
+                            background: isSelected ? 'var(--accent-dim)' : 'var(--bg-elevated)',
+                            border: isSelected ? '1px solid rgba(124,92,252,0.4)' : '1px solid var(--border)',
+                            minWidth: '60px',
+                          }}
+                        >
+                          <div
+                            className="w-8 h-8 rounded-lg flex items-center justify-center"
+                            style={{ background: isSelected ? 'var(--accent-dim)' : meta.bg }}
+                          >
+                            <Icon size={14} style={{ color: isSelected ? 'var(--accent-light)' : meta.color }} />
+                          </div>
+                          <span
+                            className="text-[10px] font-medium text-center leading-tight"
+                            style={{ color: isSelected ? 'var(--accent-light)' : 'var(--text-muted)' }}
+                          >
+                            {cat.split(' ')[0]}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Amount */}
+                <input
+                  type="number"
+                  value={formAmount}
+                  onChange={(e) => setFormAmount(e.target.value)}
+                  placeholder="Jumlah (Rp)"
+                  className="w-full px-4 py-3 rounded-xl text-sm outline-none"
+                  style={{
+                    background: 'var(--bg-elevated)',
+                    color: 'var(--text-primary)',
+                    border: '1px solid var(--border)',
+                  }}
+                />
+
+                {/* Note */}
+                <input
+                  type="text"
+                  value={formNote}
+                  onChange={(e) => setFormNote(e.target.value)}
+                  placeholder="Catatan (opsional)"
+                  className="w-full px-4 py-3 rounded-xl text-sm outline-none"
+                  style={{
+                    background: 'var(--bg-elevated)',
+                    color: 'var(--text-primary)',
+                    border: '1px solid var(--border)',
+                  }}
+                />
+
+                {/* Date */}
+                <input
+                  type="date"
+                  value={formDate}
+                  onChange={(e) => setFormDate(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl text-sm outline-none"
+                  style={{
+                    background: 'var(--bg-elevated)',
+                    color: 'var(--text-primary)',
+                    border: '1px solid var(--border)',
+                  }}
+                />
+
+                {/* Submit */}
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleCreate}
+                  disabled={saving || !formAmount || !formCategory}
+                  className="w-full py-3 rounded-xl text-sm font-semibold text-white flex items-center justify-center gap-2 disabled:opacity-60"
+                  style={{ background: 'var(--accent)' }}
+                >
+                  {saving && <Loader2 size={15} className="animate-spin" />}
+                  Simpan Transaksi
+                </motion.button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </PageTransition>
   )
 }
