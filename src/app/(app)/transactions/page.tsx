@@ -126,25 +126,29 @@ export default function TransactionsPage() {
   async function handleCreate() {
     if (!formAmount || !formCategory) return
     setSaving(true)
-    await fetch('/api/transactions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        amount: Math.round(Number(formAmount)),
-        type: formType,
-        category: formCategory,
-        note: formNote || undefined,
-        date: formDate,
-      }),
-    })
-    await fetchTxs()
-    setSaving(false)
-    setShowForm(false)
-    setFormType('expense')
-    setFormCategory('')
-    setFormAmount('')
-    setFormNote('')
-    setFormDate(getTodayKey())
+    try {
+      const res = await fetch('/api/transactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: Math.round(Number(formAmount)),
+          type: formType,
+          category: formCategory,
+          note: formNote || undefined,
+          date: formDate,
+        }),
+      })
+      if (!res.ok) return
+      await fetchTxs()
+      setShowForm(false)
+      setFormType('expense')
+      setFormCategory('')
+      setFormAmount('')
+      setFormNote('')
+      setFormDate(getTodayKey())
+    } finally {
+      setSaving(false)
+    }
   }
 
   // Client-side category filter on top of server results
@@ -550,7 +554,7 @@ export default function TransactionsPage() {
                           className="flex-shrink-0 flex flex-col items-center gap-1 px-2 py-2 rounded-xl transition-all"
                           style={{
                             background: isSelected ? 'var(--accent-dim)' : 'var(--bg-elevated)',
-                            border: isSelected ? '1px solid rgba(124,92,252,0.4)' : '1px solid var(--border)',
+                            border: isSelected ? '1px solid var(--accent)' : '1px solid var(--border)',
                             minWidth: '60px',
                           }}
                         >
