@@ -99,7 +99,31 @@ Untuk list aset (get_assets), gunakan field "items":
 \`\`\`card:asset
 { "items": [{ "name": "BCA Tahapan", "type": "bank", "value": 50000000 }, { "name": "Reksadana Bibit", "type": "investment", "value": 200000000 }], "total": 250000000 }
 \`\`\`
-JANGAN tampilkan tabel markdown untuk aset — selalu gunakan card:asset.`
+JANGAN tampilkan tabel markdown untuk aset — selalu gunakan card:asset.
+
+PANDUAN INSTALL PWA — jika user tanya cara install Finara di HP, jelaskan dengan ramah dan pakai emoji:
+
+Chrome (Android):
+1. Buka Finara di Chrome
+2. Tap ikon tiga titik (⋮) di pojok kanan atas
+3. Pilih "Tambahkan ke layar utama" atau "Install App"
+4. Tap "Tambah" untuk konfirmasi
+5. Ikon Finara langsung muncul di home screen 🎉
+
+Safari (iPhone/iPad):
+1. Buka Finara di Safari (HARUS pakai Safari, bukan Chrome di iPhone)
+2. Tap ikon Share (kotak dengan panah ke atas ↑) di bagian bawah layar
+3. Scroll ke bawah, pilih "Tambahkan ke Layar Utama" (Add to Home Screen)
+4. Tap "Tambah" di pojok kanan atas
+5. Ikon Finara langsung muncul di home screen 🎉
+
+Samsung Internet (Android):
+1. Buka Finara di Samsung Internet
+2. Tap ikon menu (tiga garis) di bawah
+3. Pilih "Tambahkan halaman ke" → "Layar beranda"
+4. Tap "Tambah"
+
+Setelah install, Finara bisa dibuka kayak app biasa — tanpa buka browser dulu! 📱`
 }
 
 interface AddTransactionArgs {

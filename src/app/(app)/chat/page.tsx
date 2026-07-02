@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
-import { History, SquarePen, Coffee, Square, MoreHorizontal, X } from 'lucide-react'
+import { History, SquarePen, Coffee, Square, MoreHorizontal, X, Smartphone } from 'lucide-react'
 import ChatBubble, { type Message } from '@/components/chat/ChatBubble'
 import ChatInput from '@/components/chat/ChatInput'
 import HistoryDrawer from '@/components/chat/HistoryDrawer'
@@ -21,6 +21,7 @@ const WELCOME_HINTS = [
   { label: 'Goals tabungan', text: 'lihat goals tabungan saya' },
   { label: 'Hutang saya', text: 'hutang aku ke siapa saja?' },
   { label: 'Analisis pengeluaran', text: 'analisis pengeluaran saya minggu ini' },
+  { label: 'Install di HP', text: 'cara install Finara di HP', icon: Smartphone, isPwa: true },
 ]
 
 function WelcomeMessage({ onHint }: { onHint: (h: string) => void }) {
@@ -51,13 +52,18 @@ function WelcomeMessage({ onHint }: { onHint: (h: string) => void }) {
             key={hint.text}
             whileTap={{ scale: 0.95 }}
             onClick={() => onHint(hint.text)}
-            className="px-3.5 py-2 rounded-2xl text-xs font-medium"
-            style={{
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-medium"
+            style={hint.isPwa ? {
+              background: 'rgba(34,197,94,0.10)',
+              color: 'var(--success)',
+              border: '1px solid rgba(34,197,94,0.25)',
+            } : {
               background: 'var(--accent-dim)',
               color: 'var(--accent-light)',
               border: '1px solid rgba(124,92,252,0.25)',
             }}
           >
+            {hint.icon && <hint.icon size={11} />}
             {hint.label}
           </motion.button>
         ))}
