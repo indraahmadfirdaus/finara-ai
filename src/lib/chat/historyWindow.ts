@@ -61,7 +61,40 @@ function convertFullTurn(turn: ChatHistoryRow[]): Msg[] {
       msgs.push({ role: 'assistant', content: row.content })
     }
   }
-  return msgs
+
+  // Pairing safety post-process: collect the set of tool_call ids that are
+  // actually answered by an emitted tool message in this turn.
+  const answeredIds = new Set<string>()
+  for (const m of msgs) {
+    if (m.role === 'tool') {
+      answeredIds.add((m as OpenAI.Chat.ChatCompletionToolMessageParam).tool_call_id)
+    }
+  }
+
+  // For each assistant message that carries tool_calls, filter its tool_calls
+  // to only those ids that were answered. If the filtered list is empty, either
+  // replace the message with a content-only message (if there is text) or drop
+  // it entirely — an empty tool_calls array triggers a 400 from the API.
+  const result: Msg[] = []
+  for (const m of msgs) {
+    if (m.role === 'assistant' && Array.isArray((m as OpenAI.Chat.ChatCompletionAssistantMessageParam).tool_calls)) {
+      const assistantMsg = m as OpenAI.Chat.ChatCompletionAssistantMessageParam
+      const filtered = (assistantMsg.tool_calls ?? []).filter((tc) => answeredIds.has(tc.id))
+      if (filtered.length === 0) {
+        // No answered tool_calls — replace with content-only or drop.
+        if (assistantMsg.content && typeof assistantMsg.content === 'string' && assistantMsg.content.length > 0) {
+          result.push({ role: 'assistant', content: assistantMsg.content })
+        }
+        // else: drop entirely
+      } else {
+        result.push({ ...assistantMsg, tool_calls: filtered })
+      }
+    } else {
+      result.push(m)
+    }
+  }
+
+  return result
 }
 
 // Old turns keep only user/assistant text; card JSON is replaced so stale
